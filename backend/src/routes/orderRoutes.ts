@@ -1,4 +1,5 @@
 import express from "express";
+import { auth, authorizeRoles } from "../middleware/auth";
 import {
   createOrder,
   updateOrderStatus,
@@ -7,8 +8,13 @@ import {
 
 const router = express.Router();
 
-router.get("/", getOrders);
+router.get("/", auth, authorizeRoles("admin"), getOrders);
 router.post("/", createOrder);
-router.patch("/:id/orderStatus", updateOrderStatus);
+router.patch(
+  "/:id/orderStatus",
+  auth,
+  authorizeRoles("admin"),
+  updateOrderStatus,
+);
 
 export default router;

@@ -1,4 +1,5 @@
-import expresss from "express";
+import express from "express";
+import { auth, authorizeRoles } from "../middleware/auth";
 import {
   createProduct,
   getProduct,
@@ -7,12 +8,12 @@ import {
   deleteProduct,
 } from "../controller/productController";
 
-const router = expresss.Router();
+const router = express.Router();
 
-router.post("/", createProduct);
+router.post("/", auth, authorizeRoles("admin"), createProduct);
 router.get("/", getProducts);
 router.get("/:id", getProduct);
-router.put("/:id", updateProduct);
-router.delete("/:id", deleteProduct);
+router.put("/:id", auth, authorizeRoles("admin"), updateProduct);
+router.delete("/:id", auth, authorizeRoles("admin"), deleteProduct);
 
 export default router;
