@@ -78,3 +78,25 @@ export const refreshToken = (req: Request, res: Response) => {
     return res.status(401).json({ message: "Invalid refresh token" });
   }
 };
+
+export const getCurrentUser = (req: Request, res: Response) => {
+  if (!req.user) {
+    return res.status(401).json({ message: "Not authenticated" });
+  }
+
+  res.json(req.user);
+};
+
+export const getAdmins = async (req: Request, res: Response) => {
+  try {
+    const admins = await prisma.user.findMany({
+      where: { role: "admin" },
+      select: { id: true, email: true, role: true },
+    });
+
+    res.json(admins);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to fetch admins" });
+  }
+};
