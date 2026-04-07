@@ -33,29 +33,29 @@ const AdminDashboard = () => {
   return (
     <SidebarProvider>
       <div className="flex h-screen">
-        <Sidebar className="bg-surface border-r border-surface-container">
+        <Sidebar className="bg-surface-container-low border-r border-border">
           <SidebarHeader className="p-4">
             <h1 className="text-lg font-black text-primary uppercase tracking-widest">
               Admin Panel
             </h1>
-            <p className="text-sm text-muted-foreground">Market Manager</p>
+            <p className="text-sm text-foreground/70">Market Manager</p>
           </SidebarHeader>
           <SidebarContent className="flex-1 p-4">
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton className="flex items-center gap-3 px-3 py-2 text-muted-foreground hover:bg-surface-container transition-transform hover:translate-x-1">
+                <SidebarMenuButton className="flex items-center gap-3 px-3 py-2 text-foreground hover:bg-surface-container/80 transition-all hover:translate-x-1">
                   <span className="material-symbols-outlined">dashboard</span>
                   <span>Dashboard</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton className="flex items-center gap-3 px-3 py-2 bg-secondary/10 text-secondary font-bold rounded-lg">
+                <SidebarMenuButton className="flex items-center gap-3 px-3 py-2 bg-surface-container text-primary font-semibold rounded-lg">
                   <span className="material-symbols-outlined">inventory_2</span>
                   <span>Inventory</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton className="flex items-center gap-3 px-3 py-2 text-muted-foreground hover:bg-surface-container transition-transform hover:translate-x-1">
+                <SidebarMenuButton className="flex items-center gap-3 px-3 py-2 text-foreground hover:bg-surface-container/80 transition-all hover:translate-x-1">
                   <span className="material-symbols-outlined">
                     shopping_bag
                   </span>
@@ -63,13 +63,13 @@ const AdminDashboard = () => {
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton className="flex items-center gap-3 px-3 py-2 text-muted-foreground hover:bg-surface-container transition-transform hover:translate-x-1">
+                <SidebarMenuButton className="flex items-center gap-3 px-3 py-2 text-foreground hover:bg-surface-container/80 transition-all hover:translate-x-1">
                   <span className="material-symbols-outlined">group</span>
                   <span>Users</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton className="flex items-center gap-3 px-3 py-2 text-muted-foreground hover:bg-surface-container transition-transform hover:translate-x-1">
+                <SidebarMenuButton className="flex items-center gap-3 px-3 py-2 text-foreground hover:bg-surface-container/80 transition-all hover:translate-x-1">
                   <span className="material-symbols-outlined">analytics</span>
                   <span>Analytics</span>
                 </SidebarMenuButton>
@@ -91,13 +91,13 @@ const AdminDashboard = () => {
             </div>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton className="flex items-center gap-3 px-3 py-2 text-muted-foreground hover:bg-surface-container transition-transform hover:translate-x-1">
+                <SidebarMenuButton className="flex items-center gap-3 px-3 py-2 text-foreground hover:bg-surface-container/80 transition-all hover:translate-x-1">
                   <span className="material-symbols-outlined">settings</span>
                   <span>Settings</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton className="flex items-center gap-3 px-3 py-2 text-muted-foreground hover:bg-surface-container transition-transform hover:translate-x-1">
+                <SidebarMenuButton className="flex items-center gap-3 px-3 py-2 text-foreground hover:bg-surface-container/80 transition-all hover:translate-x-1">
                   <span className="material-symbols-outlined">logout</span>
                   <span>Logout</span>
                 </SidebarMenuButton>
@@ -108,7 +108,7 @@ const AdminDashboard = () => {
         <main className="flex-1 p-8">
           <header className="flex justify-between items-end mb-12">
             <div>
-              <nav className="flex gap-2 text-xs font-label text-secondary mb-2 uppercase tracking-widest">
+              <nav className="flex gap-2 text-xs font-label text-secondary-foreground mb-2 uppercase tracking-widest">
                 <span>Admin</span>
                 <span>/</span>
                 <span className="text-foreground font-bold">
@@ -119,7 +119,7 @@ const AdminDashboard = () => {
                 Archive Collection
               </h2>
             </div>
-            <Button className="bg-gradient-to-br from-primary to-primary-container text-primary-foreground px-8 py-3 rounded-full flex items-center gap-2 font-semibold hover:scale-95 transition-transform">
+            <Button className="bg-gradient-to-br from-primary to-primary/90 text-primary-foreground px-8 py-3 rounded-full flex items-center gap-2 font-semibold hover:scale-95 transition-transform">
               <span className="material-symbols-outlined text-xl">add</span>
               Add New Product
             </Button>
@@ -128,7 +128,7 @@ const AdminDashboard = () => {
             <Card className="bg-card shadow-sm">
               <CardContent className="p-8 relative overflow-hidden">
                 <div className="relative z-10">
-                  <p className="text-xs font-label text-secondary uppercase tracking-widest mb-1">
+                  <p className="text-xs font-label text-secondary-foreground uppercase tracking-widest mb-1">
                     Total Products
                   </p>
                   <h3 className="text-4xl font-heading font-bold text-foreground">
@@ -149,7 +149,7 @@ const AdminDashboard = () => {
             <Card className="bg-card shadow-sm">
               <CardContent className="p-8 relative overflow-hidden">
                 <div className="relative z-10">
-                  <p className="text-xs font-label text-secondary uppercase tracking-widest mb-1">
+                  <p className="text-xs font-label text-secondary-foreground uppercase tracking-widest mb-1">
                     Low Stock Items
                   </p>
                   <h3 className="text-4xl font-heading font-bold text-destructive">
@@ -170,7 +170,7 @@ const AdminDashboard = () => {
             <Card className="bg-card shadow-sm">
               <CardContent className="p-8 relative overflow-hidden">
                 <div className="relative z-10">
-                  <p className="text-xs font-label text-secondary uppercase tracking-widest mb-1">
+                  <p className="text-xs font-label text-secondary-foreground uppercase tracking-widest mb-1">
                     Inventory Value
                   </p>
                   <h3 className="text-4xl font-heading font-bold text-foreground">
@@ -191,7 +191,7 @@ const AdminDashboard = () => {
           </section>
           <section className="bg-surface-container-low p-4 rounded-xl mb-6 flex flex-wrap gap-4 items-center justify-between">
             <div className="flex-1 min-w-[300px] relative">
-              <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline">
+              <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
                 search
               </span>
               <Input
@@ -217,9 +217,9 @@ const AdminDashboard = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Categories</SelectItem>
-                  <SelectItem value="produce">Produce</SelectItem>
-                  <SelectItem value="herbs">Herbs</SelectItem>
-                  <SelectItem value="fungi">Fungi</SelectItem>
+                  <SelectItem value="fruits">Fruits</SelectItem>
+                  <SelectItem value="vegetable">Vegetable</SelectItem>
+                  <SelectItem value="dairy">Dairy</SelectItem>
                 </SelectContent>
               </Select>
               <Button variant="outline" size="icon">
@@ -230,7 +230,7 @@ const AdminDashboard = () => {
           <div className="bg-card rounded-xl overflow-hidden shadow-sm">
             <Table>
               <TableHeader>
-                <TableRow className="bg-surface-container text-muted-foreground">
+                <TableRow className="bg-surface-container text-foreground/80">
                   <TableHead className="px-6 py-4 text-xs font-label uppercase tracking-widest font-bold">
                     Visual
                   </TableHead>
@@ -265,14 +265,14 @@ const AdminDashboard = () => {
                       />
                     </div>
                   </TableCell>
-                  <TableCell className="px-6 py-4 font-mono text-xs text-outline">
+                  <TableCell className="px-6 py-4 font-mono text-xs text-muted-foreground">
                     #ARC-7721
                   </TableCell>
                   <TableCell className="px-6 py-4">
                     <p className="font-heading font-bold text-foreground">
                       Valencia Oranges
                     </p>
-                    <p className="text-xs text-secondary italic">
+                    <p className="text-xs text-muted-foreground italic">
                       Citrus sinensis
                     </p>
                   </TableCell>
@@ -295,7 +295,9 @@ const AdminDashboard = () => {
                     <span className="font-heading font-bold text-foreground">
                       $4.50
                     </span>
-                    <span className="text-[10px] text-outline block">/kg</span>
+                    <span className="text-[10px] text-muted-foreground block">
+                      /kg
+                    </span>
                   </TableCell>
                   <TableCell className="px-6 py-4">
                     <div className="flex justify-center gap-2">
@@ -325,11 +327,10 @@ const AdminDashboard = () => {
                     </div>
                   </TableCell>
                 </TableRow>
-                {/* Add more rows as needed */}
               </TableBody>
             </Table>
             <div className="bg-surface-container-low px-6 py-4 flex items-center justify-between">
-              <p className="text-xs font-label text-outline uppercase tracking-widest">
+              <p className="text-xs font-label text-muted-foreground uppercase tracking-widest">
                 Showing 1 to 10 of 1,284 entries
               </p>
               <div className="flex gap-1">
