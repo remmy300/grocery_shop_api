@@ -119,7 +119,7 @@ const AdminDashboard = () => {
                 Archive Collection
               </h2>
             </div>
-            <Button className="bg-gradient-to-br from-primary to-primary/90 text-primary-foreground px-8 py-3 rounded-full flex items-center gap-2 font-semibold hover:scale-95 transition-transform">
+            <Button className="bg-linear-to-br from-primary to-primary/90 text-primary-foreground px-8 py-3 rounded-full flex items-center gap-2 font-semibold hover:scale-95 transition-transform">
               <span className="material-symbols-outlined text-xl">add</span>
               Add New Product
             </Button>

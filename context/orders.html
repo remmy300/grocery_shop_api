@@ -1,0 +1,573 @@
+<!doctype html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Orders Management | Botanical Archivist</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@300;400;500;600&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-container-low": "#f3f3f3",
+              "on-background": "#1a1c1c",
+              "inverse-primary": "#88d982",
+              "surface-variant": "#e2e2e2",
+              "on-secondary-fixed": "#2d150d",
+              "secondary-fixed-dim": "#e9bdae",
+              primary: "#0d631b",
+              "surface-container-lowest": "#ffffff",
+              "on-tertiary": "#ffffff",
+              "on-tertiary-container": "#ffede9",
+              "on-secondary-fixed-variant": "#5e3f35",
+              "on-surface-variant": "#40493d",
+              "on-error": "#ffffff",
+              "surface-container-highest": "#e2e2e2",
+              "outline-variant": "#bfcaba",
+              "on-surface": "#1a1c1c",
+              tertiary: "#a02900",
+              "surface-tint": "#1b6d24",
+              "on-tertiary-fixed": "#3b0900",
+              "tertiary-fixed": "#ffdbd1",
+              surface: "#f9f9f9",
+              "secondary-fixed": "#ffdbcf",
+              "inverse-on-surface": "#f1f1f1",
+              "on-primary-fixed": "#002204",
+              "on-secondary": "#ffffff",
+              "surface-container": "#eeeeee",
+              secondary: "#79564b",
+              "on-secondary-container": "#79574c",
+              error: "#ba1a1a",
+              outline: "#707a6c",
+              "on-primary-container": "#cbffc2",
+              "surface-bright": "#f9f9f9",
+              background: "#f9f9f9",
+              "surface-container-high": "#e8e8e8",
+              "primary-fixed": "#a3f69c",
+              "on-error-container": "#93000a",
+              "error-container": "#ffdad6",
+              "tertiary-container": "#cb3700",
+              "surface-dim": "#dadada",
+              "primary-fixed-dim": "#88d982",
+              "primary-container": "#2e7d32",
+              "on-primary-fixed-variant": "#005312",
+              "on-tertiary-fixed-variant": "#872100",
+              "tertiary-fixed-dim": "#ffb5a0",
+              "on-primary": "#ffffff",
+              "secondary-container": "#fed0c1",
+              "inverse-surface": "#2f3131",
+            },
+            borderRadius: {
+              DEFAULT: "0.25rem",
+              lg: "0.5rem",
+              xl: "0.75rem",
+              full: "9999px",
+            },
+            fontFamily: {
+              headline: ["Plus Jakarta Sans"],
+              body: ["Inter"],
+              label: ["Inter"],
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      .material-symbols-outlined {
+        font-variation-settings:
+          "FILL" 0,
+          "wght" 400,
+          "GRAD" 0,
+          "opsz" 24;
+      }
+      body {
+        font-family: "Inter", sans-serif;
+      }
+      h1,
+      h2,
+      h3 {
+        font-family: "Plus Jakarta Sans", sans-serif;
+      }
+    </style>
+  </head>
+  <body class="bg-surface text-on-surface flex min-h-screen">
+    <!-- SideNavBar (Authority: JSON & Design System) -->
+    <aside
+      class="hidden md:flex flex-col h-screen w-64 fixed left-0 top-0 border-r-0 bg-stone-50 dark:bg-stone-950 font-['Plus_Jakarta_Sans'] text-sm p-4 z-50"
+    >
+      <div class="mb-10 px-4">
+        <span
+          class="text-lg font-black text-green-900 dark:text-white uppercase tracking-widest"
+          >Admin Panel</span
+        >
+        <p
+          class="text-[10px] text-stone-500 font-medium uppercase tracking-tighter"
+        >
+          Market Manager
+        </p>
+      </div>
+      <nav class="flex-1 space-y-1">
+        <!-- Dashboard Tab -->
+        <a
+          class="flex items-center gap-3 px-4 py-3 text-stone-500 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-900 hover:translate-x-1 transition-transform duration-200 ease-in-out"
+          href="#"
+        >
+          <span class="material-symbols-outlined" data-icon="dashboard"
+            >dashboard</span
+          >
+          <span>Dashboard</span>
+        </a>
+        <!-- Inventory Tab -->
+        <a
+          class="flex items-center gap-3 px-4 py-3 text-stone-500 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-900 hover:translate-x-1 transition-transform duration-200 ease-in-out"
+          href="#"
+        >
+          <span class="material-symbols-outlined" data-icon="inventory_2"
+            >inventory_2</span
+          >
+          <span>Inventory</span>
+        </a>
+        <!-- Orders Tab (ACTIVE) -->
+        <a
+          class="flex items-center gap-3 px-4 py-3 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 font-bold rounded-lg hover:translate-x-1 transition-transform duration-200 ease-in-out"
+          href="#"
+        >
+          <span class="material-symbols-outlined" data-icon="shopping_bag"
+            >shopping_bag</span
+          >
+          <span>Orders</span>
+        </a>
+        <!-- Users Tab -->
+        <a
+          class="flex items-center gap-3 px-4 py-3 text-stone-500 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-900 hover:translate-x-1 transition-transform duration-200 ease-in-out"
+          href="#"
+        >
+          <span class="material-symbols-outlined" data-icon="group">group</span>
+          <span>Users</span>
+        </a>
+        <!-- Analytics Tab -->
+        <a
+          class="flex items-center gap-3 px-4 py-3 text-stone-500 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-900 hover:translate-x-1 transition-transform duration-200 ease-in-out"
+          href="#"
+        >
+          <span class="material-symbols-outlined" data-icon="analytics"
+            >analytics</span
+          >
+          <span>Analytics</span>
+        </a>
+      </nav>
+      <div
+        class="mt-auto pt-4 border-t border-stone-200 dark:border-stone-800 space-y-1"
+      >
+        <div class="flex items-center gap-3 px-4 py-4 mb-4">
+          <div class="w-8 h-8 rounded-full overflow-hidden bg-stone-200">
+            <img
+              class="w-full h-full object-cover"
+              data-alt="professional portrait of an administrative market manager in a minimalist studio setting"
+              src="https://lh3.googleusercontent.com/aida-public/AB6AXuDyF758iBzel_7knA5hEY-yOyqMNx5rXjBdNJFKo7dY7S559Riqy-QX19ueNJlyf0AdPcnZnJrEss_yz60aMmPfcx-z-9mG63eSoNXRfDZ9p4-qcWJr_8SLtKAHMynOE21xfrwA_hfaRwuUdIPG1twRzVVg6bQGL6dIlJSrCs-1aA2t3u7wTj48W5u_B-zb8vViBgHCg-GzfxWTUlHoDO-QXObnZvgmLM8FWKDbEVEW_-8C_eEoMkSjEcCkmlSzmHB9i1Q_auTHPGg"
+            />
+          </div>
+          <div>
+            <p class="font-bold text-on-surface text-xs">Admin Profile</p>
+          </div>
+        </div>
+        <a
+          class="flex items-center gap-3 px-4 py-3 text-stone-500 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-900 hover:translate-x-1 transition-transform duration-200 ease-in-out"
+          href="#"
+        >
+          <span class="material-symbols-outlined" data-icon="settings"
+            >settings</span
+          >
+          <span>Settings</span>
+        </a>
+        <a
+          class="flex items-center gap-3 px-4 py-3 text-stone-500 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-900 hover:translate-x-1 transition-transform duration-200 ease-in-out text-error"
+          href="#"
+        >
+          <span class="material-symbols-outlined" data-icon="logout"
+            >logout</span
+          >
+          <span>Logout</span>
+        </a>
+      </div>
+    </aside>
+    <!-- Main Content Canvas -->
+    <main class="flex-1 md:ml-64 p-6 md:p-10 bg-surface">
+      <header
+        class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6"
+      >
+        <div>
+          <h1
+            class="text-4xl font-extrabold tracking-tighter text-on-surface mb-2"
+          >
+            Order Archive
+          </h1>
+          <p class="text-secondary font-medium tracking-tight">
+            Managing the seasonal harvest transitions.
+          </p>
+        </div>
+        <div class="flex gap-3">
+          <button
+            class="bg-surface-container-high text-primary px-6 py-2.5 rounded-full font-semibold text-sm transition-transform active:scale-95"
+          >
+            Export CSV
+          </button>
+          <button
+            class="bg-gradient-to-br from-primary to-primary-container text-on-primary px-6 py-2.5 rounded-full font-semibold text-sm shadow-sm transition-transform active:scale-95"
+          >
+            Create Manual Order
+          </button>
+        </div>
+      </header>
+      <!-- Search & Filters (Editorial Bento Style) -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div
+          class="md:col-span-2 bg-surface-container-lowest p-1 rounded-xl shadow-sm flex items-center"
+        >
+          <span
+            class="material-symbols-outlined text-outline ml-4"
+            data-icon="search"
+            >search</span
+          >
+          <input
+            class="w-full bg-transparent border-none focus:ring-0 text-sm font-body py-3 px-4"
+            placeholder="Search by ID or customer..."
+            type="text"
+          />
+        </div>
+        <div
+          class="bg-surface-container-lowest p-1 rounded-xl shadow-sm flex items-center justify-between px-4"
+        >
+          <span class="text-xs font-bold uppercase tracking-widest text-outline"
+            >Status</span
+          >
+          <select
+            class="bg-transparent border-none focus:ring-0 text-sm font-medium text-on-surface-variant"
+          >
+            <option>All Orders</option>
+            <option>Pending</option>
+            <option>Shipped</option>
+            <option>Delivered</option>
+          </select>
+        </div>
+        <div
+          class="bg-surface-container-lowest p-1 rounded-xl shadow-sm flex items-center justify-between px-4"
+        >
+          <span class="text-xs font-bold uppercase tracking-widest text-outline"
+            >Sort</span
+          >
+          <select
+            class="bg-transparent border-none focus:ring-0 text-sm font-medium text-on-surface-variant"
+          >
+            <option>Newest First</option>
+            <option>Oldest First</option>
+            <option>Highest Amount</option>
+          </select>
+        </div>
+      </div>
+      <!-- Orders Table (Surface Layering) -->
+      <div
+        class="bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm"
+      >
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-surface-container-low border-none">
+                <th
+                  class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-secondary"
+                >
+                  Order ID
+                </th>
+                <th
+                  class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-secondary"
+                >
+                  Customer Name
+                </th>
+                <th
+                  class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-secondary"
+                >
+                  Date
+                </th>
+                <th
+                  class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-secondary text-right"
+                >
+                  Total Amount
+                </th>
+                <th
+                  class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-secondary"
+                >
+                  Status
+                </th>
+                <th
+                  class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-secondary"
+                >
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-surface-container">
+              <!-- Row 1 -->
+              <tr class="hover:bg-surface-container-lowest transition-colors">
+                <td class="px-6 py-5 font-headline font-bold text-sm">
+                  #ARC-8942
+                </td>
+                <td class="px-6 py-5">
+                  <div class="flex items-center gap-3">
+                    <div
+                      class="w-8 h-8 rounded-full bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed text-xs font-bold"
+                    >
+                      EM
+                    </div>
+                    <span class="text-sm font-medium text-on-surface"
+                      >Evelyn Montgomery</span
+                    >
+                  </div>
+                </td>
+                <td class="px-6 py-5 text-sm text-on-surface-variant">
+                  Oct 24, 2024
+                </td>
+                <td
+                  class="px-6 py-5 text-sm font-bold text-on-surface text-right"
+                >
+                  $142.50
+                </td>
+                <td class="px-6 py-5">
+                  <span
+                    class="bg-secondary-fixed text-on-secondary-fixed-variant px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide"
+                    >Pending</span
+                  >
+                </td>
+                <td class="px-6 py-5">
+                  <button
+                    class="text-outline hover:text-primary transition-colors"
+                  >
+                    <span
+                      class="material-symbols-outlined"
+                      data-icon="more_horiz"
+                      >more_horiz</span
+                    >
+                  </button>
+                </td>
+              </tr>
+              <!-- Row 2 -->
+              <tr class="hover:bg-surface-container-lowest transition-colors">
+                <td class="px-6 py-5 font-headline font-bold text-sm">
+                  #ARC-8931
+                </td>
+                <td class="px-6 py-5">
+                  <div class="flex items-center gap-3">
+                    <img
+                      class="w-8 h-8 rounded-full object-cover"
+                      data-alt="portrait of a male customer with friendly expression, natural outdoor lighting"
+                      src="https://lh3.googleusercontent.com/aida-public/AB6AXuBNxVnQ6xt0vb8DPGcDsB1Es1flEWOmUruXH8-GQESnkCbge1cN2z2k3cRdEA0Yow6bFwIuXr4mmnm799spGXP1F0sCw75xPZMYkF1mm7Nwy_pWbZeMechq8ho84iO1dzoThU_9wEJABY5mqyBuKqLaPV3shrZKah4TjMnyuSFvm-_HWNhqdcvQQqOEorfa4BqQPm7zzcSRzaGpsu0GqJr3U_tW4XmzYC64ytXf8Vvx302fOoNLH4gPq14svpX95F6amDS_zhcjSkY"
+                    />
+                    <span class="text-sm font-medium text-on-surface"
+                      >Julian Thorne</span
+                    >
+                  </div>
+                </td>
+                <td class="px-6 py-5 text-sm text-on-surface-variant">
+                  Oct 23, 2024
+                </td>
+                <td
+                  class="px-6 py-5 text-sm font-bold text-on-surface text-right"
+                >
+                  $89.20
+                </td>
+                <td class="px-6 py-5">
+                  <span
+                    class="bg-primary-fixed text-on-primary-fixed-variant px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide"
+                    >Shipped</span
+                  >
+                </td>
+                <td class="px-6 py-5">
+                  <button
+                    class="text-outline hover:text-primary transition-colors"
+                  >
+                    <span
+                      class="material-symbols-outlined"
+                      data-icon="more_horiz"
+                      >more_horiz</span
+                    >
+                  </button>
+                </td>
+              </tr>
+              <!-- Row 3 -->
+              <tr class="hover:bg-surface-container-lowest transition-colors">
+                <td class="px-6 py-5 font-headline font-bold text-sm">
+                  #ARC-8910
+                </td>
+                <td class="px-6 py-5">
+                  <div class="flex items-center gap-3">
+                    <div
+                      class="w-8 h-8 rounded-full bg-tertiary-fixed flex items-center justify-center text-on-tertiary-fixed text-xs font-bold"
+                    >
+                      CR
+                    </div>
+                    <span class="text-sm font-medium text-on-surface"
+                      >Clara Rivera</span
+                    >
+                  </div>
+                </td>
+                <td class="px-6 py-5 text-sm text-on-surface-variant">
+                  Oct 22, 2024
+                </td>
+                <td
+                  class="px-6 py-5 text-sm font-bold text-on-surface text-right"
+                >
+                  $215.00
+                </td>
+                <td class="px-6 py-5">
+                  <span
+                    class="bg-surface-container-highest text-on-surface-variant px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide"
+                    >Delivered</span
+                  >
+                </td>
+                <td class="px-6 py-5">
+                  <button
+                    class="text-outline hover:text-primary transition-colors"
+                  >
+                    <span
+                      class="material-symbols-outlined"
+                      data-icon="more_horiz"
+                      >more_horiz</span
+                    >
+                  </button>
+                </td>
+              </tr>
+              <!-- Row 4 -->
+              <tr class="hover:bg-surface-container-lowest transition-colors">
+                <td class="px-6 py-5 font-headline font-bold text-sm">
+                  #ARC-8905
+                </td>
+                <td class="px-6 py-5">
+                  <div class="flex items-center gap-3">
+                    <img
+                      class="w-8 h-8 rounded-full object-cover"
+                      data-alt="studio portrait of a female customer smiling, soft editorial lighting"
+                      src="https://lh3.googleusercontent.com/aida-public/AB6AXuAbrYFCEwO7KxzzL858suhOiXwGXRfvZOkaceOSb_TPxsEQXohaNjLUjDX8sF8yWYaaFAFYFrZahPV5xbjLpafY48Wsr5brcVJFuXsXaE_5D9DLbJD--eGX6aLDQxaeMKRtFFwJi8Y3NOrew4clH6Y5xO1URtTGElVnpljoPDPquMc7-uyBzN1rJh-4P1yMcnJ5UnwqLXbEh7phJwR2WB5wia6T-I1sCSb7NfYFsQXdp9O8U94uHn1mpzJpOblSE9Esi_XwtiSmvhc"
+                    />
+                    <span class="text-sm font-medium text-on-surface"
+                      >Sarah Jenkins</span
+                    >
+                  </div>
+                </td>
+                <td class="px-6 py-5 text-sm text-on-surface-variant">
+                  Oct 22, 2024
+                </td>
+                <td
+                  class="px-6 py-5 text-sm font-bold text-on-surface text-right"
+                >
+                  $54.10
+                </td>
+                <td class="px-6 py-5">
+                  <span
+                    class="bg-secondary-fixed text-on-secondary-fixed-variant px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide"
+                    >Pending</span
+                  >
+                </td>
+                <td class="px-6 py-5">
+                  <button
+                    class="text-outline hover:text-primary transition-colors"
+                  >
+                    <span
+                      class="material-symbols-outlined"
+                      data-icon="more_horiz"
+                      >more_horiz</span
+                    >
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <!-- Pagination (Organic Minimalism) -->
+        <div class="px-6 py-4 flex items-center justify-between bg-white/50">
+          <p class="text-xs text-on-surface-variant font-medium">
+            Showing <span class="font-bold">1-10</span> of 124 archives
+          </p>
+          <div class="flex gap-2">
+            <button
+              class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-container transition-colors"
+            >
+              <span
+                class="material-symbols-outlined text-sm"
+                data-icon="chevron_left"
+                >chevron_left</span
+              >
+            </button>
+            <button
+              class="w-8 h-8 flex items-center justify-center rounded-lg bg-primary text-on-primary text-xs font-bold"
+            >
+              1
+            </button>
+            <button
+              class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-container text-xs font-medium transition-colors"
+            >
+              2
+            </button>
+            <button
+              class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-container text-xs font-medium transition-colors"
+            >
+              3
+            </button>
+            <button
+              class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-container transition-colors"
+            >
+              <span
+                class="material-symbols-outlined text-sm"
+                data-icon="chevron_right"
+                >chevron_right</span
+              >
+            </button>
+          </div>
+        </div>
+      </div>
+      <!-- Footer (Authority: JSON & Design System) -->
+      <footer
+        class="w-full py-12 mt-20 border-t border-stone-200 dark:border-stone-800 flex flex-col md:flex-row justify-between items-center px-8 max-w-7xl mx-auto font-['Inter'] text-xs uppercase tracking-widest opacity-80 hover:opacity-100 transition-opacity"
+      >
+        <p class="text-stone-500 dark:text-stone-400 mb-6 md:mb-0">
+          © 2024 Botanical Archivist. All rights reserved.
+        </p>
+        <div class="flex gap-8">
+          <a
+            class="text-stone-500 dark:text-stone-400 hover:text-green-600 underline-offset-4 hover:underline transition-colors"
+            href="#"
+            >Contact</a
+          >
+          <a
+            class="text-stone-500 dark:text-stone-400 hover:text-green-600 underline-offset-4 hover:underline transition-colors"
+            href="#"
+            >About</a
+          >
+          <a
+            class="text-stone-500 dark:text-stone-400 hover:text-green-600 underline-offset-4 hover:underline transition-colors"
+            href="#"
+            >Help</a
+          >
+          <a
+            class="text-stone-500 dark:text-stone-400 hover:text-green-600 underline-offset-4 hover:underline transition-colors"
+            href="#"
+            >Privacy Policy</a
+          >
+        </div>
+      </footer>
+    </main>
+  </body>
+</html>
