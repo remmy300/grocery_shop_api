@@ -2,271 +2,282 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 
 const DashboardPage = () => {
+  // Sample revenue data for the chart
+  const revenueData = [
+    { month: "Jan", revenue: 45000 },
+    { month: "Feb", revenue: 52000 },
+    { month: "Mar", revenue: 48000 },
+    { month: "Apr", revenue: 61000 },
+    { month: "May", revenue: 55000 },
+    { month: "Jun", revenue: 67000 },
+    { month: "Jul", revenue: 72000 },
+    { month: "Aug", revenue: 68000 },
+    { month: "Sep", revenue: 75000 },
+    { month: "Oct", revenue: 82000 },
+    { month: "Nov", revenue: 78000 },
+    { month: "Dec", revenue: 89000 },
+  ];
+
+  // Sample activity data
+  const activities = [
+    {
+      id: 1,
+      user: "Evelyn Montgomery",
+      action: "placed an order",
+      item: "Valencia Oranges (5kg)",
+      time: "2 minutes ago",
+      avatar:
+        "https://lh3.googleusercontent.com/aida-public/AB6AXuDyF758iBzel_7knA5hEY-yOyqMNx5rXjBdNJFKo7dY7S559Riqy-QX19ueNJlyf0AdPcnZnJrEss_yz60aMmPfcx-z-9mG63eSoNXRfDZ9p4-qcWJr_8SLtKAHMynOE21xfrwA_hfaRwuUdIPG1twRzVVg6bQGL6dIlJSrCs-1aA2t3u7wTj48W5u_B-zb8vViBgHCg-GzfxWTUlHoDO-QXObnZvgmLM8FWKDbEVEW_-8C_eEoMkSjEcCkmlSzmHB9i1Q_auTHPGg",
+    },
+    {
+      id: 2,
+      user: "Julian Thorne",
+      action: "completed payment",
+      item: "Order #ARC-8931",
+      time: "5 minutes ago",
+      avatar:
+        "https://lh3.googleusercontent.com/aida-public/AB6AXuBNxVnQ6xt0vb8DPGcDsB1Es1flEWOmUruXH8-GQESnkCbge1cN2z2k3cRdEA0Yow6bFwIuXr4mmnm799spGXP1F0sCw75xPZMYkF1mm7Nwy_pWbZeMechq8ho84iO1dzoThU_9wEJABY5mqyBuKqLaPV3shrZKah4TjMnyuSFvm-_HWNhqdcvQQqOEorfa4BqQPm7zzcSRzaGpsu0GqJr3U_tW4XmzYC64ytXf8Vvx302fOoNLH4gPq14svpX95F6amDS_zhcjSkY",
+    },
+    {
+      id: 3,
+      user: "Clara Rivera",
+      action: "updated profile",
+      item: "Shipping address",
+      time: "12 minutes ago",
+      avatar: "",
+      initials: "CR",
+    },
+    {
+      id: 4,
+      user: "Sarah Jenkins",
+      action: "left a review",
+      item: "Organic Tomatoes",
+      time: "18 minutes ago",
+      avatar:
+        "https://lh3.googleusercontent.com/aida-public/AB6AXuAbrYFCEwO7KxzzL858suhOiXwGXRfvZOkaceOSb_TPxsEQXohaNjLUjDX8sF8yWYaaFAFYFrZahPV5xbjLpafY48Wsr5brcVJFuXsXaE_5D9DLbJD--eGX6aLDQxaeMKRtFFwJi8Y3NOrew4clH6Y5xO1URtTGElVnpljoPDPquMc7-uyBzN1rJh-4P1yMcnJ5UnwqLXbEh7phJwR2WB5wia6T-I1sCSb7NfYFsQXdp9O8U94uHn1mpzJpOblSE9Esi_XwtiSmvhc",
+    },
+  ];
+
   return (
     <div className="space-y-8">
       <header className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <nav className="flex gap-2 text-xs font-label text-secondary-foreground mb-2 uppercase tracking-widest">
-            <span>Admin</span>
-            <span>/</span>
-            <span className="text-foreground font-bold">
-              Inventory Management
-            </span>
-          </nav>
-          <h2 className="text-4xl font-heading font-extrabold tracking-tighter text-foreground">
+          <h1 className="text-4xl font-heading font-extrabold tracking-tighter text-foreground">
             Archive Collection
-          </h2>
+          </h1>
+          <p className="text-secondary-foreground font-medium tracking-tight">
+            Managing the seasonal harvest transitions.
+          </p>
         </div>
-        <Button className="bg-linear-to-br from-primary to-primary/90 text-primary-foreground px-8 py-3 rounded-full flex items-center gap-2 font-semibold hover:scale-95 transition-transform">
-          <span className="material-symbols-outlined text-xl">add</span>
-          Add New Product
-        </Button>
-      </header>
-
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="bg-card shadow-sm">
-          <CardContent className="p-8 relative overflow-hidden">
-            <div className="relative z-10">
-              <p className="text-xs font-label text-secondary-foreground uppercase tracking-widest mb-1">
-                Total Products
-              </p>
-              <h3 className="text-4xl font-heading font-bold text-foreground">
-                1,284
-              </h3>
-              <div className="mt-4 flex items-center gap-1 text-primary text-xs font-bold">
-                <span className="material-symbols-outlined text-sm">
-                  trending_up
-                </span>
-                <span>+12% this month</span>
-              </div>
-            </div>
-            <span className="material-symbols-outlined absolute -right-4 -bottom-4 text-9xl text-muted opacity-20">
-              inventory
-            </span>
-          </CardContent>
-        </Card>
-        <Card className="bg-card shadow-sm">
-          <CardContent className="p-8 relative overflow-hidden">
-            <div className="relative z-10">
-              <p className="text-xs font-label text-secondary-foreground uppercase tracking-widest mb-1">
-                Low Stock Items
-              </p>
-              <h3 className="text-4xl font-heading font-bold text-destructive">
-                42
-              </h3>
-              <div className="mt-4 flex items-center gap-1 text-destructive text-xs font-bold">
-                <span className="material-symbols-outlined text-sm">
-                  warning
-                </span>
-                <span>Requires attention</span>
-              </div>
-            </div>
-            <span className="material-symbols-outlined absolute -right-4 -bottom-4 text-9xl text-destructive/5">
-              notification_important
-            </span>
-          </CardContent>
-        </Card>
-        <Card className="bg-card shadow-sm">
-          <CardContent className="p-8 relative overflow-hidden">
-            <div className="relative z-10">
-              <p className="text-xs font-label text-secondary-foreground uppercase tracking-widest mb-1">
-                Inventory Value
-              </p>
-              <h3 className="text-4xl font-heading font-bold text-foreground">
-                $84,320
-              </h3>
-              <div className="mt-4 flex items-center gap-1 text-primary text-xs font-bold">
-                <span className="material-symbols-outlined text-sm">
-                  payments
-                </span>
-                <span>Asset valuation</span>
-              </div>
-            </div>
-            <span className="material-symbols-outlined absolute -right-4 -bottom-4 text-9xl text-muted opacity-20">
-              account_balance_wallet
-            </span>
-          </CardContent>
-        </Card>
-      </section>
-
-      <section className="bg-surface-container-low p-4 rounded-xl flex flex-wrap gap-4 items-center justify-between">
-        <div className="flex-1 min-w-[300px] relative">
-          <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
-            search
-          </span>
-          <Input
-            className="pl-12 bg-card border-none focus:ring-1 focus:ring-primary/20"
-            placeholder="Search by botanical name or SKU..."
-          />
-        </div>
-        <div className="flex flex-wrap gap-3">
-          <Select>
-            <SelectTrigger className="bg-card border-none focus:ring-1 focus:ring-primary/20">
-              <SelectValue placeholder="All Stock Levels" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Stock Levels</SelectItem>
-              <SelectItem value="in-stock">In Stock</SelectItem>
-              <SelectItem value="low-stock">Low Stock</SelectItem>
-              <SelectItem value="out-of-stock">Out of Stock</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select>
-            <SelectTrigger className="bg-card border-none focus:ring-1 focus:ring-primary/20">
-              <SelectValue placeholder="All Categories" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              <SelectItem value="fruits">Fruits</SelectItem>
-              <SelectItem value="vegetable">Vegetable</SelectItem>
-              <SelectItem value="dairy">Dairy</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button variant="outline" size="icon">
-            <span className="material-symbols-outlined">filter_list</span>
+        <div className="flex gap-3">
+          <Button className="bg-surface-container-high text-primary px-6 py-2.5 rounded-full font-semibold text-sm hover:scale-95 transition-transform">
+            Export Report
+          </Button>
+          <Button className="bg-linear-to-br from-primary to-primary-container text-primary-foreground px-6 py-2.5 rounded-full font-semibold text-sm hover:scale-95 transition-transform">
+            Generate Insights
           </Button>
         </div>
+      </header>
+
+      {/* Metrics Cards */}
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="bg-surface-container-lowest shadow-sm">
+          <CardContent className="p-6">
+            <div className="flex justify-between items-start mb-4">
+              <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                <span className="material-symbols-outlined">payments</span>
+              </div>
+              <Badge className="bg-primary/10 text-primary text-xs font-bold px-2 py-1">
+                +12%
+              </Badge>
+            </div>
+            <h3 className="text-secondary-foreground text-xs font-label uppercase tracking-widest mb-1">
+              Total Revenue
+            </h3>
+            <p className="text-3xl font-heading font-black text-foreground">
+              $89,420
+            </p>
+          </CardContent>
+        </Card>
+        <Card className="bg-surface-container-lowest shadow-sm">
+          <CardContent className="p-6">
+            <div className="flex justify-between items-start mb-4">
+              <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                <span className="material-symbols-outlined">shopping_cart</span>
+              </div>
+            </div>
+            <h3 className="text-secondary-foreground text-xs font-label uppercase tracking-widest mb-1">
+              Orders Today
+            </h3>
+            <p className="text-3xl font-heading font-black text-foreground">
+              142
+            </p>
+          </CardContent>
+        </Card>
+        <Card className="bg-surface-container-lowest shadow-sm">
+          <CardContent className="p-6">
+            <div className="flex justify-between items-start mb-4">
+              <div className="p-2 bg-green-500/10 rounded-lg text-green-600">
+                <span className="material-symbols-outlined">group</span>
+              </div>
+
+              <Badge className="bg-green-500/10 text-green-600 text-xs font-bold px-2 py-1">
+                +8%
+              </Badge>
+            </div>
+            <h3 className="text-secondary-foreground text-xs font-label uppercase tracking-widest mb-1">
+              Active Customers
+            </h3>
+            <p className="text-3xl font-heading font-black text-foreground">
+              1,284
+            </p>
+          </CardContent>
+        </Card>
       </section>
 
-      <div className="bg-card rounded-xl overflow-hidden shadow-sm">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-surface-container text-foreground/80">
-              <TableHead className="px-6 py-4 text-xs font-label uppercase tracking-widest font-bold">
-                Visual
-              </TableHead>
-              <TableHead className="px-6 py-4 text-xs font-label uppercase tracking-widest font-bold">
-                Product ID
-              </TableHead>
-              <TableHead className="px-6 py-4 text-xs font-label uppercase tracking-widest font-bold">
-                Botanical Name
-              </TableHead>
-              <TableHead className="px-6 py-4 text-xs font-label uppercase tracking-widest font-bold">
-                Category
-              </TableHead>
-              <TableHead className="px-6 py-4 text-xs font-label uppercase tracking-widest font-bold">
-                Stock
-              </TableHead>
-              <TableHead className="px-6 py-4 text-xs font-label uppercase tracking-widest font-bold text-right">
-                Price
-              </TableHead>
-              <TableHead className="px-6 py-4 text-xs font-label uppercase tracking-widest font-bold text-center">
-                Actions
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            <TableRow className="hover:bg-surface transition-colors">
-              <TableCell className="px-6 py-4">
-                <div className="w-12 h-12 rounded-lg bg-surface-container-low overflow-hidden">
-                  <img
-                    className="w-full h-full object-cover"
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJWcY4bUSgvMfZHPjWu34rLuj8ZrsOi4CERsPDiIlg1qJxaXEBWc7ChHM0ky1riYORqtluY2_yF1BJJ-BEkuywbX13lsoZZmvC4-W8YntprPbvTFk8XvYsZ6OsBVjYMq2XBpB7iYgQTvVfreN1N8D56XDszit3CMP0MjCrBFvtp1RBvfHuLM9uo36H9e2oKrLM7G1SbeReXvVoS_A2nrJkGjyD6dO98ok8RyuKAlSjBnn25gJnjMQOvnKbEkhu3b-tUgUMzSYTXKY"
-                    alt="Valencia Oranges"
-                  />
-                </div>
-              </TableCell>
-              <TableCell className="px-6 py-4 font-mono text-xs text-muted-foreground">
-                #ARC-7721
-              </TableCell>
-              <TableCell className="px-6 py-4">
-                <p className="font-heading font-bold text-foreground">
-                  Valencia Oranges
-                </p>
-                <p className="text-xs text-muted-foreground italic">
-                  Citrus sinensis
-                </p>
-              </TableCell>
-              <TableCell className="px-6 py-4">
-                <Badge className="bg-secondary-fixed text-on-secondary-fixed-variant">
-                  Produce
-                </Badge>
-              </TableCell>
-              <TableCell className="px-6 py-4">
-                <div className="flex flex-col gap-1">
-                  <span className="text-sm font-semibold text-foreground">
-                    142 Units
-                  </span>
-                  <div className="w-24 h-1.5 bg-surface-container-high rounded-full overflow-hidden">
-                    <div className="w-4/5 h-full bg-primary" />
-                  </div>
-                </div>
-              </TableCell>
-              <TableCell className="px-6 py-4 text-right">
-                <span className="font-heading font-bold text-foreground">
-                  $4.50
-                </span>
-                <span className="text-[10px] text-muted-foreground block">
-                  /kg
-                </span>
-              </TableCell>
-              <TableCell className="px-6 py-4">
-                <div className="flex justify-center gap-2">
-                  <Button variant="ghost" size="sm">
-                    <span className="material-symbols-outlined text-lg">
-                      visibility
-                    </span>
-                  </Button>
-                  <Button variant="ghost" size="sm" className="text-primary">
-                    <span className="material-symbols-outlined text-lg">
-                      edit
-                    </span>
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-destructive"
-                  >
-                    <span className="material-symbols-outlined text-lg">
-                      delete
-                    </span>
-                  </Button>
-                </div>
-              </TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-
-        <div className="bg-surface-container-low px-6 py-4 flex items-center justify-between">
-          <p className="text-xs font-label text-muted-foreground uppercase tracking-widest">
-            Showing 1 to 10 of 1,284 entries
-          </p>
-          <div className="flex gap-1">
+      {/* Revenue Chart */}
+      <Card className="bg-surface-container-lowest shadow-sm">
+        <CardContent className="p-6">
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h3 className="text-lg font-heading font-bold text-foreground">
+                Revenue Overview
+              </h3>
+              <p className="text-secondary-foreground text-sm">
+                Monthly revenue trends for the past year
+              </p>
+            </div>
             <Button variant="outline" size="sm">
-              <span className="material-symbols-outlined">chevron_left</span>
-            </Button>
-            <Button className="px-3 py-1 bg-primary text-primary-foreground">
-              1
-            </Button>
-            <Button variant="outline" size="sm">
-              2
-            </Button>
-            <Button variant="outline" size="sm">
-              3
-            </Button>
-            <Button variant="outline" size="sm">
-              <span className="material-symbols-outlined">chevron_right</span>
+              <span className="material-symbols-outlined text-sm mr-2">
+                download
+              </span>
+              Export
             </Button>
           </div>
-        </div>
-      </div>
+          <div className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={revenueData}>
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="hsl(var(--outline-variant))"
+                />
+                <XAxis
+                  dataKey="month"
+                  stroke="hsl(var(--secondary-foreground))"
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <YAxis
+                  stroke="hsl(var(--secondary-foreground))"
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                  tickFormatter={(value) => `$${value / 1000}k`}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "hsl(var(--surface-container-lowest))",
+                    border: "1px solid hsl(var(--outline-variant))",
+                    borderRadius: "8px",
+                  }}
+                  formatter={(value) => [
+                    `$${value?.toLocaleString() || "0"}`,
+                    "Revenue",
+                  ]}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="revenue"
+                  stroke="hsl(var(--primary))"
+                  strokeWidth={3}
+                  dot={{ fill: "hsl(var(--primary))", strokeWidth: 2, r: 4 }}
+                  activeDot={{
+                    r: 6,
+                    stroke: "hsl(var(--primary))",
+                    strokeWidth: 2,
+                  }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Activity Feed */}
+      <Card className="bg-surface-container-lowest shadow-sm">
+        <CardContent className="p-6">
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h3 className="text-lg font-heading font-bold text-foreground">
+                Recent Activity
+              </h3>
+              <p className="text-secondary-foreground text-sm">
+                Latest customer interactions and system events
+              </p>
+            </div>
+            <Button variant="outline" size="sm">
+              View All
+            </Button>
+          </div>
+          <div className="space-y-4">
+            {activities.map((activity) => (
+              <div
+                key={activity.id}
+                className="flex items-start gap-4 p-4 rounded-lg hover:bg-surface-container-low transition-colors"
+              >
+                <div className="w-10 h-10 rounded-full overflow-hidden bg-surface-container flex items-center justify-center flex-shrink-0">
+                  {activity.avatar ? (
+                    <img
+                      src={activity.avatar}
+                      alt={activity.user}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-sm font-bold text-on-surface">
+                      {activity.initials}
+                    </span>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-foreground">
+                    <span className="font-semibold">{activity.user}</span>{" "}
+                    {activity.action}{" "}
+                    <span className="text-secondary-foreground">
+                      {activity.item}
+                    </span>
+                  </p>
+                  <p className="text-xs text-secondary-foreground mt-1">
+                    {activity.time}
+                  </p>
+                </div>
+                <Button variant="ghost" size="sm">
+                  <span className="material-symbols-outlined text-lg">
+                    more_horiz
+                  </span>
+                </Button>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Footer */}
+      <footer className="w-full py-12 mt-20 border-t border-outline-variant flex flex-col md:flex-row justify-between items-center px-8 max-w-7xl mx-auto font-label text-xs uppercase tracking-widest opacity-80 hover:opacity-100 transition-opacity">
+        <p className="text-secondary-foreground mb-6 md:mb-0">
+          © {new Date().getFullYear()} Corner Store. All rights reserved.
+        </p>
+      </footer>
     </div>
   );
 };

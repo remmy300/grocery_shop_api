@@ -72,7 +72,7 @@ const AnalyticsPage = () => {
           <Button variant="outline" className="px-6 py-2.5 rounded-full">
             Export Report
           </Button>
-          <Button className="bg-gradient-to-br from-primary to-primary-container text-primary-foreground px-6 py-2.5 rounded-full flex items-center gap-2 hover:scale-95 transition-transform">
+          <Button className="bg-primary text-primary-foreground px-6 py-2.5 rounded-full flex items-center gap-2 hover:scale-95 transition-transform">
             <span className="material-symbols-outlined text-sm">
               calendar_today
             </span>
