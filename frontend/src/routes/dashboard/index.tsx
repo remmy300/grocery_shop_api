@@ -92,9 +92,9 @@ const DashboardPage = () => {
       {/* Metrics Cards */}
       <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="bg-surface-container-lowest shadow-sm">
-          <CardContent className="p-6">
-            <div className="flex justify-between items-start mb-4">
-              <div className="p-2 bg-primary/10 rounded-lg text-primary">
+          <CardContent className="p-5">
+            <div className="flex justify-between items-center mb-4">
+              <div className=" flex justify-center items-centerp-2 bg-primary/10 rounded-lg text-primary">
                 <span className="material-symbols-outlined">payments</span>
               </div>
               <Badge className="bg-primary/10 text-primary text-xs font-bold px-2 py-1">
@@ -111,8 +111,8 @@ const DashboardPage = () => {
         </Card>
         <Card className="bg-surface-container-lowest shadow-sm">
           <CardContent className="p-6">
-            <div className="flex justify-between items-start mb-4">
-              <div className="p-2 bg-primary/10 rounded-lg text-primary">
+            <div className="flex justify-between items-center mb-4">
+              <div className=" flex justify-center items-centerp-2 bg-primary/10 rounded-lg text-primary">
                 <span className="material-symbols-outlined">shopping_cart</span>
               </div>
             </div>
@@ -126,8 +126,8 @@ const DashboardPage = () => {
         </Card>
         <Card className="bg-surface-container-lowest shadow-sm">
           <CardContent className="p-6">
-            <div className="flex justify-between items-start mb-4">
-              <div className="p-2 bg-green-500/10 rounded-lg text-green-600">
+            <div className="flex justify-between items-center mb-4">
+              <div className=" flex justify-center items-centerp-2 bg-green-500/10 rounded-lg text-green-600">
                 <span className="material-symbols-outlined">group</span>
               </div>
 
@@ -273,7 +273,7 @@ const DashboardPage = () => {
       </Card>
 
       {/* Footer */}
-      <footer className="w-full py-12 mt-20 border-t border-outline-variant flex flex-col md:flex-row justify-between items-center px-8 max-w-7xl mx-auto font-label text-xs uppercase tracking-widest opacity-80 hover:opacity-100 transition-opacity">
+      <footer className="w-full py-12 mt-20 border-t border-outline-variant flex flex-col md:flex-row justify-between items-center px-8 font-label text-xs uppercase tracking-widest opacity-80 hover:opacity-100 transition-opacity">
         <p className="text-secondary-foreground mb-6 md:mb-0">
           © {new Date().getFullYear()} Corner Store. All rights reserved.
         </p>

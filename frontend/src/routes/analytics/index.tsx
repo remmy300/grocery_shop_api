@@ -11,7 +11,7 @@ import {
   ResponsiveContainer,
   PieChart,
   Pie,
-  Cell,
+  Legend,
 } from "recharts";
 
 const AnalyticsPage = () => {
@@ -26,11 +26,16 @@ const AnalyticsPage = () => {
   ];
 
   const categoryData = [
-    { name: "Produce", value: 74, color: "hsl(var(--primary))" },
-    { name: "Organic Meat", value: 15, color: "hsl(var(--secondary))" },
-    { name: "Bakery & Deli", value: 8, color: "hsl(var(--tertiary))" },
-    { name: "Dairy", value: 3, color: "hsl(var(--muted))" },
+    { name: "Produce", value: 74, fill: "#16a34a" },
+    { name: "Organic Meat", value: 15, fill: "#f97316" },
+    { name: "Bakery & Deli", value: 8, fill: "#f59e0b" },
+    { name: "Dairy", value: 3, fill: "#0ea5e9" },
   ];
+
+  const totalCategoryValue = categoryData.reduce(
+    (sum, item) => sum + item.value,
+    0,
+  );
 
   const topProducts = [
     {
@@ -56,6 +61,24 @@ const AnalyticsPage = () => {
     },
   ];
 
+  const CategoryTooltip = ({ active, payload }: any) => {
+    if (!active || !payload || !payload.length) return null;
+
+    const item = payload[0].payload;
+    const percent = totalCategoryValue
+      ? ((item.value / totalCategoryValue) * 100).toFixed(0)
+      : "0";
+
+    return (
+      <div className="rounded-2xl border border-slate-200 bg-white/95 p-3 shadow-lg">
+        <div className="text-sm font-semibold text-foreground">{item.name}</div>
+        <div className="text-xs text-muted-foreground">
+          {percent}% of category sales
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -64,7 +87,10 @@ const AnalyticsPage = () => {
           <h1 className="text-4xl font-heading font-extrabold tracking-tighter text-foreground">
             Market Analytics
           </h1>
-          <p className="text-secondary font-medium text-sm">
+          <p
+            className="text-foreground
+           font-medium text-sm"
+          >
             Visualizing harvest trends and archival growth.
           </p>
         </div>
@@ -85,11 +111,11 @@ const AnalyticsPage = () => {
       <div className="grid grid-cols-12 gap-8">
         {/* Key Metric Bento */}
         <div className="col-span-12 lg:col-span-4 grid grid-rows-2 gap-8">
-          <Card className="bg-surface-container-lowest p-6 rounded-xl relative overflow-hidden group">
+          <Card className="bg-surface-container-lowest p-6 rounded-xl relative overflow-hidden ">
             <CardContent className="p-0">
-              <div className="flex justify-between items-start mb-4">
-                <div className="p-3 bg-secondary-fixed rounded-xl">
-                  <span className="material-symbols-outlined text-on-secondary-fixed-variant">
+              <div className="flex justify-between items-center mb-4">
+                <div className="w-12 h-12 rounded-xl bg-green-50 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-green-600 text-lg">
                     trending_up
                   </span>
                 </div>
@@ -106,11 +132,11 @@ const AnalyticsPage = () => {
               <div className="absolute bottom-0 left-0 w-full h-1 bg-primary/10 group-hover:bg-primary transition-colors"></div>
             </CardContent>
           </Card>
-          <Card className="bg-surface-container-lowest p-6 rounded-xl relative overflow-hidden group">
+          <Card className="bg-surface-container-lowest p-6 rounded-xl relative overflow-hidden ">
             <CardContent className="p-0">
-              <div className="flex justify-between items-start mb-4">
-                <div className="p-3 bg-tertiary-fixed rounded-xl">
-                  <span className="material-symbols-outlined text-on-tertiary-fixed-variant">
+              <div className="flex justify-between items-center mb-4">
+                <div className="w-12 h-12 rounded-xl bg-green-50 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-green-600 text-lg">
                     person_add
                   </span>
                 </div>
@@ -138,29 +164,36 @@ const AnalyticsPage = () => {
                 Monthly loyalty and returning visit velocity.
               </p>
             </div>
-            <div className="flex gap-4">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-primary"></div>
-                <span className="text-xs font-medium">New</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-secondary"></div>
-                <span className="text-xs font-medium">Returning</span>
-              </div>
-            </div>
           </div>
-          <div className="h-64">
+          <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={retentionData}>
+              <BarChart data={retentionData} margin={{ bottom: 20 }}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
                 <YAxis />
                 <Tooltip />
-                <Bar dataKey="new" stackId="a" fill="hsl(var(--primary))" />
+                <Legend
+                  verticalAlign="bottom"
+                  height={20}
+                  formatter={(value) => {
+                    const labels: Record<string, string> = {
+                      new: "New Customers",
+                      returning: "Returning Customers",
+                    };
+                    return labels[value] || value;
+                  }}
+                />
+                <Bar
+                  dataKey="new"
+                  stackId="a"
+                  fill="#16a34a"
+                  name="New Customers"
+                />
                 <Bar
                   dataKey="returning"
                   stackId="a"
-                  fill="hsl(var(--secondary))"
+                  fill="#0ea5e9"
+                  name="Returning Customers"
                 />
               </BarChart>
             </ResponsiveContainer>
@@ -208,58 +241,54 @@ const AnalyticsPage = () => {
           <h3 className="text-xl font-bold tracking-tight mb-8">
             Sales by Category
           </h3>
-          <div className="flex-grow flex items-center justify-center relative py-12">
-            <div className="relative w-48 h-48">
+          <div className="flex-grow flex items-center justify-center relative py-8">
+            <div className="relative w-56 h-72">
               <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
+                <PieChart margin={{ top: 20, right: 10, bottom: 60, left: 10 }}>
                   <Pie
                     data={categoryData}
                     cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
+                    cy="45%"
+                    innerRadius={55}
+                    outerRadius={70}
+                    paddingAngle={4}
                     dataKey="value"
-                  >
-                    {categoryData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
+                    nameKey="name"
+                    labelLine={false}
+                    label={false}
+                    stroke="#fff"
+                    strokeWidth={2}
+                  />
+
+                  <Tooltip content={<CategoryTooltip />} />
+
+                  <Legend
+                    verticalAlign="bottom"
+                    iconType="circle"
+                    formatter={(value) => (
+                      <span
+                        style={{
+                          color: "#374151",
+                          fontSize: 12,
+                          fontWeight: 600,
+                        }}
+                      >
+                        {value}
+                      </span>
+                    )}
+                    wrapperStyle={{ marginTop: "8px" }}
+                  />
                 </PieChart>
               </ResponsiveContainer>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center">
-                  <span className="text-2xl font-black text-foreground block leading-tight">
-                    74%
-                  </span>
-                  <span className="text-xs text-muted-foreground uppercase tracking-widest font-bold">
-                    Produce
-                  </span>
-                </div>
-              </div>
             </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4 mt-auto">
-            {categoryData.map((item, index) => (
-              <div key={index} className="flex items-center gap-3">
-                <div
-                  className="w-2 h-2 rounded-full"
-                  style={{ backgroundColor: item.color }}
-                ></div>
-                <span className="text-xs font-medium text-muted-foreground">
-                  {item.name}
-                </span>
-              </div>
-            ))}
           </div>
         </div>
       </div>
 
       {/* Footnote */}
-      <footer className="mt-16 flex justify-between items-center px-2">
+      <footer className="mt-16 flex justify-between items-center px-2 w-full">
         <span className="text-xs uppercase tracking-widest font-bold text-muted-foreground">
-          © 2024 Botanical Archivist System V4.2
+          © {new Date().getFullYear()} Botanical Archivist System V4.2
         </span>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">

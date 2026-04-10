@@ -92,8 +92,8 @@ const UsersPage = () => {
       <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="bg-surface-container-lowest shadow-sm">
           <CardContent className="p-6">
-            <div className="flex justify-between items-start mb-4">
-              <div className="p-2 bg-primary/10 rounded-lg text-primary">
+            <div className="flex justify-between items-center mb-4">
+              <div className=" flex justify-center items-center p-2 bg-primary/10 rounded-lg text-primary">
                 <span className="material-symbols-outlined">group</span>
               </div>
               <Badge className="bg-primary/10 text-primary text-xs font-bold px-2 py-1">
@@ -110,8 +110,8 @@ const UsersPage = () => {
         </Card>
         <Card className="bg-surface-container-lowest shadow-sm">
           <CardContent className="p-6">
-            <div className="flex justify-between items-start mb-4">
-              <div className="p-2 bg-green-500/10 rounded-lg text-green-600">
+            <div className="flex justify-between items-center mb-4">
+              <div className=" flex justify-center items-center p-2 bg-green-500/10 rounded-lg text-green-600">
                 <span className="material-symbols-outlined">
                   admin_panel_settings
                 </span>
@@ -128,8 +128,8 @@ const UsersPage = () => {
 
         <Card className="bg-surface-container-lowest shadow-sm">
           <CardContent className="p-6">
-            <div className="flex justify-between items-start mb-4">
-              <div className="p-2 bg-green-500/10 rounded-lg text-green-600">
+            <div className="flex justify-between items-center mb-4">
+              <div className=" flex justify-center items-center w-12 h-12 bg-green-500/10 rounded-lg text-green-600">
                 <span className="material-symbols-outlined">person_add</span>
               </div>
               <Badge className="bg-green-500/10 text-green-600 text-xs font-bold px-2 py-1">
@@ -345,29 +345,6 @@ const UsersPage = () => {
           </div>
         </div>
       </div>
-
-      {/* Bottom Informational Card */}
-      <footer className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8 items-center bg-secondary-container/20 p-8 rounded-2xl">
-        <div>
-          <h4 className="text-xl font-heading font-bold text-on-secondary-container">
-            Security Audit Policy
-          </h4>
-          <p className="mt-2 text-sm text-on-secondary-fixed-variant font-body">
-            All administrative actions are logged and archived. To request a
-            full access audit for a specific user ID, please contact the Chief
-            Archivist.
-          </p>
-        </div>
-        <div className="flex justify-end">
-          <div className="relative w-48 h-32 rounded-xl overflow-hidden shadow-sm bg-surface-container-lowest p-2">
-            <img
-              alt="Botanical Texture"
-              className="w-full h-full object-cover rounded-lg"
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuC-HmGjwIRAF7JDgxkSodzXq2heIKsfypR344YaJ2Tqk5In7zwnt3jM_alFcncUgUyAmd2mQGiKQ2F1yqpAgbK-_eEqZQ0Cb07disq_KX_j-ejmRryqOSgGW2LthBR9XdN-a7k-pPNsK6oVH-avSDjoMTnjObBZZsros9nbNyxw6V7j3SfUkP_owrhCCA-QWg_AnwvQ6tlQgn7QAhHkXiglKMKXYljLqWsUeDhTm0e8t5K6KhvMuqDmrBYXYQt-6qm7136-ChCBOAg"
-            />
-          </div>
-        </div>
-      </footer>
     </div>
   );
 };
