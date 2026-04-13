@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import { JwtPayload } from "../types/express";
+import { JwtPayload } from "../types/express.js";
 
 export const auth = async (req: Request, res: Response, next: NextFunction) => {
   const SECRET_KEY =
@@ -30,7 +30,8 @@ export const authorizeRoles =
       return res.status(401).json({ message: "unauthorized" });
     }
 
-    if (!roles.includes(req.user.role)) {
+    const requestedRoles = roles.map((role) => role.toLowerCase());
+    if (!requestedRoles.includes(req.user.role.toLowerCase())) {
       return res.status(403).json({ message: "forbidden" });
     }
 

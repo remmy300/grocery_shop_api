@@ -1,12 +1,12 @@
 import express from "express";
-import { auth, authorizeRoles } from "../middleware/auth";
+import { auth, authorizeRoles } from "../middleware/auth.js";
 import {
   createProduct,
   getProduct,
   getProducts,
   updateProduct,
   deleteProduct,
-} from "../controller/productController";
+} from "../controller/productController.js";
 
 const router = express.Router();
 

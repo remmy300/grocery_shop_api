@@ -1,11 +1,12 @@
 import { OAuth2Client } from "google-auth-library";
 import jwt from "jsonwebtoken";
-import prisma from "../lib/prisma";
+import prisma from "../lib/prisma.js";
 import { Request, Response } from "express";
-import { generateAccessToken, generateRefreshToken } from "../utils/token";
-import { JwtPayload } from "../types/express";
+import { generateAccessToken, generateRefreshToken } from "../utils/token.js";
+import { JwtPayload } from "../types/express.js";
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const normalizeRole = (role?: string | null) => (role || "").toLowerCase();
 
 export const googleLogin = async (req: Request, res: Response) => {
   const { token } = req.body;
@@ -90,11 +91,18 @@ export const getCurrentUser = (req: Request, res: Response) => {
 export const getAdmins = async (req: Request, res: Response) => {
   try {
     const admins = await prisma.user.findMany({
-      where: { role: "admin" },
       select: { id: true, email: true, role: true },
     });
 
-    res.json(admins);
+    res.json(
+      admins
+        .filter((admin) => normalizeRole(admin.role) === "admin")
+        .map((admin) => ({
+          id: admin.id,
+          email: admin.email,
+          role: normalizeRole(admin.role),
+        })),
+    );
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Failed to fetch admins" });

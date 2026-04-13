@@ -1,5 +1,7 @@
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -16,55 +18,99 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { apiRequest, formatCurrency } from "@/lib/api";
+
+type OrdersResponse = {
+  stats: {
+    totalOrders: number;
+    pendingOrders: number;
+    shippedOrders: number;
+    deliveredOrders: number;
+    totalRevenue: number;
+  };
+  orders: Array<{
+    id: string;
+    orderId: number;
+    customer: string;
+    date: string;
+    total: number;
+    orderStatus: string;
+    itemCount: number;
+    initials: string;
+    statusColor: string;
+  }>;
+};
 
 const OrdersPage = () => {
-  // Sample orders data
-  const orders = [
-    {
-      id: "#ARC-8942",
-      customer: "Evelyn Montgomery",
-      avatar: "",
-      initials: "EM",
-      date: "Oct 24, 2024",
-      total: "$142.50",
-      status: "Pending",
-      statusColor: "bg-secondary-fixed text-on-secondary-fixed-variant",
-    },
-    {
-      id: "#ARC-8931",
-      customer: "Julian Thorne",
-      avatar:
-        "https://lh3.googleusercontent.com/aida-public/AB6AXuBNxVnQ6xt0vb8DPGcDsB1Es1flEWOmUruXH8-GQESnkCbge1cN2z2k3cRdEA0Yow6bFwIuXr4mmnm799spGXP1F0sCw75xPZMYkF1mm7Nwy_pWbZeMechq8ho84iO1dzoThU_9wEJABY5mqyBuKqLaPV3shrZKah4TjMnyuSFvm-_HWNhqdcvQQqOEorfa4BqQPm7zzcSRzaGpsu0GqJr3U_tW4XmzYC64ytXf8Vvx302fOoNLH4gPq14svpX95F6amDS_zhcjSkY",
-      date: "Oct 23, 2024",
-      total: "$89.20",
-      status: "Shipped",
-      statusColor: "bg-primary-fixed text-on-primary-fixed-variant",
-    },
-    {
-      id: "#ARC-8910",
-      customer: "Clara Rivera",
-      avatar: "",
-      initials: "CR",
-      date: "Oct 22, 2024",
-      total: "$215.00",
-      status: "Delivered",
-      statusColor: "bg-surface-container-highest text-on-surface-variant",
-    },
-    {
-      id: "#ARC-8905",
-      customer: "Sarah Jenkins",
-      avatar:
-        "https://lh3.googleusercontent.com/aida-public/AB6AXuAbrYFCEwO7KxzzL858suhOiXwGXRfvZOkaceOSb_TPxsEQXohaNjLUjDX8sF8yWYaaFAFYFrZahPV5xbjLpafY48Wsr5brcVJFuXsXaE_5D9DLbJD--eGX6aLDQxaeMKRtFFwJi8Y3NOrew4clH6Y5xO1URtTGElVnpljoPDPquMc7-uyBzN1rJh-4P1yMcnJ5UnwqLXbEh7phJwR2WB5wia6T-I1sCSb7NfYFsQXdp9O8U94uHn1mpzJpOblSE9Esi_XwtiSmvhc",
-      date: "Oct 22, 2024",
-      total: "$54.10",
-      status: "Pending",
-      statusColor: "bg-secondary-fixed text-on-secondary-fixed-variant",
-    },
+  const [data, setData] = useState<OrdersResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    const loadOrders = async () => {
+      try {
+        setLoading(true);
+        const response = await apiRequest<OrdersResponse>("/api/admin/orders");
+        if (!active) return;
+        setData(response);
+        setError(null);
+      } catch (requestError) {
+        if (!active) return;
+        setError(
+          requestError instanceof Error
+            ? requestError.message
+            : "Failed to load orders",
+        );
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadOrders();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="text-center">
+          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-b-2 border-primary" />
+          <p className="mt-4 text-secondary-foreground">Loading orders...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-500">{error || "Unable to load orders"}</p>
+          <Button onClick={() => window.location.reload()} className="mt-4">
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const statusCounts = [
+    { label: "Total", value: data.stats.totalOrders, tone: "text-primary" },
+    { label: "Pending", value: data.stats.pendingOrders, tone: "text-amber-600" },
+    { label: "Shipped", value: data.stats.shippedOrders, tone: "text-blue-600" },
+    { label: "Delivered", value: data.stats.deliveredOrders, tone: "text-green-600" },
   ];
 
   return (
     <div className="space-y-8">
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+      <header className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
         <div>
           <h1 className="text-4xl font-heading font-extrabold tracking-tighter text-foreground">
             Order Archive
@@ -83,12 +129,24 @@ const OrdersPage = () => {
         </div>
       </header>
 
-      {/* Search & Filters */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <section className="grid grid-cols-1 gap-6 md:grid-cols-4">
+        {statusCounts.map((stat) => (
+          <Card key={stat.label} className="bg-surface-container-lowest shadow-sm">
+            <CardContent className="p-5">
+              <p className="text-xs uppercase tracking-widest text-secondary-foreground">
+                {stat.label}
+              </p>
+              <p className={`mt-2 text-3xl font-heading font-black ${stat.tone}`}>
+                {stat.value}
+              </p>
+            </CardContent>
+          </Card>
+        ))}
+      </section>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
         <div className="md:col-span-2 bg-surface-container-lowest p-1 rounded-xl shadow-sm flex items-center">
-          <span className="material-symbols-outlined text-outline ml-4">
-            search
-          </span>
+          <span className="material-symbols-outlined text-outline ml-4">search</span>
           <Input
             className="bg-transparent border-none focus:ring-0 text-sm font-body py-3 px-4"
             placeholder="Search by ID or customer..."
@@ -127,7 +185,6 @@ const OrdersPage = () => {
         </Select>
       </div>
 
-      {/* Orders Table */}
       <div className="bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm">
         <Table>
           <TableHeader>
@@ -153,9 +210,9 @@ const OrdersPage = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {orders.map((order) => (
+            {data.orders.map((order) => (
               <TableRow
-                key={order.id}
+                key={order.orderId}
                 className="hover:bg-surface-container-lowest transition-colors"
               >
                 <TableCell className="px-6 py-5 font-heading font-bold text-sm">
@@ -164,15 +221,7 @@ const OrdersPage = () => {
                 <TableCell className="px-6 py-5">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed text-xs font-bold">
-                      {order.avatar ? (
-                        <img
-                          src={order.avatar}
-                          alt={order.customer}
-                          className="w-full h-full object-cover rounded-full"
-                        />
-                      ) : (
-                        order.initials
-                      )}
+                      {order.initials}
                     </div>
                     <span className="text-sm font-medium text-foreground">
                       {order.customer}
@@ -183,13 +232,13 @@ const OrdersPage = () => {
                   {order.date}
                 </TableCell>
                 <TableCell className="px-6 py-5 text-sm font-bold text-foreground text-right">
-                  {order.total}
+                  ${formatCurrency(order.total)}
                 </TableCell>
                 <TableCell className="px-6 py-5">
                   <Badge
                     className={`${order.statusColor} px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide`}
                   >
-                    {order.status}
+                    {order.orderStatus}
                   </Badge>
                 </TableCell>
                 <TableCell className="px-6 py-5">
@@ -198,9 +247,7 @@ const OrdersPage = () => {
                     size="sm"
                     className="text-outline hover:text-primary transition-colors"
                   >
-                    <span className="material-symbols-outlined">
-                      more_horiz
-                    </span>
+                    <span className="material-symbols-outlined">more_horiz</span>
                   </Button>
                 </TableCell>
               </TableRow>
@@ -208,10 +255,9 @@ const OrdersPage = () => {
           </TableBody>
         </Table>
 
-        {/* Pagination */}
-        <div className="px-6 py-4 flex items-center justify-between bg-surface/50">
+        <div className="bg-surface/50 px-6 py-4 flex items-center justify-between">
           <p className="text-xs text-secondary-foreground font-medium">
-            Showing <span className="font-bold">1-10</span> of 124 archives
+            Showing <span className="font-bold">{data.orders.length}</span> orders
           </p>
           <div className="flex gap-2">
             <Button variant="ghost" size="sm" className="w-8 h-8 p-0">
@@ -222,20 +268,6 @@ const OrdersPage = () => {
             <Button className="w-8 h-8 bg-primary text-primary-foreground text-xs font-bold">
               1
             </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-8 h-8 p-0 text-xs font-medium"
-            >
-              2
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-8 h-8 p-0 text-xs font-medium"
-            >
-              3
-            </Button>
             <Button variant="ghost" size="sm" className="w-8 h-8 p-0">
               <span className="material-symbols-outlined text-sm">
                 chevron_right
@@ -244,12 +276,6 @@ const OrdersPage = () => {
           </div>
         </div>
       </div>
-      {/* Footer */}
-      <footer className="w-full py-12 mt-20 border-t border-outline-variant flex flex-col md:flex-row justify-between items-center px-8 max-w-7xl mx-auto font-label text-xs uppercase tracking-widest opacity-80 hover:opacity-100 transition-opacity">
-        <p className="text-secondary-foreground mb-6 md:mb-0">
-          © {new Date().getFullYear()} Corner Store. All rights reserved.
-        </p>
-      </footer>
     </div>
   );
 };

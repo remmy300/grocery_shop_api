@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,58 +11,90 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { apiRequest } from "@/lib/api";
+
+type UsersResponse = {
+  stats: {
+    totalUsers: number;
+    activeAdmins: number;
+    customers: number;
+  };
+  users: Array<{
+    id: string;
+    userId: number;
+    name: string;
+    initials: string;
+    email: string;
+    role: string;
+    joinDate: string;
+  }>;
+};
 
 const UsersPage = () => {
-  // Sample users data
-  const users = [
-    {
-      id: "#BA-9281",
-      name: "Eleanor Herbosa",
-      avatar: "",
-      initials: "EH",
-      email: "e.herbosa@archives.com",
-      role: "Admin",
-      roleColor: "bg-secondary-fixed text-on-secondary-fixed-variant",
-      joinDate: "Oct 12, 2023",
-    },
-    {
-      id: "#BA-8820",
-      name: "Julian Moss",
-      avatar: "",
-      initials: "JM",
-      email: "julian.moss@nature.net",
-      role: "Customer",
-      roleColor: "bg-surface-container-high text-on-surface-variant",
-      joinDate: "Jan 05, 2024",
-    },
-    {
-      id: "#BA-7741",
-      name: "Clara Thorne",
-      avatar:
-        "https://lh3.googleusercontent.com/aida-public/AB6AXuCInOr7nOiP8cGma4LBe1ImcDqNctkybe7hDFOr79KoLFRU-fW719VW3wKoLvT9AtXI0qIBarfXtIEd2Vkqe258VGgrqcSPAqAg1XiRSfbj5aFBrGefrPenykkfXKrvXfUgWNntE3kd5pjmGqhcU4ZXgiKjCLaEbkZ1Ht6tktptbvzohExGcyol84X8Wqu7Bh4ahjWk7Agk5y6wsBxwgLJ9OYiaAkiLkgt79QyX3KqO5FVs206Qht0koZBN2moEWjhSZeJKyG_YGMY",
-      email: "clara@botanical.io",
-      role: "Customer",
-      roleColor: "bg-surface-container-high text-on-surface-variant",
-      joinDate: "Feb 28, 2024",
-    },
-    {
-      id: "#BA-4412",
-      name: "Marcus Aris",
-      avatar: "",
-      initials: "MA",
-      email: "m.aris@archives.com",
-      role: "Admin",
-      roleColor: "bg-secondary-fixed text-on-secondary-fixed-variant",
-      joinDate: "Mar 15, 2024",
-    },
-  ];
+  const [data, setData] = useState<UsersResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    const loadUsers = async () => {
+      try {
+        setLoading(true);
+        const response = await apiRequest<UsersResponse>("/api/admin/users");
+        if (!active) return;
+        setData(response);
+        setError(null);
+      } catch (requestError) {
+        if (!active) return;
+        setError(
+          requestError instanceof Error
+            ? requestError.message
+            : "Failed to load users",
+        );
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadUsers();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="text-center">
+          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-b-2 border-primary" />
+          <p className="mt-4 text-secondary-foreground">Loading users...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-500">{error || "Unable to load users"}</p>
+          <Button onClick={() => window.location.reload()} className="mt-4">
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
-      {/* Header Section */}
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+      <header className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
         <div>
-          <nav className="flex items-center gap-2 text-xs font-label text-secondary-foreground mb-4 uppercase tracking-widest">
+          <nav className="mb-4 flex items-center gap-2 text-xs font-label uppercase tracking-widest text-secondary-foreground">
             <span>Admin</span>
             <span className="material-symbols-outlined text-xs">
               chevron_right
@@ -71,7 +104,7 @@ const UsersPage = () => {
           <h2 className="text-4xl font-heading font-extrabold tracking-tighter text-foreground">
             Curation of Members
           </h2>
-          <p className="mt-2 text-secondary-foreground max-w-xl font-body">
+          <p className="mt-2 max-w-xl font-body text-secondary-foreground">
             Oversee the Botanical Archivist community. Manage permissions, audit
             join dates, and maintain the integrity of our member registry.
           </p>
@@ -88,30 +121,29 @@ const UsersPage = () => {
         </div>
       </header>
 
-      {/* Stats Bento Grid */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <section className="grid grid-cols-1 gap-6 md:grid-cols-3">
         <Card className="bg-surface-container-lowest shadow-sm">
           <CardContent className="p-6">
-            <div className="flex justify-between items-center mb-4">
-              <div className=" flex justify-center items-center p-2 bg-primary/10 rounded-lg text-primary">
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex items-center justify-center rounded-lg bg-primary/10 p-2 text-primary">
                 <span className="material-symbols-outlined">group</span>
               </div>
               <Badge className="bg-primary/10 text-primary text-xs font-bold px-2 py-1">
-                +12%
+                Live
               </Badge>
             </div>
             <h3 className="text-secondary-foreground text-xs font-label uppercase tracking-widest mb-1">
               Total Community
             </h3>
             <p className="text-3xl font-heading font-black text-foreground">
-              1,284
+              {data.stats.totalUsers}
             </p>
           </CardContent>
         </Card>
         <Card className="bg-surface-container-lowest shadow-sm">
           <CardContent className="p-6">
-            <div className="flex justify-between items-center mb-4">
-              <div className=" flex justify-center items-center p-2 bg-green-500/10 rounded-lg text-green-600">
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex items-center justify-center rounded-lg bg-green-500/10 p-2 text-green-600">
                 <span className="material-symbols-outlined">
                   admin_panel_settings
                 </span>
@@ -121,32 +153,27 @@ const UsersPage = () => {
               Active Admins
             </h3>
             <p className="text-3xl font-heading font-black text-foreground">
-              14
+              {data.stats.activeAdmins}
             </p>
           </CardContent>
         </Card>
-
         <Card className="bg-surface-container-lowest shadow-sm">
           <CardContent className="p-6">
-            <div className="flex justify-between items-center mb-4">
-              <div className=" flex justify-center items-center w-12 h-12 bg-green-500/10 rounded-lg text-green-600">
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex items-center justify-center rounded-lg bg-green-500/10 p-2 text-green-600">
                 <span className="material-symbols-outlined">person_add</span>
               </div>
-              <Badge className="bg-green-500/10 text-green-600 text-xs font-bold px-2 py-1">
-                New
-              </Badge>
             </div>
             <h3 className="text-secondary-foreground text-xs font-label uppercase tracking-widest mb-1">
-              Joined This Week
+              Customer Accounts
             </h3>
             <p className="text-3xl font-heading font-black text-foreground">
-              42
+              {data.stats.customers}
             </p>
           </CardContent>
         </Card>
       </section>
 
-      {/* Search & Filter Bar */}
       <div className="bg-surface-container-low p-4 rounded-xl flex flex-col md:flex-row gap-4 items-center justify-between">
         <div className="relative w-full md:w-96">
           <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-secondary-foreground">
@@ -179,7 +206,6 @@ const UsersPage = () => {
         </div>
       </div>
 
-      {/* Data Table Container */}
       <div className="bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm">
         <Table>
           <TableHeader>
@@ -205,9 +231,9 @@ const UsersPage = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {users.map((user) => (
+            {data.users.map((user) => (
               <TableRow
-                key={user.id}
+                key={user.userId}
                 className="hover:bg-surface-container-low/50 transition-colors group"
               >
                 <TableCell className="px-6 py-5 text-sm font-mono text-secondary">
@@ -216,15 +242,7 @@ const UsersPage = () => {
                 <TableCell className="px-6 py-5">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container font-bold text-xs">
-                      {user.avatar ? (
-                        <img
-                          src={user.avatar}
-                          alt={user.name}
-                          className="w-full h-full object-cover rounded-full"
-                        />
-                      ) : (
-                        user.initials
-                      )}
+                      {user.initials}
                     </div>
                     <span className="text-sm font-semibold text-foreground">
                       {user.name}
@@ -236,7 +254,11 @@ const UsersPage = () => {
                 </TableCell>
                 <TableCell className="px-6 py-5">
                   <Badge
-                    className={`${user.roleColor} px-3 py-1 rounded-full text-xs font-bold uppercase tracking-tighter`}
+                    className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-tighter ${
+                      user.role === "Admin"
+                        ? "bg-secondary-fixed text-on-secondary-fixed-variant"
+                        : "bg-surface-container-high text-on-surface-variant"
+                    }`}
                   >
                     {user.role}
                   </Badge>
@@ -245,7 +267,7 @@ const UsersPage = () => {
                   {user.joinDate}
                 </TableCell>
                 <TableCell className="px-6 py-5 text-right">
-                  <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex items-center justify-end gap-2 opacity-0 transition-opacity group-hover:opacity-100">
                     <Button
                       variant="ghost"
                       size="sm"
@@ -271,22 +293,11 @@ const UsersPage = () => {
           </TableBody>
         </Table>
 
-        {/* Table Pagination */}
         <div className="px-6 py-4 bg-surface-container-low flex items-center justify-between">
           <span className="text-xs text-secondary-foreground font-label">
-            Showing 1 to 4 of 1,284 members
+            Showing {data.users.length} members
           </span>
           <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="p-2 rounded-lg hover:bg-surface-container-highest transition-colors disabled:opacity-30"
-              disabled
-            >
-              <span className="material-symbols-outlined text-sm">
-                first_page
-              </span>
-            </Button>
             <Button
               variant="ghost"
               size="sm"
@@ -301,45 +312,15 @@ const UsersPage = () => {
               <Button className="w-8 h-8 rounded-lg bg-primary text-primary-foreground text-xs font-bold">
                 1
               </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-8 h-8 rounded-lg hover:bg-surface-container-highest text-xs font-bold"
-              >
-                2
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-8 h-8 rounded-lg hover:bg-surface-container-highest text-xs font-bold"
-              >
-                3
-              </Button>
-              <span className="px-1 py-2 text-xs font-bold">...</span>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-8 h-8 rounded-lg hover:bg-surface-container-highest text-xs font-bold"
-              >
-                321
-              </Button>
             </div>
             <Button
               variant="ghost"
               size="sm"
-              className="p-2 rounded-lg hover:bg-surface-container-highest transition-colors"
+              className="p-2 rounded-lg hover:bg-surface-container-highest transition-colors disabled:opacity-30"
+              disabled
             >
               <span className="material-symbols-outlined text-sm">
                 chevron_right
-              </span>
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="p-2 rounded-lg hover:bg-surface-container-highest transition-colors"
-            >
-              <span className="material-symbols-outlined text-sm">
-                last_page
               </span>
             </Button>
           </div>

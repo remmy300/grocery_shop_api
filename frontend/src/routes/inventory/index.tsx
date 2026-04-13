@@ -1,14 +1,7 @@
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -17,8 +10,94 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { apiRequest, formatCurrency } from "@/lib/api";
 
-const DashboardPage = () => {
+type InventoryResponse = {
+  stats: {
+    totalProducts: number;
+    lowStockItems: number;
+    inventoryValue: number;
+  };
+  products: Array<{
+    id: number;
+    sku: string;
+    name: string;
+    category: string;
+    stock: number;
+    stockStatus: string;
+    price: number;
+    imageUrl?: string | null;
+  }>;
+};
+
+const InventoryPage = () => {
+  const [data, setData] = useState<InventoryResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    const loadInventory = async () => {
+      try {
+        setLoading(true);
+        const response = await apiRequest<InventoryResponse>("/api/admin/inventory");
+        if (!active) return;
+        setData(response);
+        setError(null);
+      } catch (requestError) {
+        if (!active) return;
+        setError(
+          requestError instanceof Error
+            ? requestError.message
+            : "Failed to load inventory",
+        );
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadInventory();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="text-center">
+          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-b-2 border-primary" />
+          <p className="mt-4 text-secondary-foreground">Loading inventory...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-500">{error || "Unable to load inventory"}</p>
+          <Button onClick={() => window.location.reload()} className="mt-4">
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
       <header className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
@@ -26,9 +105,7 @@ const DashboardPage = () => {
           <nav className="flex gap-2 text-xs font-label text-secondary-foreground mb-2 uppercase tracking-widest">
             <span>Admin</span>
             <span>/</span>
-            <span className="text-foreground font-bold">
-              Inventory Management
-            </span>
+            <span className="text-foreground font-bold">Inventory Management</span>
           </nav>
           <h2 className="text-4xl font-heading font-extrabold tracking-tighter text-foreground">
             Archive Collection
@@ -40,7 +117,7 @@ const DashboardPage = () => {
         </Button>
       </header>
 
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <section className="grid grid-cols-1 gap-6 md:grid-cols-3">
         <Card className="bg-card shadow-sm">
           <CardContent className="p-8 relative overflow-hidden">
             <div className="relative z-10">
@@ -48,14 +125,8 @@ const DashboardPage = () => {
                 Total Products
               </p>
               <h3 className="text-4xl font-heading font-bold text-foreground">
-                1,284
+                {data.stats.totalProducts}
               </h3>
-              <div className="mt-4 flex items-center gap-1 text-primary text-xs font-bold">
-                <span className="material-symbols-outlined text-sm">
-                  trending_up
-                </span>
-                <span>+12% this month</span>
-              </div>
             </div>
             <span className="material-symbols-outlined absolute -right-4 -bottom-4 text-9xl text-muted opacity-20">
               inventory
@@ -69,14 +140,8 @@ const DashboardPage = () => {
                 Low Stock Items
               </p>
               <h3 className="text-4xl font-heading font-bold text-destructive">
-                42
+                {data.stats.lowStockItems}
               </h3>
-              <div className="mt-4 flex items-center gap-1 text-destructive text-xs font-bold">
-                <span className="material-symbols-outlined text-sm">
-                  warning
-                </span>
-                <span>Requires attention</span>
-              </div>
             </div>
             <span className="material-symbols-outlined absolute -right-4 -bottom-4 text-9xl text-destructive/5">
               notification_important
@@ -90,14 +155,8 @@ const DashboardPage = () => {
                 Inventory Value
               </p>
               <h3 className="text-4xl font-heading font-bold text-foreground">
-                $84,320
+                ${formatCurrency(data.stats.inventoryValue)}
               </h3>
-              <div className="mt-4 flex items-center gap-1 text-primary text-xs font-bold">
-                <span className="material-symbols-outlined text-sm">
-                  payments
-                </span>
-                <span>Asset valuation</span>
-              </div>
             </div>
             <span className="material-symbols-outlined absolute -right-4 -bottom-4 text-9xl text-muted opacity-20">
               account_balance_wallet
@@ -134,9 +193,10 @@ const DashboardPage = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Categories</SelectItem>
-              <SelectItem value="fruits">Fruits</SelectItem>
-              <SelectItem value="vegetable">Vegetable</SelectItem>
+              <SelectItem value="produce">Produce</SelectItem>
+              <SelectItem value="bakery">Bakery & Deli</SelectItem>
               <SelectItem value="dairy">Dairy</SelectItem>
+              <SelectItem value="general">General Grocery</SelectItem>
             </SelectContent>
           </Select>
           <Button variant="outline" size="icon">
@@ -156,7 +216,7 @@ const DashboardPage = () => {
                 Product ID
               </TableHead>
               <TableHead className="px-6 py-4 text-xs font-label uppercase tracking-widest font-bold">
-                Botanical Name
+                Product Name
               </TableHead>
               <TableHead className="px-6 py-4 text-xs font-label uppercase tracking-widest font-bold">
                 Category
@@ -173,80 +233,85 @@ const DashboardPage = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            <TableRow className="hover:bg-surface transition-colors">
-              <TableCell className="px-6 py-4">
-                <div className="w-12 h-12 rounded-lg bg-surface-container-low overflow-hidden">
-                  <img
-                    className="w-full h-full object-cover"
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJWcY4bUSgvMfZHPjWu34rLuj8ZrsOi4CERsPDiIlg1qJxaXEBWc7ChHM0ky1riYORqtluY2_yF1BJJ-BEkuywbX13lsoZZmvC4-W8YntprPbvTFk8XvYsZ6OsBVjYMq2XBpB7iYgQTvVfreN1N8D56XDszit3CMP0MjCrBFvtp1RBvfHuLM9uo36H9e2oKrLM7G1SbeReXvVoS_A2nrJkGjyD6dO98ok8RyuKAlSjBnn25gJnjMQOvnKbEkhu3b-tUgUMzSYTXKY"
-                    alt="Valencia Oranges"
-                  />
-                </div>
-              </TableCell>
-              <TableCell className="px-6 py-4 font-mono text-xs text-muted-foreground">
-                #ARC-7721
-              </TableCell>
-              <TableCell className="px-6 py-4">
-                <p className="font-heading font-bold text-foreground">
-                  Valencia Oranges
-                </p>
-                <p className="text-xs text-muted-foreground italic">
-                  Citrus sinensis
-                </p>
-              </TableCell>
-              <TableCell className="px-6 py-4">
-                <Badge className="bg-secondary-fixed text-on-secondary-fixed-variant">
-                  Produce
-                </Badge>
-              </TableCell>
-              <TableCell className="px-6 py-4">
-                <div className="flex flex-col gap-1">
-                  <span className="text-sm font-semibold text-foreground">
-                    142 Units
-                  </span>
-                  <div className="w-24 h-1.5 bg-surface-container-high rounded-full overflow-hidden">
-                    <div className="w-4/5 h-full bg-primary" />
+            {data.products.map((product) => (
+              <TableRow key={product.id} className="hover:bg-surface transition-colors">
+                <TableCell className="px-6 py-4">
+                  <div className="w-12 h-12 rounded-lg bg-surface-container-low overflow-hidden">
+                    <img
+                      className="w-full h-full object-cover"
+                      src={
+                        product.imageUrl ||
+                        "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=200&q=80"
+                      }
+                      alt={product.name}
+                    />
                   </div>
-                </div>
-              </TableCell>
-              <TableCell className="px-6 py-4 text-right">
-                <span className="font-heading font-bold text-foreground">
-                  $4.50
-                </span>
-                <span className="text-[10px] text-muted-foreground block">
-                  /kg
-                </span>
-              </TableCell>
-              <TableCell className="px-6 py-4">
-                <div className="flex justify-center gap-2">
-                  <Button variant="ghost" size="sm">
-                    <span className="material-symbols-outlined text-lg">
-                      visibility
+                </TableCell>
+                <TableCell className="px-6 py-4 font-mono text-xs text-muted-foreground">
+                  {product.sku}
+                </TableCell>
+                <TableCell className="px-6 py-4">
+                  <p className="font-heading font-bold text-foreground">{product.name}</p>
+                  <p className="text-xs text-muted-foreground italic">
+                    Stock status: {product.stockStatus}
+                  </p>
+                </TableCell>
+                <TableCell className="px-6 py-4">
+                  <Badge className="bg-secondary-fixed text-on-secondary-fixed-variant">
+                    {product.category}
+                  </Badge>
+                </TableCell>
+                <TableCell className="px-6 py-4">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-sm font-semibold text-foreground">
+                      {product.stock} Units
                     </span>
-                  </Button>
-                  <Button variant="ghost" size="sm" className="text-primary">
-                    <span className="material-symbols-outlined text-lg">
-                      edit
-                    </span>
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-destructive"
-                  >
-                    <span className="material-symbols-outlined text-lg">
-                      delete
-                    </span>
-                  </Button>
-                </div>
-              </TableCell>
-            </TableRow>
+                    <div className="w-24 h-1.5 bg-surface-container-high rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full ${
+                          product.stockStatus === "Out of Stock"
+                            ? "bg-destructive"
+                            : product.stockStatus === "Low Stock"
+                              ? "bg-amber-500"
+                              : "bg-primary"
+                        }`}
+                        style={{ width: `${Math.min(100, Math.max(20, product.stock * 10))}%` }}
+                      />
+                    </div>
+                  </div>
+                </TableCell>
+                <TableCell className="px-6 py-4 text-right">
+                  <span className="font-heading font-bold text-foreground">
+                    ${formatCurrency(product.price)}
+                  </span>
+                </TableCell>
+                <TableCell className="px-6 py-4">
+                  <div className="flex justify-center gap-2">
+                    <Button variant="ghost" size="sm">
+                      <span className="material-symbols-outlined text-lg">
+                        visibility
+                      </span>
+                    </Button>
+                    <Button variant="ghost" size="sm" className="text-primary">
+                      <span className="material-symbols-outlined text-lg">
+                        edit
+                      </span>
+                    </Button>
+                    <Button variant="ghost" size="sm" className="text-destructive">
+                      <span className="material-symbols-outlined text-lg">
+                        delete
+                      </span>
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
 
         <div className="bg-surface-container-low px-6 py-4 flex items-center justify-between">
           <p className="text-xs font-label text-muted-foreground uppercase tracking-widest">
-            Showing 1 to 10 of 1,284 entries
+            Showing {data.products.length} products
           </p>
           <div className="flex gap-1">
             <Button variant="outline" size="sm">
@@ -254,12 +319,6 @@ const DashboardPage = () => {
             </Button>
             <Button className="px-3 py-1 bg-primary text-primary-foreground">
               1
-            </Button>
-            <Button variant="outline" size="sm">
-              2
-            </Button>
-            <Button variant="outline" size="sm">
-              3
             </Button>
             <Button variant="outline" size="sm">
               <span className="material-symbols-outlined">chevron_right</span>
@@ -271,4 +330,4 @@ const DashboardPage = () => {
   );
 };
 
-export default DashboardPage;
+export default InventoryPage;

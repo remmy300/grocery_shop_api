@@ -1,6 +1,4 @@
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import { useEffect, useState } from "react";
 import {
   LineChart,
   Line,
@@ -10,63 +8,93 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { apiRequest, formatCurrency } from "@/lib/api";
+
+type DashboardResponse = {
+  metrics: {
+    totalRevenue: number;
+    totalOrders: number;
+    totalProducts: number;
+    lowStockItems: number;
+    activeAdmins: number;
+    activeCustomers: number;
+    ordersToday: number;
+  };
+  recentActivity: Array<{
+    id: number;
+    user: string;
+    action: string;
+    item: string;
+    time: string;
+    initials: string;
+  }>;
+  revenueData: Array<{ month: string; revenue: number }>;
+};
 
 const DashboardPage = () => {
-  // Sample revenue data for the chart
-  const revenueData = [
-    { month: "Jan", revenue: 45000 },
-    { month: "Feb", revenue: 52000 },
-    { month: "Mar", revenue: 48000 },
-    { month: "Apr", revenue: 61000 },
-    { month: "May", revenue: 55000 },
-    { month: "Jun", revenue: 67000 },
-    { month: "Jul", revenue: 72000 },
-    { month: "Aug", revenue: 68000 },
-    { month: "Sep", revenue: 75000 },
-    { month: "Oct", revenue: 82000 },
-    { month: "Nov", revenue: 78000 },
-    { month: "Dec", revenue: 89000 },
-  ];
+  const [data, setData] = useState<DashboardResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Sample activity data
-  const activities = [
-    {
-      id: 1,
-      user: "Evelyn Montgomery",
-      action: "placed an order",
-      item: "Valencia Oranges (5kg)",
-      time: "2 minutes ago",
-      avatar:
-        "https://lh3.googleusercontent.com/aida-public/AB6AXuDyF758iBzel_7knA5hEY-yOyqMNx5rXjBdNJFKo7dY7S559Riqy-QX19ueNJlyf0AdPcnZnJrEss_yz60aMmPfcx-z-9mG63eSoNXRfDZ9p4-qcWJr_8SLtKAHMynOE21xfrwA_hfaRwuUdIPG1twRzVVg6bQGL6dIlJSrCs-1aA2t3u7wTj48W5u_B-zb8vViBgHCg-GzfxWTUlHoDO-QXObnZvgmLM8FWKDbEVEW_-8C_eEoMkSjEcCkmlSzmHB9i1Q_auTHPGg",
-    },
-    {
-      id: 2,
-      user: "Julian Thorne",
-      action: "completed payment",
-      item: "Order #ARC-8931",
-      time: "5 minutes ago",
-      avatar:
-        "https://lh3.googleusercontent.com/aida-public/AB6AXuBNxVnQ6xt0vb8DPGcDsB1Es1flEWOmUruXH8-GQESnkCbge1cN2z2k3cRdEA0Yow6bFwIuXr4mmnm799spGXP1F0sCw75xPZMYkF1mm7Nwy_pWbZeMechq8ho84iO1dzoThU_9wEJABY5mqyBuKqLaPV3shrZKah4TjMnyuSFvm-_HWNhqdcvQQqOEorfa4BqQPm7zzcSRzaGpsu0GqJr3U_tW4XmzYC64ytXf8Vvx302fOoNLH4gPq14svpX95F6amDS_zhcjSkY",
-    },
-    {
-      id: 3,
-      user: "Clara Rivera",
-      action: "updated profile",
-      item: "Shipping address",
-      time: "12 minutes ago",
-      avatar: "",
-      initials: "CR",
-    },
-    {
-      id: 4,
-      user: "Sarah Jenkins",
-      action: "left a review",
-      item: "Organic Tomatoes",
-      time: "18 minutes ago",
-      avatar:
-        "https://lh3.googleusercontent.com/aida-public/AB6AXuAbrYFCEwO7KxzzL858suhOiXwGXRfvZOkaceOSb_TPxsEQXohaNjLUjDX8sF8yWYaaFAFYFrZahPV5xbjLpafY48Wsr5brcVJFuXsXaE_5D9DLbJD--eGX6aLDQxaeMKRtFFwJi8Y3NOrew4clH6Y5xO1URtTGElVnpljoPDPquMc7-uyBzN1rJh-4P1yMcnJ5UnwqLXbEh7phJwR2WB5wia6T-I1sCSb7NfYFsQXdp9O8U94uHn1mpzJpOblSE9Esi_XwtiSmvhc",
-    },
-  ];
+  useEffect(() => {
+    let active = true;
+
+    const loadDashboard = async () => {
+      try {
+        setLoading(true);
+        const response = await apiRequest<DashboardResponse>("/api/admin/dashboard");
+        if (!active) return;
+        setData(response);
+        setError(null);
+      } catch (requestError) {
+        if (!active) return;
+        setError(
+          requestError instanceof Error
+            ? requestError.message
+            : "Failed to load dashboard",
+        );
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadDashboard();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="text-center">
+          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-b-2 border-primary" />
+          <p className="mt-4 text-secondary-foreground">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-500">{error || "Unable to load dashboard"}</p>
+          <Button onClick={() => window.location.reload()} className="mt-4">
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const { metrics, recentActivity, revenueData } = data;
 
   return (
     <div className="space-y-8">
@@ -89,72 +117,72 @@ const DashboardPage = () => {
         </div>
       </header>
 
-      {/* Metrics Cards */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <section className="grid grid-cols-1 gap-6 md:grid-cols-3">
         <Card className="bg-surface-container-lowest shadow-sm">
           <CardContent className="p-5">
-            <div className="flex justify-between items-center mb-4">
-              <div className=" flex justify-center items-centerp-2 bg-primary/10 rounded-lg text-primary">
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex items-center justify-center rounded-lg bg-primary/10 p-2 text-primary">
                 <span className="material-symbols-outlined">payments</span>
               </div>
-              <Badge className="bg-primary/10 text-primary text-xs font-bold px-2 py-1">
-                +12%
+              <Badge className="bg-primary/10 px-2 py-1 text-xs font-bold text-primary">
+                Live
               </Badge>
             </div>
-            <h3 className="text-secondary-foreground text-xs font-label uppercase tracking-widest mb-1">
+            <h3 className="mb-1 text-xs uppercase tracking-widest text-secondary-foreground">
               Total Revenue
             </h3>
             <p className="text-3xl font-heading font-black text-foreground">
-              $89,420
+              ${formatCurrency(metrics.totalRevenue)}
             </p>
           </CardContent>
         </Card>
         <Card className="bg-surface-container-lowest shadow-sm">
-          <CardContent className="p-6">
-            <div className="flex justify-between items-center mb-4">
-              <div className=" flex justify-center items-centerp-2 bg-primary/10 rounded-lg text-primary">
+          <CardContent className="p-5">
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex items-center justify-center rounded-lg bg-green-500/10 p-2 text-green-600">
                 <span className="material-symbols-outlined">shopping_cart</span>
               </div>
+              <Badge className="bg-green-500/10 px-2 py-1 text-xs font-bold text-green-600">
+                {metrics.ordersToday} today
+              </Badge>
             </div>
-            <h3 className="text-secondary-foreground text-xs font-label uppercase tracking-widest mb-1">
-              Orders Today
+            <h3 className="mb-1 text-xs uppercase tracking-widest text-secondary-foreground">
+              Total Orders
             </h3>
             <p className="text-3xl font-heading font-black text-foreground">
-              142
+              {metrics.totalOrders}
             </p>
           </CardContent>
         </Card>
         <Card className="bg-surface-container-lowest shadow-sm">
-          <CardContent className="p-6">
-            <div className="flex justify-between items-center mb-4">
-              <div className=" flex justify-center items-centerp-2 bg-green-500/10 rounded-lg text-green-600">
-                <span className="material-symbols-outlined">group</span>
+          <CardContent className="p-5">
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex items-center justify-center rounded-lg bg-blue-500/10 p-2 text-blue-600">
+                <span className="material-symbols-outlined">inventory_2</span>
               </div>
-
-              <Badge className="bg-green-500/10 text-green-600 text-xs font-bold px-2 py-1">
-                +8%
+              <Badge className="bg-blue-500/10 px-2 py-1 text-xs font-bold text-blue-600">
+                {metrics.lowStockItems} low stock
               </Badge>
             </div>
-            <h3 className="text-secondary-foreground text-xs font-label uppercase tracking-widest mb-1">
-              Active Customers
+            <h3 className="mb-1 text-xs uppercase tracking-widest text-secondary-foreground">
+              Total Products
             </h3>
             <p className="text-3xl font-heading font-black text-foreground">
-              1,284
+              {metrics.totalProducts}
             </p>
           </CardContent>
         </Card>
       </section>
 
-      {/* Revenue Chart */}
       <Card className="bg-surface-container-lowest shadow-sm">
         <CardContent className="p-6">
-          <div className="flex justify-between items-center mb-6">
+          <div className="mb-6 flex items-center justify-between">
             <div>
               <h3 className="text-lg font-heading font-bold text-foreground">
                 Revenue Overview
               </h3>
               <p className="text-secondary-foreground text-sm">
-                Monthly revenue trends for the past year
+                Monthly revenue trends from backend orders
               </p>
             </div>
             <Button variant="outline" size="sm">
@@ -183,7 +211,7 @@ const DashboardPage = () => {
                   fontSize={12}
                   tickLine={false}
                   axisLine={false}
-                  tickFormatter={(value) => `$${value / 1000}k`}
+                  tickFormatter={(value) => `$${Number(value) / 1000}k`}
                 />
                 <Tooltip
                   contentStyle={{
@@ -192,7 +220,7 @@ const DashboardPage = () => {
                     borderRadius: "8px",
                   }}
                   formatter={(value) => [
-                    `$${value?.toLocaleString() || "0"}`,
+                    `$${Number(value).toLocaleString()}`,
                     "Revenue",
                   ]}
                 />
@@ -214,10 +242,9 @@ const DashboardPage = () => {
         </CardContent>
       </Card>
 
-      {/* Activity Feed */}
       <Card className="bg-surface-container-lowest shadow-sm">
         <CardContent className="p-6">
-          <div className="flex justify-between items-center mb-6">
+          <div className="mb-6 flex items-center justify-between">
             <div>
               <h3 className="text-lg font-heading font-bold text-foreground">
                 Recent Activity
@@ -231,25 +258,17 @@ const DashboardPage = () => {
             </Button>
           </div>
           <div className="space-y-4">
-            {activities.map((activity) => (
+            {recentActivity.map((activity) => (
               <div
                 key={activity.id}
-                className="flex items-start gap-4 p-4 rounded-lg hover:bg-surface-container-low transition-colors"
+                className="flex items-start gap-4 rounded-lg p-4 transition-colors hover:bg-surface-container-low"
               >
-                <div className="w-10 h-10 rounded-full overflow-hidden bg-surface-container flex items-center justify-center flex-shrink-0">
-                  {activity.avatar ? (
-                    <img
-                      src={activity.avatar}
-                      alt={activity.user}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <span className="text-sm font-bold text-on-surface">
-                      {activity.initials}
-                    </span>
-                  )}
+                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-surface-container">
+                  <span className="text-sm font-bold text-on-surface">
+                    {activity.initials}
+                  </span>
                 </div>
-                <div className="flex-1 min-w-0">
+                <div className="min-w-0 flex-1">
                   <p className="text-sm text-foreground">
                     <span className="font-semibold">{activity.user}</span>{" "}
                     {activity.action}{" "}
@@ -257,7 +276,7 @@ const DashboardPage = () => {
                       {activity.item}
                     </span>
                   </p>
-                  <p className="text-xs text-secondary-foreground mt-1">
+                  <p className="mt-1 text-xs text-secondary-foreground">
                     {activity.time}
                   </p>
                 </div>
@@ -272,9 +291,8 @@ const DashboardPage = () => {
         </CardContent>
       </Card>
 
-      {/* Footer */}
-      <footer className="w-full py-12 mt-20 border-t border-outline-variant flex flex-col md:flex-row justify-between items-center px-8 font-label text-xs uppercase tracking-widest opacity-80 hover:opacity-100 transition-opacity">
-        <p className="text-secondary-foreground mb-6 md:mb-0">
+      <footer className="mt-20 flex w-full flex-col items-center justify-between border-t border-outline-variant px-8 py-12 text-xs uppercase tracking-widest opacity-80 transition-opacity hover:opacity-100 md:flex-row">
+        <p className="mb-6 text-secondary-foreground md:mb-0">
           © {new Date().getFullYear()} Corner Store. All rights reserved.
         </p>
       </footer>
