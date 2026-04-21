@@ -1,0 +1,626 @@
+<!doctype html>
+
+<html class="light" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Admin Dashboard | Botanical Archivist</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-container-low": "#f3f3f3",
+              "on-background": "#1a1c1c",
+              "inverse-primary": "#88d982",
+              "surface-variant": "#e2e2e2",
+              "on-secondary-fixed": "#2d150d",
+              "secondary-fixed-dim": "#e9bdae",
+              primary: "#0d631b",
+              "surface-container-lowest": "#ffffff",
+              "on-tertiary": "#ffffff",
+              "on-tertiary-container": "#ffede9",
+              "on-secondary-fixed-variant": "#5e3f35",
+              "on-surface-variant": "#40493d",
+              "on-error": "#ffffff",
+              "surface-container-highest": "#e2e2e2",
+              "outline-variant": "#bfcaba",
+              "on-surface": "#1a1c1c",
+              tertiary: "#a02900",
+              "surface-tint": "#1b6d24",
+              "on-tertiary-fixed": "#3b0900",
+              "tertiary-fixed": "#ffdbd1",
+              surface: "#f9f9f9",
+              "secondary-fixed": "#ffdbcf",
+              "inverse-on-surface": "#f1f1f1",
+              "on-primary-fixed": "#002204",
+              "on-secondary": "#ffffff",
+              "surface-container": "#eeeeee",
+              secondary: "#79564b",
+              "on-secondary-container": "#79574c",
+              error: "#ba1a1a",
+              outline: "#707a6c",
+              "on-primary-container": "#cbffc2",
+              "surface-bright": "#f9f9f9",
+              background: "#f9f9f9",
+              "surface-container-high": "#e8e8e8",
+              "primary-fixed": "#a3f69c",
+              "on-error-container": "#93000a",
+              "error-container": "#ffdad6",
+              "tertiary-container": "#cb3700",
+              "surface-dim": "#dadada",
+              "primary-fixed-dim": "#88d982",
+              "primary-container": "#2e7d32",
+              "on-primary-fixed-variant": "#005312",
+              "on-tertiary-fixed-variant": "#872100",
+              "tertiary-fixed-dim": "#ffb5a0",
+              "on-primary": "#ffffff",
+              "secondary-container": "#fed0c1",
+              "inverse-surface": "#2f3131",
+            },
+            borderRadius: {
+              DEFAULT: "0.25rem",
+              lg: "0.5rem",
+              xl: "0.75rem",
+              full: "9999px",
+            },
+            fontFamily: {
+              headline: ["Plus Jakarta Sans"],
+              body: ["Inter"],
+              label: ["Inter"],
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      .material-symbols-outlined {
+        font-variation-settings:
+          "FILL" 0,
+          "wght" 400,
+          "GRAD" 0,
+          "opsz" 24;
+      }
+      .chart-gradient {
+        background: linear-gradient(
+          180deg,
+          rgba(13, 99, 27, 0.1) 0%,
+          rgba(13, 99, 27, 0) 100%
+        );
+      }
+    </style>
+  </head>
+  <body class="bg-surface font-body text-on-surface selection:bg-primary-fixed">
+    <!-- SideNavBar Component -->
+    <aside
+      class="h-screen w-64 fixed left-0 top-0 bg-stone-50 dark:bg-stone-950 flex flex-col p-4 font-['Plus_Jakarta_Sans'] text-sm transition-transform z-50"
+    >
+      <!-- Header -->
+      <div class="mb-8 px-2">
+        <h1
+          class="text-lg font-black text-green-900 dark:text-white uppercase tracking-widest"
+        >
+          Botanical Archivist
+        </h1>
+        <div class="mt-6 flex items-center gap-3">
+          <div
+            class="w-10 h-10 rounded-full overflow-hidden bg-surface-container-highest"
+          >
+            <img
+              alt="Admin Profile"
+              class="w-full h-full object-cover"
+              data-alt="Close-up portrait of a professional man with a friendly expression, soft studio lighting, high resolution editorial style"
+              src="https://lh3.googleusercontent.com/aida-public/AB6AXuC67HKjqb06FZyWi47z80jrw0rpUTDQxHHIzQC-5BvaBwlaPpjV26rKJZDILntlGt0Bjj-CVXIxgSik49XzIf_A6xn9_rJaAwJycMwG23JlMDWkBsEmHUIruRzc6_vEFKyF3oFqfEY4uQkZGSWfmovbJeUp8oEliEuWkdXDoKK15uUBvMyCrxZzQ8D_iQyyyqYfgx2fluRe3da0o2HzJ4-O2jU9x2ocESla8HbxybpwMAeD-Xd6SK_XUznTu0KSS1p33vNGPs6vssI"
+            />
+          </div>
+          <div>
+            <p class="font-bold text-green-900 dark:text-green-50">
+              Admin Panel
+            </p>
+            <p class="text-xs text-stone-500">Market Manager</p>
+          </div>
+        </div>
+      </div>
+      <!-- Main Navigation -->
+      <nav class="flex-1 space-y-1">
+        <!-- Active Tab: Dashboard -->
+        <a
+          class="flex items-center gap-3 px-3 py-2.5 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 font-bold rounded-lg transition-transform duration-200 ease-in-out hover:translate-x-1"
+          href="#"
+        >
+          <span class="material-symbols-outlined" data-icon="dashboard"
+            >dashboard</span
+          >
+          <span>Dashboard</span>
+        </a>
+        <a
+          class="flex items-center gap-3 px-3 py-2.5 text-stone-500 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-900 transition-transform duration-200 ease-in-out hover:translate-x-1"
+          href="#"
+        >
+          <span class="material-symbols-outlined" data-icon="inventory_2"
+            >inventory_2</span
+          >
+          <span>Inventory</span>
+        </a>
+        <a
+          class="flex items-center gap-3 px-3 py-2.5 text-stone-500 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-900 transition-transform duration-200 ease-in-out hover:translate-x-1"
+          href="#"
+        >
+          <span class="material-symbols-outlined" data-icon="shopping_bag"
+            >shopping_bag</span
+          >
+          <span>Orders</span>
+        </a>
+        <a
+          class="flex items-center gap-3 px-3 py-2.5 text-stone-500 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-900 transition-transform duration-200 ease-in-out hover:translate-x-1"
+          href="#"
+        >
+          <span class="material-symbols-outlined" data-icon="group">group</span>
+          <span>Users</span>
+        </a>
+        <a
+          class="flex items-center gap-3 px-3 py-2.5 text-stone-500 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-900 transition-transform duration-200 ease-in-out hover:translate-x-1"
+          href="#"
+        >
+          <span class="material-symbols-outlined" data-icon="analytics"
+            >analytics</span
+          >
+          <span>Analytics</span>
+        </a>
+      </nav>
+      <!-- Footer Navigation -->
+      <div
+        class="mt-auto pt-4 space-y-1 border-t border-stone-200 dark:border-stone-800"
+      >
+        <a
+          class="flex items-center gap-3 px-3 py-2.5 text-stone-500 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-900 transition-transform duration-200 ease-in-out hover:translate-x-1"
+          href="#"
+        >
+          <span class="material-symbols-outlined" data-icon="settings"
+            >settings</span
+          >
+          <span>Settings</span>
+        </a>
+        <a
+          class="flex items-center gap-3 px-3 py-2.5 text-stone-500 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-900 transition-transform duration-200 ease-in-out hover:translate-x-1"
+          href="#"
+        >
+          <span class="material-symbols-outlined" data-icon="logout"
+            >logout</span
+          >
+          <span>Logout</span>
+        </a>
+      </div>
+    </aside>
+    <!-- Main Content Area -->
+    <main class="ml-64 min-h-screen p-8 bg-surface">
+      <!-- Top Bar -->
+      <header class="flex justify-between items-end mb-10">
+        <div>
+          <p
+            class="font-label text-secondary text-sm font-medium uppercase tracking-widest mb-1"
+          >
+            Market Overview
+          </p>
+          <h2
+            class="font-headline text-4xl font-extrabold tracking-tight text-on-surface"
+          >
+            Daily Harvest Report
+          </h2>
+        </div>
+        <div class="flex gap-4">
+          <button
+            class="bg-surface-container-high text-primary px-6 py-2.5 rounded-full font-semibold transition-transform active:scale-95"
+          >
+            Download CSV
+          </button>
+          <button
+            class="bg-gradient-to-br from-primary to-primary-container text-on-primary px-6 py-2.5 rounded-full font-semibold shadow-sm transition-transform active:scale-95"
+          >
+            Schedule Delivery
+          </button>
+        </div>
+      </header>
+      <!-- High-Level Metrics (Bento Grid Style) -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <!-- Metric Card 1 -->
+        <div
+          class="bg-surface-container-lowest p-6 rounded-xl relative overflow-hidden group"
+        >
+          <div class="relative z-10">
+            <p class="text-secondary text-sm font-medium mb-1">Total Sales</p>
+            <h3 class="text-3xl font-bold text-on-surface mb-2">$24,592</h3>
+            <div class="flex items-center gap-1 text-primary text-xs font-bold">
+              <span
+                class="material-symbols-outlined text-sm"
+                data-icon="trending_up"
+                >trending_up</span
+              >
+              <span>+12% vs last week</span>
+            </div>
+          </div>
+          <div
+            class="absolute -right-2 -bottom-2 opacity-5 transition-transform group-hover:scale-110"
+          >
+            <span
+              class="material-symbols-outlined text-8xl"
+              data-icon="payments"
+              >payments</span
+            >
+          </div>
+        </div>
+        <!-- Metric Card 2 -->
+        <div
+          class="bg-surface-container-lowest p-6 rounded-xl relative overflow-hidden group"
+        >
+          <div class="relative z-10">
+            <p class="text-secondary text-sm font-medium mb-1">Active Orders</p>
+            <h3 class="text-3xl font-bold text-on-surface mb-2">142</h3>
+            <div class="flex items-center gap-1 text-primary text-xs font-bold">
+              <span
+                class="material-symbols-outlined text-sm"
+                data-icon="local_shipping"
+                >local_shipping</span
+              >
+              <span>8 Out for delivery</span>
+            </div>
+          </div>
+          <div
+            class="absolute -right-2 -bottom-2 opacity-5 transition-transform group-hover:scale-110"
+          >
+            <span
+              class="material-symbols-outlined text-8xl"
+              data-icon="shopping_basket"
+              >shopping_basket</span
+            >
+          </div>
+        </div>
+        <!-- Metric Card 3 -->
+        <div
+          class="bg-surface-container-lowest p-6 rounded-xl relative overflow-hidden group"
+        >
+          <div class="relative z-10">
+            <p class="text-secondary text-sm font-medium mb-1">New Customers</p>
+            <h3 class="text-3xl font-bold text-on-surface mb-2">38</h3>
+            <div class="flex items-center gap-1 text-primary text-xs font-bold">
+              <span
+                class="material-symbols-outlined text-sm"
+                data-icon="person_add"
+                >person_add</span
+              >
+              <span>Record high today</span>
+            </div>
+          </div>
+          <div
+            class="absolute -right-2 -bottom-2 opacity-5 transition-transform group-hover:scale-110"
+          >
+            <span class="material-symbols-outlined text-8xl" data-icon="group"
+              >group</span
+            >
+          </div>
+        </div>
+        <!-- Metric Card 4: Stock Alerts -->
+        <div
+          class="bg-error-container p-6 rounded-xl relative overflow-hidden group"
+        >
+          <div class="relative z-10">
+            <p class="text-on-error-container text-sm font-medium mb-1">
+              Stock Alerts
+            </p>
+            <h3 class="text-3xl font-bold text-on-error-container mb-2">12</h3>
+            <div class="flex items-center gap-1 text-error text-xs font-bold">
+              <span
+                class="material-symbols-outlined text-sm"
+                data-icon="warning"
+                >warning</span
+              >
+              <span>Action required</span>
+            </div>
+          </div>
+          <div
+            class="absolute -right-2 -bottom-2 opacity-10 transition-transform group-hover:scale-110"
+          >
+            <span
+              class="material-symbols-outlined text-8xl"
+              data-icon="inventory_2"
+              >inventory_2</span
+            >
+          </div>
+        </div>
+      </div>
+      <!-- Asymmetric Layout: Revenue Chart & Activity Feed -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Revenue Chart Section -->
+        <div class="lg:col-span-2 space-y-6">
+          <div
+            class="bg-surface-container-lowest p-8 rounded-xl shadow-black/5"
+          >
+            <div class="flex justify-between items-center mb-8">
+              <h4 class="font-headline text-xl font-bold">Weekly Revenue</h4>
+              <div class="flex gap-2">
+                <span
+                  class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-secondary-fixed text-on-secondary-fixed-variant"
+                  >This Week</span
+                >
+                <span
+                  class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold text-stone-400"
+                  >Previous</span
+                >
+              </div>
+            </div>
+            <!-- Simulated Chart Visualization -->
+            <div class="h-64 w-full relative flex items-end gap-1">
+              <!-- Chart Lines (Stylized SVG) -->
+              <div class="absolute inset-0 z-0">
+                <svg
+                  class="w-full h-full opacity-30"
+                  preserveaspectratio="none"
+                  viewbox="0 0 100 40"
+                >
+                  <path
+                    d="M0 35 Q 20 10, 40 25 T 100 5"
+                    fill="none"
+                    stroke="#0d631b"
+                    stroke-width="1"
+                  ></path>
+                  <path
+                    d="M0 35 Q 20 10, 40 25 T 100 5 L 100 40 L 0 40 Z"
+                    fill="url(#grad)"
+                    opacity="0.2"
+                  ></path>
+                  <defs>
+                    <lineargradient id="grad" x1="0%" x2="0%" y1="0%" y2="100%">
+                      <stop
+                        offset="0%"
+                        style="stop-color: #0d631b; stop-opacity: 1"
+                      ></stop>
+                      <stop
+                        offset="100%"
+                        style="stop-color: #0d631b; stop-opacity: 0"
+                      ></stop>
+                    </lineargradient>
+                  </defs>
+                </svg>
+              </div>
+              <!-- Data Points Labels -->
+              <div
+                class="w-full flex justify-between pt-4 absolute bottom-0 translate-y-full text-[10px] uppercase tracking-tighter text-stone-400 font-bold px-2"
+              >
+                <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span
+                ><span>Fri</span><span>Sat</span><span>Sun</span>
+              </div>
+              <!-- Visual Bars for Depth -->
+              <div
+                class="flex-1 h-[40%] bg-surface-container rounded-t-sm"
+              ></div>
+              <div
+                class="flex-1 h-[65%] bg-surface-container rounded-t-sm"
+              ></div>
+              <div
+                class="flex-1 h-[55%] bg-surface-container rounded-t-sm"
+              ></div>
+              <div
+                class="flex-1 h-[85%] bg-primary/10 rounded-t-sm border-t-2 border-primary"
+              ></div>
+              <div
+                class="flex-1 h-[70%] bg-surface-container rounded-t-sm"
+              ></div>
+              <div
+                class="flex-1 h-[95%] bg-surface-container rounded-t-sm"
+              ></div>
+              <div
+                class="flex-1 h-[60%] bg-surface-container rounded-t-sm"
+              ></div>
+            </div>
+          </div>
+          <!-- Featured Category Management (Asymmetric Component) -->
+          <div class="grid grid-cols-2 gap-6">
+            <div
+              class="bg-surface-container-low rounded-xl p-6 flex flex-col justify-between"
+            >
+              <div>
+                <span
+                  class="material-symbols-outlined text-primary mb-4"
+                  data-icon="restaurant_menu"
+                  >restaurant_menu</span
+                >
+                <h5 class="text-lg font-bold mb-1">Seasonal Curation</h5>
+                <p class="text-sm text-stone-500">
+                  Manage the 'Spring Harvest' featured collection.
+                </p>
+              </div>
+              <button
+                class="mt-6 text-primary text-sm font-bold flex items-center gap-2 group"
+              >
+                Configure Collection
+                <span
+                  class="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform"
+                  data-icon="arrow_forward"
+                  >arrow_forward</span
+                >
+              </button>
+            </div>
+            <div
+              class="bg-surface-container-low rounded-xl p-6 flex flex-col justify-between"
+            >
+              <div>
+                <span
+                  class="material-symbols-outlined text-primary mb-4"
+                  data-icon="eco"
+                  >eco</span
+                >
+                <h5 class="text-lg font-bold mb-1">Supplier Integrity</h5>
+                <p class="text-sm text-stone-500">
+                  6 new organic certification pending review.
+                </p>
+              </div>
+              <button
+                class="mt-6 text-primary text-sm font-bold flex items-center gap-2 group"
+              >
+                Review Docs
+                <span
+                  class="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform"
+                  data-icon="arrow_forward"
+                  >arrow_forward</span
+                >
+              </button>
+            </div>
+          </div>
+        </div>
+        <!-- Recent Activity Feed -->
+        <div
+          class="bg-surface-container-lowest rounded-xl shadow-black/5 overflow-hidden flex flex-col"
+        >
+          <div class="p-6 border-b border-surface-container">
+            <h4 class="font-headline text-xl font-bold">Recent Activity</h4>
+          </div>
+          <div class="flex-1 overflow-y-auto p-6 space-y-6">
+            <!-- Activity Item 1 -->
+            <div class="flex gap-4">
+              <div
+                class="flex-shrink-0 w-10 h-10 rounded-full bg-secondary-fixed flex items-center justify-center"
+              >
+                <span
+                  class="material-symbols-outlined text-on-secondary-fixed"
+                  data-icon="shopping_cart_checkout"
+                  >shopping_cart_checkout</span
+                >
+              </div>
+              <div>
+                <p class="text-sm font-bold">New Order #8291</p>
+                <p class="text-xs text-stone-500">
+                  Artisan Bread, 2x Heirloom Tomatoes
+                </p>
+                <span
+                  class="text-[10px] text-stone-400 font-bold uppercase mt-1 inline-block"
+                  >2 mins ago</span
+                >
+              </div>
+            </div>
+            <!-- Activity Item 2 -->
+            <div class="flex gap-4">
+              <div
+                class="flex-shrink-0 w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center"
+              >
+                <span
+                  class="material-symbols-outlined text-on-primary-fixed"
+                  data-icon="person"
+                  >person</span
+                >
+              </div>
+              <div>
+                <p class="text-sm font-bold">New Customer Signup</p>
+                <p class="text-xs text-stone-500">
+                  Sarah Jenkins (Loyalty Level: Sprout)
+                </p>
+                <span
+                  class="text-[10px] text-stone-400 font-bold uppercase mt-1 inline-block"
+                  >14 mins ago</span
+                >
+              </div>
+            </div>
+            <!-- Activity Item 3 -->
+            <div class="flex gap-4">
+              <div
+                class="flex-shrink-0 w-10 h-10 rounded-full bg-tertiary-fixed flex items-center justify-center"
+              >
+                <span
+                  class="material-symbols-outlined text-on-tertiary-fixed"
+                  data-icon="inventory"
+                  >inventory</span
+                >
+              </div>
+              <div>
+                <p class="text-sm font-bold">Stock Alert: Avocado</p>
+                <p class="text-xs text-stone-500">
+                  Hass Avocado down to 15 units
+                </p>
+                <span
+                  class="text-[10px] text-stone-400 font-bold uppercase mt-1 inline-block"
+                  >1 hour ago</span
+                >
+              </div>
+            </div>
+            <!-- Activity Item 4 -->
+            <div class="flex gap-4">
+              <div
+                class="flex-shrink-0 w-10 h-10 rounded-full bg-secondary-fixed flex items-center justify-center"
+              >
+                <span
+                  class="material-symbols-outlined text-on-secondary-fixed"
+                  data-icon="star"
+                  >star</span
+                >
+              </div>
+              <div>
+                <p class="text-sm font-bold">5-Star Review Received</p>
+                <p class="text-xs text-stone-500">
+                  "The freshest produce in the city!"
+                </p>
+                <span
+                  class="text-[10px] text-stone-400 font-bold uppercase mt-1 inline-block"
+                  >3 hours ago</span
+                >
+              </div>
+            </div>
+            <!-- Activity Item 5 -->
+            <div class="flex gap-4">
+              <div
+                class="flex-shrink-0 w-10 h-10 rounded-full bg-stone-100 flex items-center justify-center"
+              >
+                <span
+                  class="material-symbols-outlined text-stone-400"
+                  data-icon="local_shipping"
+                  >local_shipping</span
+                >
+              </div>
+              <div>
+                <p class="text-sm font-bold">Batch Shipment Dispatched</p>
+                <p class="text-xs text-stone-500">
+                  42 orders sent for morning delivery
+                </p>
+                <span
+                  class="text-[10px] text-stone-400 font-bold uppercase mt-1 inline-block"
+                  >5 hours ago</span
+                >
+              </div>
+            </div>
+          </div>
+          <div class="p-4 bg-surface-container-low text-center">
+            <button
+              class="text-xs font-bold text-secondary uppercase tracking-widest hover:text-primary transition-colors"
+            >
+              View All Activity
+            </button>
+          </div>
+        </div>
+      </div>
+      <!-- System Status Footer (Minimal) -->
+      <footer
+        class="mt-12 flex justify-between items-center text-[10px] font-['Inter'] uppercase tracking-widest text-stone-400 border-t border-surface-container pt-6"
+      >
+        <div class="flex gap-6">
+          <span class="flex items-center gap-1"
+            ><span class="w-1.5 h-1.5 rounded-full bg-primary"></span> Server
+            Online</span
+          >
+          <span class="flex items-center gap-1"
+            ><span class="w-1.5 h-1.5 rounded-full bg-primary"></span> Database
+            Synced</span
+          >
+        </div>
+        <div>© 2024 Botanical Archivist. v2.4.0-stable</div>
+      </footer>
+    </main>
+  </body>
+</html>
