@@ -1,4 +1,5 @@
-import { NavLink, Outlet, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
   Sidebar,
   SidebarContent,
@@ -9,11 +10,66 @@ import {
   SidebarMenuButton,
   SidebarProvider,
 } from "@/components/ui/sidebar";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { apiRequest, clearStoredSession } from "@/lib/api";
+
+type ProfileResponse = {
+  id: number;
+  email: string;
+  displayName: string;
+  initials: string;
+  role: string;
+  joinedOn: string;
+};
 
 const AdminLayout = () => {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
   const isActive = (path: string) => pathname === `/${path}`;
+  const [profile, setProfile] = useState<ProfileResponse | null>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+
+    const loadProfile = async () => {
+      try {
+        const response = await apiRequest<ProfileResponse>("/api/admin/profile");
+        if (active) {
+          setProfile(response);
+        }
+      } catch {
+        if (active) {
+          setProfile(null);
+        }
+      } finally {
+        if (active) {
+          setProfileLoading(false);
+        }
+      }
+    };
+
+    loadProfile();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const roleLabel = profile?.role
+    ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1)
+    : "";
+
+  const handleLogout = () => {
+    setLoggingOut(true);
+    clearStoredSession();
+    setProfile(null);
+    setProfileLoading(false);
+    navigate("/login", { replace: true });
+    setLoggingOut(false);
+  };
 
   return (
     <SidebarProvider>
@@ -94,18 +150,50 @@ const AdminLayout = () => {
             </SidebarMenu>
           </SidebarContent>
           <SidebarFooter className="p-4 border-t border-border">
-            <div className="flex items-center gap-3 mb-4">
-              <Avatar className="w-10 h-10">
-                <AvatarImage src="https://lh3.googleusercontent.com/aida-public/AB6AXuAUGtdq4yd70eA3Cu5s0XxyEWWSdkqxT190MUuX98wku5HaJBuB5ZOJTCX9SMq1j2zd9kqd1UuR6q1vT5eWnAZPFLNTWizE9irpxQtoK9569dv3Qv9gjgT3Sh85y0N2YP33Ph_z6mY8o2aN38TF1whFG-TxL16D5c0g2MEQ1lmpdZW5MFRNkeEO1GQf5mIYduX7sOowAqdAgich9c1s8hJ-cW7-ySbL5ESw3ZSo-eV0ERAE6XkLxjNlYZ0ZgQ4S2gd_AWP2p_OcmLk" />
-                <AvatarFallback>AA</AvatarFallback>
-              </Avatar>
-              <div>
-                <p className="text-xs font-bold">Alex Mercer</p>
-                <p className="text-[10px] text-muted-foreground uppercase">
-                  Head Archivist
-                </p>
+            <NavLink
+              to="/profile"
+              end
+              className="mb-4 block rounded-xl bg-surface-container-low px-3 py-3 transition-transform hover:-translate-y-0.5 hover:bg-surface-container"
+            >
+              <div className="flex items-center gap-3">
+                <Avatar className="h-10 w-10">
+                  <AvatarFallback>{profile?.initials || "SO"}</AvatarFallback>
+                </Avatar>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-xs font-bold">
+                    {profileLoading
+                      ? "Loading profile..."
+                      : profile?.displayName || "Signed out"}
+                  </p>
+                  <p className="truncate text-[10px] text-muted-foreground">
+                    {profileLoading
+                      ? "Fetching account details..."
+                      : profile?.email || "Not signed in"}
+                  </p>
+                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground/80">
+                    {profileLoading ? "Loading..." : roleLabel || "Guest"}
+                  </p>
+                </div>
+                <span className="material-symbols-outlined text-sm text-muted-foreground">
+                  chevron_right
+                </span>
               </div>
-            </div>
+              <p className="mt-3 text-[10px] uppercase tracking-[0.3em] text-primary/80">
+                View profile
+              </p>
+            </NavLink>
+            <Button
+              type="button"
+              variant="outline"
+              className="mb-4 w-full justify-start rounded-xl border-border px-3 py-3 text-sm font-medium"
+              onClick={handleLogout}
+              disabled={loggingOut}
+            >
+              <span className="material-symbols-outlined mr-2 text-sm">
+                logout
+              </span>
+              {loggingOut ? "Signing out..." : "Log out"}
+            </Button>
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={isActive("settings")}>

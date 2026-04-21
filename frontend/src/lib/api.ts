@@ -181,7 +181,25 @@ const getAuthToken = () => {
     return "";
   }
 
-  return localStorage.getItem("accessToken") || localStorage.getItem("token") || "";
+  return (
+    localStorage.getItem("accessToken") || localStorage.getItem("token") || ""
+  );
+};
+
+export const hasStoredAccessToken = () => Boolean(getAuthToken());
+
+export const saveSessionTokens = (tokens: {
+  accessToken: string;
+  refreshToken?: string;
+}) => {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  localStorage.setItem("accessToken", tokens.accessToken);
+  if (tokens.refreshToken) {
+    localStorage.setItem("refreshToken", tokens.refreshToken);
+  }
 };
 
 const createHeaders = (headers?: HeadersInit) => {
@@ -289,6 +307,49 @@ const saveStoredProfile = (profile: Partial<ProfileResponse>) => {
   localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(nextProfile));
 };
 
+export const clearStoredSession = () => {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  ["accessToken", "token", "refreshToken", PROFILE_STORAGE_KEY].forEach(
+    (key) => {
+      localStorage.removeItem(key);
+    },
+  );
+};
+
+const DEMO_PROFILE: ProfileResponse = {
+  id: 1,
+  email: "jenta@admin.com",
+  role: "admin",
+  displayName: "Jenta",
+  initials: "J",
+  joinedOn: "Current session",
+};
+
+const mergeProfile = (profile: Partial<ProfileResponse>): ProfileResponse => {
+  const email = profile.email || DEMO_PROFILE.email;
+  const displayName =
+    profile.displayName ||
+    displayNameFromEmail(email) ||
+    DEMO_PROFILE.displayName;
+
+  return {
+    ...DEMO_PROFILE,
+    ...profile,
+    id: profile.id ?? DEMO_PROFILE.id,
+    email,
+    role: profile.role || DEMO_PROFILE.role,
+    displayName,
+    initials:
+      profile.initials || initialsFrom(displayName) || DEMO_PROFILE.initials,
+    joinedOn: profile.joinedOn || DEMO_PROFILE.joinedOn,
+  };
+};
+
+const getSyntheticProfile = () => mergeProfile(getStoredProfile());
+
 const saveSettings = (settings: Partial<SettingsResponse>) => {
   if (typeof window === "undefined") {
     return getStoredSettings();
@@ -379,8 +440,10 @@ const initialsFrom = (value: string) => {
     .filter(Boolean);
 
   const initials =
-    words.slice(0, 2).map((word) => word.charAt(0)).join("") ||
-    value.slice(0, 2);
+    words
+      .slice(0, 2)
+      .map((word) => word.charAt(0))
+      .join("") || value.slice(0, 2);
 
   return initials.toUpperCase();
 };
@@ -404,7 +467,11 @@ const productCategory = (name: string) => {
     return "Bakery & Deli";
   }
 
-  if (/(apple|banana|orange|berry|carrot|lettuce|tomato|avocado|fruit|produce|vegetable)/.test(lower)) {
+  if (
+    /(apple|banana|orange|berry|carrot|lettuce|tomato|avocado|fruit|produce|vegetable)/.test(
+      lower,
+    )
+  ) {
     return "Produce";
   }
 
@@ -441,16 +508,32 @@ const statusTone = (status: string) => {
   return "bg-secondary-fixed text-on-secondary-fixed-variant";
 };
 
-const monthLabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const monthLabels = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
 
 const buildDashboardResponse = async (): Promise<DashboardResponse> => {
-  const [productsResult, ordersResult, adminsResult] = await Promise.allSettled([
-    fetchJson<BackendProduct[]>("/api/products"),
-    fetchJson<BackendOrder[]>("/api/orders"),
-    fetchJson<BackendAdmin[]>("/api/auth/admins"),
-  ]);
+  const [productsResult, ordersResult, adminsResult] = await Promise.allSettled(
+    [
+      fetchJson<BackendProduct[]>("/api/products"),
+      fetchJson<BackendOrder[]>("/api/orders"),
+      fetchJson<BackendAdmin[]>("/api/auth/admins"),
+    ],
+  );
 
-  const products = productsResult.status === "fulfilled" ? productsResult.value : [];
+  const products =
+    productsResult.status === "fulfilled" ? productsResult.value : [];
   const orders = ordersResult.status === "fulfilled" ? ordersResult.value : [];
   const admins = adminsResult.status === "fulfilled" ? adminsResult.value : [];
 
@@ -458,7 +541,10 @@ const buildDashboardResponse = async (): Promise<DashboardResponse> => {
     throw new ApiError("Unable to load dashboard data", 500);
   }
 
-  const totalRevenue = orders.reduce((sum, order) => sum + toNumber(order.total), 0);
+  const totalRevenue = orders.reduce(
+    (sum, order) => sum + toNumber(order.total),
+    0,
+  );
   const activeCustomers = new Set(
     orders.map((order) => order.customer.trim().toLowerCase()),
   ).size;
@@ -480,7 +566,9 @@ const buildDashboardResponse = async (): Promise<DashboardResponse> => {
   }));
 
   const recentActivity = [...orders]
-    .sort((left, right) => +new Date(right.createdAt) - +new Date(left.createdAt))
+    .sort(
+      (left, right) => +new Date(right.createdAt) - +new Date(left.createdAt),
+    )
     .slice(0, 4)
     .map((order) => ({
       id: order.id,
@@ -551,10 +639,19 @@ const buildOrdersResponse = async (): Promise<OrdersResponse> => {
   return {
     stats: {
       totalOrders: orders.length,
-      pendingOrders: orders.filter((order) => order.orderStatus.toLowerCase() === "pending").length,
-      shippedOrders: orders.filter((order) => order.orderStatus.toLowerCase() === "shipped").length,
-      deliveredOrders: orders.filter((order) => order.orderStatus.toLowerCase() === "delivered").length,
-      totalRevenue: orders.reduce((sum, order) => sum + toNumber(order.total), 0),
+      pendingOrders: orders.filter(
+        (order) => order.orderStatus.toLowerCase() === "pending",
+      ).length,
+      shippedOrders: orders.filter(
+        (order) => order.orderStatus.toLowerCase() === "shipped",
+      ).length,
+      deliveredOrders: orders.filter(
+        (order) => order.orderStatus.toLowerCase() === "delivered",
+      ).length,
+      totalRevenue: orders.reduce(
+        (sum, order) => sum + toNumber(order.total),
+        0,
+      ),
     },
     orders: ordered.map((order) => ({
       id: `#ARC-${String(order.id).padStart(4, "0")}`,
@@ -563,7 +660,8 @@ const buildOrdersResponse = async (): Promise<OrdersResponse> => {
       date: formatDate(order.createdAt),
       total: toNumber(order.total),
       orderStatus: order.orderStatus,
-      itemCount: order.items?.reduce((sum, item) => sum + item.quantity, 0) ?? 0,
+      itemCount:
+        order.items?.reduce((sum, item) => sum + item.quantity, 0) ?? 0,
       initials: initialsFrom(order.customer),
       statusColor: statusTone(order.orderStatus),
     })),
@@ -571,11 +669,12 @@ const buildOrdersResponse = async (): Promise<OrdersResponse> => {
 };
 
 const buildUsersResponse = async (): Promise<UsersResponse> => {
-  const [currentUserResult, adminsResult, ordersResult] = await Promise.allSettled([
-    fetchJson<BackendUser>("/api/auth/me"),
-    fetchJson<BackendAdmin[]>("/api/auth/admins"),
-    fetchJson<BackendOrder[]>("/api/orders"),
-  ]);
+  const [currentUserResult, adminsResult, ordersResult] =
+    await Promise.allSettled([
+      fetchJson<BackendUser>("/api/auth/me"),
+      fetchJson<BackendAdmin[]>("/api/auth/admins"),
+      fetchJson<BackendOrder[]>("/api/orders"),
+    ]);
 
   const currentUser =
     currentUserResult.status === "fulfilled" ? currentUserResult.value : null;
@@ -655,22 +754,29 @@ const buildAnalyticsResponse = async (): Promise<AnalyticsResponse> => {
     fetchJson<BackendOrder[]>("/api/orders"),
   ]);
 
-  const products = productsResult.status === "fulfilled" ? productsResult.value : [];
+  const products =
+    productsResult.status === "fulfilled" ? productsResult.value : [];
   const orders = ordersResult.status === "fulfilled" ? ordersResult.value : [];
 
   if (!products.length && !orders.length) {
     throw new ApiError("Unable to load analytics data", 500);
   }
 
-  const totalRevenue = orders.reduce((sum, order) => sum + toNumber(order.total), 0);
+  const totalRevenue = orders.reduce(
+    (sum, order) => sum + toNumber(order.total),
+    0,
+  );
   const uniqueCustomers = new Set(
     orders.map((order) => order.customer.trim().toLowerCase()),
   );
   const repeatCustomers = orders.length
     ? Math.max(
         0,
-        [...uniqueCustomers].filter((customer) =>
-          orders.filter((order) => order.customer.trim().toLowerCase() === customer).length > 1,
+        [...uniqueCustomers].filter(
+          (customer) =>
+            orders.filter(
+              (order) => order.customer.trim().toLowerCase() === customer,
+            ).length > 1,
         ).length,
       )
     : 0;
@@ -682,15 +788,24 @@ const buildAnalyticsResponse = async (): Promise<AnalyticsResponse> => {
   sortedOrders.forEach((order) => {
     const key = order.customer.trim().toLowerCase();
     if (!firstOrderByCustomer.has(key)) {
-      firstOrderByCustomer.set(key, `${new Date(order.createdAt).getFullYear()}-${new Date(order.createdAt).getMonth()}`);
+      firstOrderByCustomer.set(
+        key,
+        `${new Date(order.createdAt).getFullYear()}-${new Date(order.createdAt).getMonth()}`,
+      );
     }
   });
 
   const currentMonth = new Date();
   const retentionData = Array.from({ length: 6 }, (_, index) => {
-    const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth() - (5 - index), 1);
+    const date = new Date(
+      currentMonth.getFullYear(),
+      currentMonth.getMonth() - (5 - index),
+      1,
+    );
     const key = `${date.getFullYear()}-${date.getMonth()}`;
-    const month = date.toLocaleDateString("en-US", { month: "short" }).toUpperCase();
+    const month = date
+      .toLocaleDateString("en-US", { month: "short" })
+      .toUpperCase();
     let fresh = 0;
     let returning = 0;
 
@@ -715,10 +830,13 @@ const buildAnalyticsResponse = async (): Promise<AnalyticsResponse> => {
   orders.forEach((order) => {
     order.items?.forEach((item) => {
       const product = products.find((entry) => entry.id === item.productId);
-      const category = product ? productCategory(product.name) : "General Grocery";
+      const category = product
+        ? productCategory(product.name)
+        : "General Grocery";
       categoryBuckets.set(
         category,
-        (categoryBuckets.get(category) ?? 0) + toNumber(item.price) * item.quantity,
+        (categoryBuckets.get(category) ?? 0) +
+          toNumber(item.price) * item.quantity,
       );
     });
   });
@@ -730,18 +848,21 @@ const buildAnalyticsResponse = async (): Promise<AnalyticsResponse> => {
     "General Grocery": "#8b5cf6",
   };
 
-  const categoryData = Array.from(categoryBuckets.entries()).map(([name, value]) => ({
-    name,
-    value: Math.round(value),
-    fill: categoryPalette[name] || "#94a3b8",
-  }));
+  const categoryData = Array.from(categoryBuckets.entries()).map(
+    ([name, value]) => ({
+      name,
+      value: Math.round(value),
+      fill: categoryPalette[name] || "#94a3b8",
+    }),
+  );
 
   const revenueByProduct = new Map<number, number>();
   orders.forEach((order) => {
     order.items?.forEach((item) => {
       revenueByProduct.set(
         item.productId,
-        (revenueByProduct.get(item.productId) ?? 0) + toNumber(item.price) * item.quantity,
+        (revenueByProduct.get(item.productId) ?? 0) +
+          toNumber(item.price) * item.quantity,
       );
     });
   });
@@ -754,7 +875,9 @@ const buildAnalyticsResponse = async (): Promise<AnalyticsResponse> => {
       return {
         name: product?.name || `Product #${productId}`,
         revenue: Math.round(revenue),
-        percentage: totalRevenue ? Math.round((revenue / totalRevenue) * 100) : 0,
+        percentage: totalRevenue
+          ? Math.round((revenue / totalRevenue) * 100)
+          : 0,
       };
     });
 
@@ -773,7 +896,12 @@ const buildAnalyticsResponse = async (): Promise<AnalyticsResponse> => {
   };
 };
 
-const getSyntheticAdminResponse = async (path: string, options: ApiRequestOptions) => {
+const ENABLE_DEMO_ADMIN_RESPONSES = false;
+
+const getSyntheticAdminResponse = async (
+  path: string,
+  options: ApiRequestOptions,
+) => {
   if (path === "/api/admin/dashboard") {
     return buildDashboardResponse();
   }
@@ -796,7 +924,9 @@ const getSyntheticAdminResponse = async (path: string, options: ApiRequestOption
 
   if (path === "/api/admin/settings") {
     if ((options.method || "GET").toUpperCase() === "PUT") {
-      const nextSettings = saveSettings((options.json as Partial<SettingsResponse>) || {});
+      const nextSettings = saveSettings(
+        (options.json as Partial<SettingsResponse>) || {},
+      );
       return nextSettings;
     }
 
@@ -806,34 +936,22 @@ const getSyntheticAdminResponse = async (path: string, options: ApiRequestOption
   if (path === "/api/admin/profile") {
     if ((options.method || "GET").toUpperCase() === "PATCH") {
       const incoming = (options.json as { email?: string }) || {};
-      const baseUser = await fetchJson<BackendUser>("/api/auth/me");
-      const email = incoming.email || baseUser.email;
+      const currentProfile = getSyntheticProfile();
+      const email =
+        incoming.email?.trim().toLowerCase() || currentProfile.email;
       const displayName = displayNameFromEmail(email);
-      const profile: ProfileResponse = {
-        id: Number(baseUser.id) || 0,
+      const profile = mergeProfile({
+        ...currentProfile,
         email,
-        role: baseUser.role,
         displayName,
         initials: initialsFrom(displayName),
-        joinedOn: getStoredProfile().joinedOn || "Current session",
-      };
+      });
 
       saveStoredProfile(profile);
       return profile;
     }
 
-    const baseUser = await fetchJson<BackendUser>("/api/auth/me");
-    const storedProfile = getStoredProfile();
-    const displayName =
-      storedProfile.displayName || displayNameFromEmail(baseUser.email);
-    const profile: ProfileResponse = {
-      id: Number(baseUser.id) || 0,
-      email: storedProfile.email || baseUser.email,
-      role: storedProfile.role || baseUser.role,
-      displayName,
-      initials: storedProfile.initials || initialsFrom(displayName),
-      joinedOn: storedProfile.joinedOn || "Current session",
-    };
+    const profile = getSyntheticProfile();
 
     saveStoredProfile(profile);
     return profile;
@@ -854,14 +972,16 @@ export async function apiRequest<T>(
   path: string,
   { headers, json, ...options }: ApiRequestOptions = {},
 ): Promise<T> {
-  const synthetic = await getSyntheticAdminResponse(path, {
-    headers,
-    json,
-    ...options,
-  });
+  if (ENABLE_DEMO_ADMIN_RESPONSES) {
+    const synthetic = await getSyntheticAdminResponse(path, {
+      headers,
+      json,
+      ...options,
+    });
 
-  if (synthetic !== null) {
-    return synthetic as T;
+    if (synthetic !== null) {
+      return synthetic as T;
+    }
   }
 
   return fetchJson<T>(path, { headers, json, ...options });

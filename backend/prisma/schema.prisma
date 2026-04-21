@@ -57,4 +57,5 @@ model User {
     email String @unique
     password String 
     role String @default("Admin")
+    picture String?
 }

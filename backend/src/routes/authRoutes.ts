@@ -12,6 +12,6 @@ const router = express.Router();
 router.post("/google", googleLogin);
 router.post("/refresh", refreshToken);
 router.get("/me", auth, getCurrentUser);
-router.get("/admins", getAdmins); // Temporarily remove auth for demo
+router.get("/admins", getAdmins);
 
 export default router;

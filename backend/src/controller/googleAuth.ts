@@ -7,6 +7,14 @@ import { JwtPayload } from "../types/express.js";
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const normalizeRole = (role?: string | null) => (role || "").toLowerCase();
+const adminEmails = new Set(
+  (process.env.ADMIN_EMAILS || "")
+    .split(",")
+    .map((email) => email.trim().toLowerCase())
+    .filter(Boolean),
+);
+
+const isAdminEmail = (email: string) => adminEmails.has(email.toLowerCase());
 
 export const googleLogin = async (req: Request, res: Response) => {
   const { token } = req.body;
@@ -32,14 +40,29 @@ export const googleLogin = async (req: Request, res: Response) => {
         data: {
           email: payload.email,
           password: "",
-          role: "user",
+          role: isAdminEmail(payload.email) ? "admin" : "user",
+          picture: payload.picture,
         },
+      });
+    } else if (isAdminEmail(payload.email) && normalizeRole(user.role) !== "admin") {
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          role: "admin",
+          picture: payload.picture ?? user.picture,
+        },
+      });
+    } else if (payload.picture && payload.picture !== user.picture) {
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: { picture: payload.picture },
       });
     }
 
     const jwtPayload = {
       id: user.id,
       email: user.email,
+      picture: user.picture,
       role: user.role,
     };
 
