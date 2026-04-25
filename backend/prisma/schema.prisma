@@ -7,13 +7,14 @@ datasource db {
 }
 
 model Product {
- id        Int     @id @default(autoincrement())
- name      String
- price     Int
- stock     Int
- imageUrl  String?
+  id        Int     @id @default(autoincrement())
+  name      String
+  price     Int
+  stock     Int
+  imageUrl  String?
+  deletedAt DateTime?
 
- orderItems OrderItem[]
+  orderItems OrderItem[]
 }
 
 model Order {
@@ -58,4 +59,5 @@ model User {
     password String 
     role String @default("Admin")
     picture String?
+    createdAt DateTime @default(now())
 }

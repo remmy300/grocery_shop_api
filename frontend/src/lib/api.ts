@@ -1,180 +1,26 @@
+import axios, { AxiosRequestConfig } from "axios";
+import {
+  ApiRequestOptions,
+  BackendProduct,
+  BackendOrder,
+  BackendUser,
+  BackendAdmin,
+  DashboardResponse,
+  InventoryResponse,
+  OrdersResponse,
+  UsersResponse,
+  AnalyticsResponse,
+  SettingsResponse,
+  ProfileResponse,
+  ApiError,
+} from "@/types";
+
 const API_BASE_URL = (
-  import.meta.env.VITE_API_BASE_URL ?? "http://localhost:4000"
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000"
 ).replace(/\/+$/, "");
 
 const SETTINGS_STORAGE_KEY = "corner-store-admin-settings";
 const PROFILE_STORAGE_KEY = "corner-store-profile";
-
-type ApiRequestOptions = Omit<RequestInit, "body" | "headers"> & {
-  headers?: HeadersInit;
-  json?: unknown;
-};
-
-type BackendProduct = {
-  id: number;
-  name: string;
-  price: number | string;
-  stock: number;
-  imageUrl?: string | null;
-};
-
-type BackendOrderItem = {
-  id: number;
-  orderId: number;
-  productId: number;
-  price: number | string;
-  quantity: number;
-};
-
-type BackendOrder = {
-  id: number;
-  customer: string;
-  phone: string;
-  address: string;
-  total: number | string;
-  orderStatus: string;
-  items?: BackendOrderItem[];
-  createdAt: string;
-};
-
-type BackendUser = {
-  id: number | string;
-  email: string;
-  role: string;
-};
-
-type BackendAdmin = {
-  id: number;
-  email: string;
-  role: string;
-};
-
-type DashboardResponse = {
-  metrics: {
-    totalRevenue: number;
-    totalOrders: number;
-    totalProducts: number;
-    lowStockItems: number;
-    activeAdmins: number;
-    activeCustomers: number;
-    ordersToday: number;
-  };
-  recentActivity: Array<{
-    id: number;
-    user: string;
-    action: string;
-    item: string;
-    time: string;
-    initials: string;
-  }>;
-  revenueData: Array<{ month: string; revenue: number }>;
-};
-
-type InventoryResponse = {
-  stats: {
-    totalProducts: number;
-    lowStockItems: number;
-    inventoryValue: number;
-  };
-  products: Array<{
-    id: number;
-    sku: string;
-    name: string;
-    category: string;
-    stock: number;
-    stockStatus: string;
-    price: number;
-    imageUrl?: string | null;
-  }>;
-};
-
-type OrdersResponse = {
-  stats: {
-    totalOrders: number;
-    pendingOrders: number;
-    shippedOrders: number;
-    deliveredOrders: number;
-    totalRevenue: number;
-  };
-  orders: Array<{
-    id: string;
-    orderId: number;
-    customer: string;
-    date: string;
-    total: number;
-    orderStatus: string;
-    itemCount: number;
-    initials: string;
-    statusColor: string;
-  }>;
-};
-
-type UsersResponse = {
-  stats: {
-    totalUsers: number;
-    activeAdmins: number;
-    customers: number;
-  };
-  users: Array<{
-    id: string;
-    userId: number;
-    name: string;
-    initials: string;
-    email: string;
-    role: string;
-    joinDate: string;
-  }>;
-};
-
-type AnalyticsResponse = {
-  summary: {
-    totalRevenue: number;
-    totalOrders: number;
-    totalProducts: number;
-    repeatCustomerRate: number;
-  };
-  retentionData: Array<{
-    month: string;
-    new: number;
-    returning: number;
-  }>;
-  categoryData: Array<{
-    name: string;
-    value: number;
-    fill: string;
-  }>;
-  topProducts: Array<{
-    name: string;
-    revenue: number;
-    percentage: number;
-  }>;
-};
-
-type SettingsResponse = {
-  workspaceName: string;
-  defaultCurrency: string;
-  notificationsEnabled: boolean;
-  updatedAt: string;
-};
-
-type ProfileResponse = {
-  id: number;
-  email: string;
-  role: string;
-  displayName: string;
-  initials: string;
-  joinedOn: string;
-};
-
-class ApiError extends Error {
-  status: number;
-
-  constructor(message: string, status: number) {
-    super(message);
-    this.name = "ApiError";
-    this.status = status;
-  }
-}
 
 const getAuthToken = () => {
   if (typeof window === "undefined") {
@@ -202,41 +48,88 @@ export const saveSessionTokens = (tokens: {
   }
 };
 
-const createHeaders = (headers?: HeadersInit) => {
-  const mergedHeaders = new Headers(headers);
-  mergedHeaders.set("Accept", "application/json");
+const createAxiosConfig = (options: ApiRequestOptions = {}) => {
+  const { headers, json, ...requestOptions } = options;
+  const config: AxiosRequestConfig = {
+    ...requestOptions,
+    headers: {
+      Accept: "application/json",
+      ...headers,
+    },
+  };
 
   const token = getAuthToken();
-  if (token && !mergedHeaders.has("Authorization")) {
-    mergedHeaders.set("Authorization", `Bearer ${token}`);
+  if (token && !config.headers?.Authorization) {
+    config.headers!.Authorization = `Bearer ${token}`;
   }
 
-  return mergedHeaders;
+  if (json !== undefined) {
+    config.data = json;
+    if (!config.headers?.["Content-Type"]) {
+      config.headers!["Content-Type"] = "application/json";
+    }
+  }
+
+  return config;
 };
 
+const axiosInstance = axios.create({
+  baseURL: API_BASE_URL,
+  withCredentials: true,
+});
+
+// Response interceptor for better error handling
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (axios.isAxiosError(error)) {
+      // Log errors for debugging
+      const errorDetails = {
+        url: error.config?.url,
+        status: error.response?.status,
+        message: error.response?.data?.message || error.message,
+        timestamp: new Date().toISOString(),
+      };
+
+      console.error("API Error:", errorDetails);
+
+      // Handle 401 - Token might be expired, refresh or redirect to login
+      if (error.response?.status === 401) {
+        console.warn("Unauthorized - Token may have expired");
+        // Optional: Clear session and redirect to login
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("accessToken");
+          // You could trigger a logout event here
+        }
+      }
+
+      // Handle 500 - Server error
+      if (error.response?.status === 500) {
+        console.error("Server Error (500):", error.response.data?.message);
+      }
+    }
+
+    return Promise.reject(error);
+  },
+);
+
 const fetchJson = async <T>(path: string, options: ApiRequestOptions = {}) => {
-  const { headers, json, ...requestOptions } = options;
-  const requestHeaders = createHeaders(headers);
-  if (json !== undefined && !requestHeaders.has("Content-Type")) {
-    requestHeaders.set("Content-Type", "application/json");
+  const config = createAxiosConfig(options);
+  try {
+    const response = await axiosInstance(path, config);
+    return response.data as T;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const statusCode = error.response?.status || 500;
+      const message =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        `Request failed with status ${statusCode}`;
+
+      throw new ApiError(message, statusCode);
+    }
+    throw error;
   }
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    credentials: "include",
-    ...requestOptions,
-    headers: requestHeaders,
-    body: json === undefined ? undefined : JSON.stringify(json),
-  });
-
-  const payload = await response.json().catch(() => null);
-
-  if (!response.ok) {
-    throw new ApiError(
-      payload?.message || `Request failed with status ${response.status}`,
-      response.status,
-    );
-  }
-
-  return payload as T;
 };
 
 const getStoredSettings = (): SettingsResponse => {
@@ -772,7 +665,7 @@ const buildAnalyticsResponse = async (): Promise<AnalyticsResponse> => {
   const repeatCustomers = orders.length
     ? Math.max(
         0,
-        [...uniqueCustomers].filter(
+        Array.from(uniqueCustomers).filter(
           (customer) =>
             orders.filter(
               (order) => order.customer.trim().toLowerCase() === customer,
@@ -867,7 +760,7 @@ const buildAnalyticsResponse = async (): Promise<AnalyticsResponse> => {
     });
   });
 
-  const topProducts = [...revenueByProduct.entries()]
+  const topProducts = Array.from(revenueByProduct.entries())
     .sort((left, right) => right[1] - left[1])
     .slice(0, 3)
     .map(([productId, revenue]) => {

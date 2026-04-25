@@ -1,54 +1,93 @@
-import { GoogleLogin } from "@react-oauth/google";
-import { jwtDecode } from "jwt-decode";
+"use client";
+
+import { useState } from "react";
+import { GoogleLogin, type CredentialResponse } from "@react-oauth/google";
+import { useRouter } from "next/navigation";
+import { useApp } from "@/contexts/AppContext";
+import { apiRequest } from "@/lib/api";
 
 const GoogleLoginButton = () => {
-  const handleSuccess = async (credentialResponse: any) => {
+  const router = useRouter();
+  const { applySessionTokens } = useApp();
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleSuccess = async (
+    credentialResponse: CredentialResponse,
+  ) => {
     try {
       const { credential } = credentialResponse;
 
-      const user = jwtDecode(credential);
-      console.log("Google User:", user);
+      if (!credential) {
+        setError("Google did not return a credential.");
+        return;
+      }
 
-      const response = await fetch("http://localhost:4000/api/auth/google", {
+      setLoading(true);
+      setError(null);
+
+      const response = await apiRequest<{
+        accessToken: string;
+        refreshToken?: string;
+      }>("/api/auth/google", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ token: credential }),
+        json: { token: credential },
       });
 
-      const data = await response.json();
-      console.log("Backend Response:", data);
-
-      localStorage.setItem("token", data.accessToken);
-
-      window.location.href = "/dashboard";
-    } catch (error) {
-      console.error("Login Failed:", error);
+      await applySessionTokens({
+        accessToken: response.accessToken,
+        refreshToken: response.refreshToken,
+      });
+      router.replace("/dashboard");
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Login failed. Please try again.",
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleError = () => {
-    console.log("Google Login Failed");
+    setError("Google sign-in failed. Please try again.");
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
-      <div className="p-8 bg-white shadow-lg rounded-2xl text-center">
-        <h2 className="text-2xl font-bold mb-4">Welcome Back</h2>
-        <p className="text-gray-600 mb-6">
-          Sign in using your Google account to continue.
-        </p>
+    <div className="flex min-h-screen items-center justify-center bg-surface-container-low px-6">
+      <div className="w-full max-w-md rounded-3xl bg-surface-container-lowest p-8 shadow-lg">
+        <div className="mb-8 text-center">
+          <p className="text-xs font-label uppercase tracking-widest text-secondary-foreground">
+            Corner Store
+          </p>
+          <h2 className="mt-2 text-3xl font-heading font-extrabold tracking-tighter text-foreground">
+            Welcome back
+          </h2>
+          <p className="mt-2 text-sm text-secondary-foreground">
+            Sign in with your Google account to continue.
+          </p>
+        </div>
 
-        <GoogleLogin
-          onSuccess={handleSuccess}
-          onError={handleError}
-          theme="outline"
-          size="large"
-          text="signin_with"
-          shape="pill"
-          width="300"
-        />
+        <div className="flex flex-col items-center gap-4">
+          <GoogleLogin
+            onSuccess={handleSuccess}
+            onError={handleError}
+            theme="outline"
+            size="large"
+            text="signin_with"
+            shape="pill"
+            width="300"
+          />
+
+          {loading ? (
+            <p className="text-sm text-secondary-foreground">
+              Signing you in...
+            </p>
+          ) : null}
+
+          {error ? <p className="text-sm text-red-500">{error}</p> : null}
+        </div>
       </div>
     </div>
   );

@@ -50,7 +50,7 @@ backend/src/
 
 ## All Routes
 
-### 🔓 Public Routes (No Auth Required)
+### Public Routes (No Auth Required)
 
 #### Products
 
@@ -68,7 +68,7 @@ backend/src/
 
 ---
 
-### 🔐 Protected Routes (JWT Required)
+### Protected Routes (JWT Required)
 
 #### Auth (Authenticated User)
 
@@ -101,11 +101,11 @@ backend/src/
 
 ## Key Features Implemented
 
-✅ **Google OAuth2 Integration**
-✅ **JWT-based Authentication**
-✅ **Role-based Access Control** (Admin vs User)
-✅ **Product Management** (CRUD with admin protection)
-✅ **Order Management** (Create public, view/update admin-only)
-✅ **Admin Seeding**
-✅ **CORS Protection**
-✅ **Token Refresh Flow**
+**Google OAuth2 Integration**
+**JWT-based Authentication**
+**Role-based Access Control** (Admin vs User)
+**Product Management** (CRUD with admin protection)
+**Order Management** (Create public, view/update admin-only)
+**Admin Seeding**
+**CORS Protection**
+**Token Refresh Flow**

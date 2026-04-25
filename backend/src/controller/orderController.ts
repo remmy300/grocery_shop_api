@@ -1,14 +1,24 @@
 import prisma from "../lib/prisma.js";
 import { Request, Response } from "express";
-import { Prisma } from "@prisma/client";
 
 export const createOrder = async (req: Request, res: Response) => {
   try {
-    console.log("Request body:", req.body);
-
     const { customer, phone, address, items } = req.body;
-    if (!customer || !phone || !address || !items || !Array.isArray(items)) {
-      return res.status(400).json({ message: "Missing required  fields" });
+
+    const normalizedCustomer =
+      typeof customer === "string" ? customer.trim() : "";
+    const normalizedPhone = typeof phone === "string" ? phone.trim() : "";
+    const normalizedAddress =
+      typeof address === "string" ? address.trim() : "";
+
+    if (
+      !normalizedCustomer ||
+      !normalizedPhone ||
+      !normalizedAddress ||
+      !items ||
+      !Array.isArray(items)
+    ) {
+      return res.status(400).json({ message: "Missing required fields" });
     }
 
     if (items.length === 0) {
@@ -17,9 +27,26 @@ export const createOrder = async (req: Request, res: Response) => {
         .json({ message: "Order must include at least one item" });
     }
 
-    const productIds = items
-      .map((item: any) => Number(item.productId))
-      .filter(Boolean);
+    const parsedItems = items
+      .map((item: any) => ({
+        productId: Number(item.productId),
+        quantity: Number(item.quantity),
+      }))
+      .filter(
+        (item) =>
+          Number.isInteger(item.productId) &&
+          item.productId > 0 &&
+          Number.isInteger(item.quantity) &&
+          item.quantity > 0,
+      );
+
+    if (parsedItems.length !== items.length) {
+      return res
+        .status(400)
+        .json({ message: "Each item must have a valid productId and quantity" });
+    }
+
+    const productIds = parsedItems.map((item) => item.productId);
     const existingProducts = await prisma.product.findMany({
       where: { id: { in: productIds } },
       select: { id: true, price: true },
@@ -37,23 +64,23 @@ export const createOrder = async (req: Request, res: Response) => {
 
     const priceById = new Map(existingProducts.map((p) => [p.id, p.price]));
     let total = 0;
-    items.forEach((item: any) => {
-      const productPrice = priceById.get(Number(item.productId)) ?? 0;
+    parsedItems.forEach((item) => {
+      const productPrice = priceById.get(item.productId) ?? 0;
       total += item.quantity * productPrice;
     });
 
-    const itemsToCreate = items.map((item: any) => ({
-      productId: Number(item.productId),
+    const itemsToCreate = parsedItems.map((item) => ({
+      productId: item.productId,
       quantity: item.quantity,
-      price: item.price,
+      price: priceById.get(item.productId) ?? 0,
     }));
 
     const order = await prisma.order.create({
       data: {
-        phone,
-        customer,
+        phone: normalizedPhone,
+        customer: normalizedCustomer,
         total,
-        address,
+        address: normalizedAddress,
         items: {
           create: itemsToCreate,
         },

@@ -26,6 +26,40 @@ app.get("/", (req, res) => {
   res.send("API WORKING");
 });
 
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({
+    error: "Not Found",
+    message: `Route ${req.method} ${req.path} does not exist`,
+  });
+});
+
+// Global error handler (must be last)
+app.use(
+  (
+    err: any,
+    req: express.Request,
+    res: express.Response,
+    _next: express.NextFunction,
+  ) => {
+    console.error("Error caught by global handler:", err);
+
+    const statusCode = err.statusCode || err.status || 500;
+    const message = err.message || "Internal Server Error";
+
+    res.status(statusCode).json({
+      error: "Internal Server Error",
+      message:
+        process.env.NODE_ENV === "production" ? "An error occurred" : message,
+      ...(process.env.NODE_ENV !== "production" && { stack: err.stack }),
+    });
+  },
+);
+
 const PORT = Number(process.env.PORT) || 4000;
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`📝 FRONTEND_URL: ${process.env.FRONTEND_URL}`);
+  console.log(`🔐 NODE_ENV: ${process.env.NODE_ENV || "development"}`);
+});
