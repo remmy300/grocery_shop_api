@@ -12,6 +12,10 @@ import {
   updateProfile,
   updateSettings,
 } from "../controller/adminController.js";
+import {
+  generateCloudinarySignature,
+  getCloudinaryConfig,
+} from "../controller/cloudinaryController.js";
 
 const router = express.Router();
 
@@ -27,5 +31,7 @@ router.patch("/profile", updateProfile);
 router.patch("/profile/password", updatePassword);
 router.get("/settings", getSettings);
 router.put("/settings", updateSettings);
+router.get("/cloudinary/config", getCloudinaryConfig);
+router.post("/cloudinary/signature", generateCloudinarySignature);
 
 export default router;

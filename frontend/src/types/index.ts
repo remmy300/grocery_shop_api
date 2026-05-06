@@ -145,6 +145,12 @@ export type AnalyticsResponse = {
   }>;
 };
 
+export type CloudinarySignatureResponse = {
+  apiKey: string;
+  cloudName: string;
+  signature?: string;
+};
+
 export type SettingsResponse = {
   workspaceName: string;
   defaultCurrency: string;

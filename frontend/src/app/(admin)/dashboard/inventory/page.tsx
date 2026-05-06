@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
+import { useCloudinaryUpload } from "@/hooks/useCloudinaryUpload";
 import {
   AlertTriangle,
   DollarSign,
@@ -35,6 +36,19 @@ type ProductFormState = {
   imageUrl: string;
 };
 
+type UploadResult =
+  | {
+      event: "success";
+      info?: {
+        secure_url: string;
+        public_id: string;
+      };
+    }
+  | {
+      event: string;
+      info?: unknown;
+    };
+
 const EMPTY_FORM: ProductFormState = {
   name: "",
   stock: "",
@@ -66,6 +80,8 @@ const InventoryPage = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [form, setForm] = useState<ProductFormState>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+
+  const { openUpload, uploading, ready } = useCloudinaryUpload();
 
   const loadInventory = async () => {
     try {
@@ -147,62 +163,71 @@ const InventoryPage = () => {
     const price = Number(form.price);
 
     if (!trimmedName) {
-      return { error: "Product name is required." };
+      return { success: false, error: "Product name is required." };
     }
 
     if (!Number.isInteger(stock) || stock < 0) {
-      return { error: "Stock must be a whole number zero or greater." };
+      return { success: false, error: "Stock must be a whole number zero or greater." };
     }
 
     if (!Number.isInteger(price) || price < 0) {
-      return { error: "Price must be a whole number zero or greater." };
+      return { success: false, error: "Price must be a whole number zero or greater." };
     }
 
     return {
+      success: true,
       payload: {
         name: trimmedName,
         stock,
         price,
-        imageUrl: trimmedImageUrl || null,
+        imageUrl: trimmedImageUrl,
       },
     };
   };
 
-  const handleSaveProduct = async () => {
-    const validated = validateForm();
-    if ("error" in validated) {
-      toast.error(validated.error);
-      return;
-    }
 
-    try {
-      setSaving(true);
-      const endpoint = isCreating
-        ? "/api/products"
-        : `/api/products/${activeProductId}`;
-      const method = isCreating ? "POST" : "PUT";
 
-      const savedProduct = await apiRequest<
-        InventoryResponse["products"][number]
-      >(endpoint, {
-        method,
-        json: validated.payload,
-      });
 
-      toast.success(isCreating ? "Product created." : "Product updated.");
-      setIsCreating(false);
-      setActiveProductId(savedProduct.id);
-      setForm(toFormState(savedProduct));
-      await loadInventory();
-    } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : "Failed to save product",
-      );
-    } finally {
-      setSaving(false);
-    }
-  };
+  
+const handleSaveProduct = async () => {
+  const validated = validateForm();
 
+  if (!validated.success) {
+    toast.error(validated.error);
+    return;
+  }
+
+  try {
+    setSaving(true);
+
+    const endpoint = isCreating
+      ? "/api/products"
+      : `/api/products/${activeProductId}`;
+
+    const method = isCreating ? "POST" : "PUT";
+
+    const savedProduct = await apiRequest<
+      InventoryResponse["products"][number]
+    >(endpoint, {
+      method,
+      json: validated.payload,
+    });
+
+    toast.success(isCreating ? "Product created." : "Product updated.");
+
+    setIsCreating(false);
+    setActiveProductId(savedProduct.id);
+    setForm(toFormState(savedProduct));
+
+    await loadInventory();
+  } catch (err) {
+    toast.error(
+      err instanceof Error ? err.message : "Failed to save product",
+    );
+  } finally {
+    setSaving(false);
+  }
+};
   const handleDeleteProduct = async (
     productToDelete?: InventoryResponse["products"][number] | null,
   ) => {
@@ -238,6 +263,21 @@ const InventoryPage = () => {
       setSaving(false);
     }
   };
+
+
+const handleUploadImage = () => {
+  openUpload((result: unknown) => {
+    const res = result as UploadResult;
+
+    if (res.event === "success" && res.info) {
+      const info = res.info as { secure_url: string; public_id: string };
+      setForm((current) => ({
+        ...current,
+        imageUrl: info.secure_url,
+      }));
+    }
+  });
+};
 
   if (loading) {
     return (
@@ -396,7 +436,9 @@ const InventoryPage = () => {
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell className="pl-10">{product.category}</TableCell>
+                        <TableCell className="pl-10">
+                          {product.category}
+                        </TableCell>
                         <TableCell>{product.stock}</TableCell>
                         <TableCell>${formatCurrency(product.price)}</TableCell>
                         <TableCell>
@@ -587,16 +629,30 @@ const InventoryPage = () => {
                     <label className="mb-2 block text-sm font-medium text-foreground">
                       Image URL
                     </label>
-                    <Input
-                      value={form.imageUrl}
-                      onChange={(event) =>
-                        setForm((current) => ({
-                          ...current,
-                          imageUrl: event.target.value,
-                        }))
-                      }
-                      placeholder="https://..."
-                    />
+                    <div className="flex flex-col gap-3 sm:flex-row">
+                      <Input
+                        value={form.imageUrl}
+                        onChange={(event) =>
+                          setForm((current) => ({
+                            ...current,
+                            imageUrl: event.target.value,
+                          }))
+                        }
+                        placeholder="https://..."
+                        className="flex-1"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleUploadImage}
+                        disabled={saving || uploading || !ready}
+                      >
+                        {uploading ? "Uploading..." : "Upload Image"}
+                      </Button>
+                    </div>
+                    <p className="mt-2 text-xs text-secondary-foreground">
+                      Upload from Cloudinary or paste a direct image URL.
+                    </p>
                   </div>
                 </div>
 

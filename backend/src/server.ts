@@ -1,6 +1,7 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
+
 import productRoutes from "./routes/productRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
@@ -17,6 +18,7 @@ app.use(
 );
 
 app.use(express.json());
+
 app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/auth", authRoutes);
@@ -34,7 +36,6 @@ app.use((req, res) => {
   });
 });
 
-// Global error handler (must be last)
 app.use(
   (
     err: any,

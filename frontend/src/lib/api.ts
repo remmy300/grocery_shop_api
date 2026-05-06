@@ -61,6 +61,11 @@ const createAxiosConfig = (options: ApiRequestOptions = {}) => {
   const token = getAuthToken();
   if (token && !config.headers?.Authorization) {
     config.headers!.Authorization = `Bearer ${token}`;
+  } else if (!token) {
+    console.warn(
+      "⚠️ No auth token found in localStorage. Available keys:",
+      Object.keys(localStorage),
+    );
   }
 
   if (json !== undefined) {
@@ -78,6 +83,28 @@ const axiosInstance = axios.create({
   withCredentials: true,
 });
 
+// Request interceptor to log outgoing requests
+axiosInstance.interceptors.request.use(
+  (config) => {
+    const authHeader = config.headers.Authorization;
+    const authPreview =
+      typeof authHeader === "string"
+        ? `${authHeader.substring(0, 20)}...`
+        : authHeader
+          ? "SET"
+          : "NONE";
+
+    console.log("🔄 API Request:", {
+      url: config.url,
+      method: config.method?.toUpperCase(),
+      hasAuth: !!authHeader,
+      authToken: authPreview,
+    });
+    return config;
+  },
+  (error) => Promise.reject(error),
+);
+
 // Response interceptor for better error handling
 axiosInstance.interceptors.response.use(
   (response) => response,
@@ -89,13 +116,17 @@ axiosInstance.interceptors.response.use(
         status: error.response?.status,
         message: error.response?.data?.message || error.message,
         timestamp: new Date().toISOString(),
+        hasAuthHeader: !!error.config?.headers.Authorization,
       };
 
       console.error("API Error:", errorDetails);
 
       // Handle 401 - Token might be expired, refresh or redirect to login
       if (error.response?.status === 401) {
-        console.warn("Unauthorized - Token may have expired");
+        console.warn(
+          "❌ Unauthorized (401) - Token may have expired or be invalid",
+        );
+        console.warn("Response data:", error.response.data);
         // Optional: Clear session and redirect to login
         if (typeof window !== "undefined") {
           localStorage.removeItem("accessToken");
