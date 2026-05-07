@@ -2,12 +2,10 @@
 
 import { useState } from "react";
 import { GoogleLogin, type CredentialResponse } from "@react-oauth/google";
-import { useRouter } from "next/navigation";
 import { useApp } from "@/contexts/AppContext";
 import { apiRequest } from "@/lib/api";
 
 const GoogleLoginButton = () => {
-  const router = useRouter();
   const { applySessionTokens } = useApp();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -38,7 +36,6 @@ const GoogleLoginButton = () => {
         accessToken: response.accessToken,
         refreshToken: response.refreshToken,
       });
-      router.replace("/dashboard");
     } catch (requestError) {
       setError(
         requestError instanceof Error

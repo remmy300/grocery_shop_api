@@ -10,7 +10,6 @@ import {
   ShieldCheck,
   ShoppingCart,
   Sprout,
-  UserRound,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -31,10 +30,9 @@ export const metadata: Metadata = {
 };
 
 const navLinks = [
+  { label: "Home", href: "/" },
   { label: "Shop", href: "/products" },
-  { label: "Harvests", href: "#harvest" },
-  { label: "Stories", href: "#philosophy" },
-  { label: "Journal", href: "#journal" },
+  { label: "Cart", href: "/cart" },
 ];
 
 const featuredProducts = [
@@ -91,52 +89,6 @@ export default function HomePage() {
     <main className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,_rgba(13,99,27,0.10),_transparent_24%),radial-gradient(circle_at_top_right,_rgba(255,219,207,0.75),_transparent_22%),linear-gradient(180deg,_#faf9f6_0%,_#f7f5ef_100%)] text-foreground">
       <div className="absolute inset-x-0 top-0 h-[28rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.8),rgba(255,255,255,0))]" />
 
-      <header className="fixed inset-x-0 top-0 z-50 border-b border-border/60 bg-background/80 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-screen-2xl items-center justify-between px-6 py-4 md:px-8">
-          <Link
-            href="/"
-            className={cn(
-              "font-heading text-2xl font-extrabold tracking-tighter text-primary",
-              displayFont.className,
-            )}
-          >
-            Botanical Archivist
-          </Link>
-
-          <nav className="hidden items-center gap-8 md:flex">
-            {navLinks.map((link) => (
-              <Link
-                key={link.label}
-                href={link.href}
-                className="text-sm font-medium tracking-tight text-muted-foreground transition hover:text-foreground"
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
-
-          <div className="flex items-center gap-2">
-            <Button
-              asChild
-              variant="ghost"
-              size="icon"
-              className="rounded-full"
-            >
-              <Link href="/dashboard" aria-label="Admin portal">
-                <UserRound className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button variant="ghost" size="icon" className="rounded-full">
-              <ShoppingCart className="h-4 w-4" />
-            </Button>
-            <Button asChild className="hidden rounded-full px-5 md:inline-flex">
-              <Link href="/dashboard">Admin Portal</Link>
-            </Button>
-          </div>
-        </div>
-        <Separator />
-      </header>
-
       <div className="relative mx-auto flex max-w-screen-2xl flex-col gap-24 px-6 pb-20 pt-28 md:px-8 lg:pt-32">
         <section className="grid items-center gap-14 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
           <div className="relative z-10">
@@ -162,7 +114,7 @@ export default function HomePage() {
 
             <div className="mt-10 flex flex-col gap-4 sm:flex-row">
               <Button asChild size="lg" className="rounded-full px-8">
-              <Link href="/products">
+                <Link href="/products">
                   Browse Collection
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
@@ -551,7 +503,10 @@ export default function HomePage() {
             </h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
-                <Link href="#harvest" className="transition hover:text-foreground">
+                <Link
+                  href="#harvest"
+                  className="transition hover:text-foreground"
+                >
                   Sustainability
                 </Link>
               </li>
@@ -569,7 +524,10 @@ export default function HomePage() {
                 </Link>
               </li>
               <li>
-                <Link href="/login" className="transition hover:text-foreground">
+                <Link
+                  href="/login"
+                  className="transition hover:text-foreground"
+                >
                   Privacy Policy
                 </Link>
               </li>

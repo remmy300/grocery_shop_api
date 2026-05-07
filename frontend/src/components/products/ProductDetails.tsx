@@ -35,7 +35,7 @@ export default function ProductDetails({ product, related }: Props) {
     <main className="min-h-screen bg-background text-foreground">
       <div className="mx-auto max-w-screen-2xl px-6 py-10">
         {/* HEADER */}
-        <div className="mb-8 flex items-center justify-between">
+        <div className="mb-8 mt-10 flex items-center justify-between">
           <Link
             href="/products"
             className="text-sm font-medium text-muted-foreground hover:text-foreground"

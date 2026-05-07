@@ -8,12 +8,22 @@ import { useApp } from "@/contexts/AppContext";
 const Login = () => {
   const router = useRouter();
   const { state } = useApp();
+  const isAdmin = state.profile?.role?.toLowerCase() === "admin";
 
   useEffect(() => {
-    if (!state.loading && state.isAuthenticated) {
-      router.replace("/dashboard");
+    if (state.loading) {
+      return;
     }
-  }, [router, state.isAuthenticated, state.loading]);
+
+    if (state.isAuthenticated && isAdmin) {
+      router.replace("/dashboard");
+      return;
+    }
+
+    if (state.isAuthenticated && !isAdmin) {
+      router.replace("/");
+    }
+  }, [isAdmin, router, state.isAuthenticated, state.loading]);
 
   if (state.loading) {
     return (

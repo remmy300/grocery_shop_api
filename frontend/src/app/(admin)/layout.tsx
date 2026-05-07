@@ -40,23 +40,33 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   const pathname = usePathname();
   const router = useRouter();
   const { state, logout } = useApp();
+  const isAdmin = state.profile?.role?.toLowerCase() === "admin";
 
   const isActive = (path: string) =>
     pathname === `/dashboard/${path}` ||
     (path === "dashboard" && pathname === "/dashboard");
 
   useEffect(() => {
-    if (!state.loading && !state.isAuthenticated) {
-      router.replace("/login");
+    if (state.loading) {
+      return;
     }
-  }, [router, state.isAuthenticated, state.loading]);
+
+    if (!state.isAuthenticated) {
+      router.replace("/login");
+      return;
+    }
+
+    if (!isAdmin) {
+      router.replace("/");
+    }
+  }, [isAdmin, router, state.isAuthenticated, state.loading]);
 
   const handleLogout = () => {
     logout();
     router.replace("/login");
   };
 
-  if (state.loading || !state.isAuthenticated) {
+  if (state.loading || !state.isAuthenticated || !isAdmin) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background text-foreground">
         <div className="text-center">
