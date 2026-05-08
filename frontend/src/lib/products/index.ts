@@ -99,7 +99,7 @@ export const normalizeProduct = (product: BackendProduct): ProductView => {
     category,
     origin: productOrigin(category),
     priceValue,
-    priceFormatted: priceValue.toFixed(2),
+    price: priceValue.toFixed(2),
     stock,
     stockStatus: stockStatus(stock),
     summary: buildSummary(category, stock),

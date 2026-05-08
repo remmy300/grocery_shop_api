@@ -5,7 +5,7 @@ import { useProducts } from "@/hooks/useProducts";
 import { usePagination } from "@/hooks/usePagination";
 import { useFilters } from "@/hooks/useFilters";
 import { ProductsGrid } from "./productGrid";
-import { FiltersSidebar } from "./filterSide";
+import { ProductFilters } from "./filterSide";
 import { FeaturedProduct } from "./featuredProducts";
 import { ProductView } from "@/types/products";
 
@@ -33,11 +33,11 @@ export default function ProductsCatalogue({
   const featured = filtered[0] || null;
   const rest = filtered.slice(1);
 
-  const { paginated, totalPages } = usePagination(rest, 1, ITEMS_PER_PAGE);
+  const { paginated } = usePagination(rest, 1, ITEMS_PER_PAGE);
 
   return (
     <div className="flex gap-12 max-w-7xl mx-auto px-6 py-12">
-      <FiltersSidebar filters={filters} />
+      <ProductFilters filters={filters} />
 
       <div className="flex-1 space-y-12">
         <FeaturedProduct product={featured} />

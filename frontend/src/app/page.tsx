@@ -8,14 +8,13 @@ import {
   Leaf,
   Quote,
   ShieldCheck,
-  ShoppingCart,
   Sprout,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
+import { fetchProducts } from "@/lib/products";
 import { cn } from "@/lib/utils";
 
 const displayFont = Plus_Jakarta_Sans({
@@ -28,43 +27,6 @@ export const metadata: Metadata = {
   description:
     "An editorial grocery landing page for fresh seasonal harvests and regenerative sourcing.",
 };
-
-const navLinks = [
-  { label: "Home", href: "/" },
-  { label: "Shop", href: "/products" },
-  { label: "Cart", href: "/cart" },
-];
-
-const featuredProducts = [
-  {
-    name: "Heritage Apples",
-    farm: "Boutique Selection",
-    price: "$8.95",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuBFsOt95QbdJWhkqr1j3MZnSeaL6y-dGJxD8ihf-9SjTQ4PhRFD7InWu4aABhMUp70_oms2K1xnEJB0Vgnmn1mcJHG1augEAxPLI16M4UcvZ1LXOxCDTJcY2lnlAeDp8xiXobUANTkJ_JQ-RRDjxYoTz47K5-lsvRaJjae2MAlJzP8m2lNmpQZwhorSSii-YRwfxpiAn6F1eRioOfJm_LZXHo7Q99Kk36Liq7WP2mmGgzCCT-Glc9hJmWoGkXqCOz4phOVVFDTM1UQ",
-  },
-  {
-    name: "Stem Carrots",
-    farm: "Tidal Farms",
-    price: "$4.50",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuCzrgmFQ4ICUXf2BKD2zN4rGzNLoeZknvvsX3iQ5i1a0ibTjhWukpAi_1WlGKhiOc7x5Gsvjc5F62Y8VTd5xKd0tm7kZNvukbb8Bcrtd14sPaTn33k7TqKNtZQc_ijSB8cEu98o06oZ82TzXItthCjLr6Ixt8qMIbtuUzVR-UH5VebaW28CS_HFsLJggjDrYOK46101olAaMQ0WMaxCsLCPMiuQQQWB9TAnq_RAqsXCCWE6SpreClH5t3BqQKap_PfQLdA8St3a3w0",
-  },
-  {
-    name: "Tuscan Kale",
-    farm: "Hillside Organic",
-    price: "$3.00",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuBEfDswdlp5QyeanrtBqSb35-djKRL3LXVP2178fickuUalH-E03u245jANqID3sM-_LBy95uPDwh7FBpy7DXGvUct1BSvz1qIGpJxxFt9nG7HHFchbVeOgh_C2_Hoi-nLD9u-e037NSwN-1iEuoSnYimbnH90PpDASczqGFejpWxdh6ptkuwvh7e72cnIpi_jbdRrClKs2QlTyn7M0_G2V88n5IiFQ1pQI1QwUDjkpUpIS0PclW-7eHNwVFrR5ja4f8CcYIyMqsRY",
-  },
-  {
-    name: "Summer Berries",
-    farm: "Coastal Patch",
-    price: "$6.25",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuBf2j8zdSkVWbjh9s2ZugHQLLZtpYF19pRzEnRSNL157Bwc5oeHhvgT3crR8IOUfBW6LANyYQkNctfg82nb38ZJ2p_Iff_eWoGZ7rOAQZIVKNkmpAm3h-O2pxoa1pC5UCK4-cmoychunCuFpc8UzX3TEtAj4sHXXSCXvVmCmIYqUSNo4CPmnCZ_A9eRJgXy40NtGn7-7Ae6hLfc7N88UZ2X_YcjLXsnKG7jm3HDU5vEN3QaiQYMpirViy-8PN_jhlb7DC7JDU23vXA",
-  },
-];
 
 const storyCards = [
   {
@@ -84,7 +46,11 @@ const storyCards = [
   },
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  const products = await fetchProducts();
+  const featuredProduct = products[0];
+  const harvestProducts = products.slice(1, 5);
+
   return (
     <main className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,_rgba(13,99,27,0.10),_transparent_24%),radial-gradient(circle_at_top_right,_rgba(255,219,207,0.75),_transparent_22%),linear-gradient(180deg,_#faf9f6_0%,_#f7f5ef_100%)] text-foreground">
       <div className="absolute inset-x-0 top-0 h-[28rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.8),rgba(255,255,255,0))]" />
@@ -171,7 +137,6 @@ export default function HomePage() {
                 </div>
               </CardContent>
             </Card>
-
             <Card className="absolute -bottom-8 left-0 max-w-xs border-border/60 bg-background/95 shadow-xl">
               <CardContent className="p-5">
                 <p className="text-xs font-bold uppercase tracking-[0.26em] text-muted-foreground">
@@ -216,98 +181,115 @@ export default function HomePage() {
             </Button>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-4">
-            <Card className="group relative min-h-[32rem] overflow-hidden rounded-[1.75rem] border-border/60 md:col-span-2 md:row-span-2">
-              <CardContent className="h-full p-0">
-                <div className="relative h-full min-h-[32rem]">
-                  <Image
-                    src={featuredProducts[0].image}
-                    alt={featuredProducts[0].name}
-                    fill
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                    className="object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/15 to-transparent opacity-90" />
-                  <div className="absolute bottom-0 left-0 p-8 text-white">
-                    <Badge className="mb-4 rounded-full bg-secondary px-3 py-1 text-[10px] font-bold uppercase tracking-[0.24em] text-secondary-foreground">
-                      {featuredProducts[0].farm}
-                    </Badge>
-                    <h3
-                      className={cn(
-                        "text-3xl font-extrabold tracking-tight md:text-4xl",
-                        displayFont.className,
-                      )}
-                    >
-                      {featuredProducts[0].name}
-                    </h3>
-                    <p className="mt-3 max-w-md text-sm leading-6 text-white/85">
-                      Naturally sweet with a crisp bite, preserved for the
-                      discerning palate.
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {featuredProducts.slice(1).map((product) => (
-              <Card
-                key={product.name}
-                className="group overflow-hidden rounded-[1.5rem] border-border/60 bg-background/90 shadow-sm transition-all hover:shadow-lg"
+          {featuredProduct ? (
+            <div className="grid gap-6 md:grid-cols-4">
+              <Link
+                href={`/products/${featuredProduct.id}`}
+                className="group block focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 md:col-span-2 md:row-span-2"
               >
-                <CardContent className="p-4">
-                  <div className="mb-4 aspect-square overflow-hidden rounded-[1rem] bg-muted">
-                    <Image
-                      src={product.image}
-                      alt={product.name}
-                      width={640}
-                      height={640}
-                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                  </div>
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <h3 className="font-heading text-lg font-bold tracking-tight">
-                        {product.name}
-                      </h3>
-                      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-                        {product.farm}
-                      </p>
+                <Card className="relative min-h-[32rem] overflow-hidden rounded-[1.75rem] border-border/60">
+                  <CardContent className="h-full p-0">
+                    <div className="relative h-full min-h-[32rem]">
+                      {featuredProduct.imageUrl ? (
+                        <Image
+                          src={featuredProduct.imageUrl}
+                          alt={featuredProduct.name}
+                          fill
+                          sizes="(max-width: 768px) 100vw, 50vw"
+                          className="object-cover transition-transform duration-700 group-hover:scale-110"
+                        />
+                      ) : (
+                        <div className="flex h-full min-h-[32rem] items-center justify-center bg-muted">
+                          <Leaf className="h-12 w-12 text-muted-foreground" />
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/15 to-transparent opacity-90" />
+                      <div className="absolute bottom-0 left-0 p-8 text-white">
+                        <Badge className="mb-4 rounded-full bg-secondary px-3 py-1 text-[10px] font-bold uppercase tracking-[0.24em] text-secondary-foreground">
+                          {featuredProduct.category}
+                        </Badge>
+                        <h3
+                          className={cn(
+                            "text-3xl font-extrabold tracking-tight md:text-4xl",
+                            displayFont.className,
+                          )}
+                        >
+                          {featuredProduct.name}
+                        </h3>
+                        <p className="mt-3 max-w-md text-sm leading-6 text-white/85">
+                          {featuredProduct.summary}
+                        </p>
+                        <div className="mt-6 flex items-center justify-between gap-4">
+                          <span className="font-heading text-2xl font-bold">
+                            ${featuredProduct.priceValue.toFixed(2)}
+                          </span>
+                          <span className="inline-flex h-10 items-center rounded-full bg-white px-5 text-sm font-semibold text-primary transition group-hover:bg-secondary group-hover:text-secondary-foreground">
+                            View details
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    <span className="font-heading text-lg font-bold text-primary">
-                      {product.price}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              </Link>
 
-            <Card className="group overflow-hidden rounded-[1.5rem] border-border/60 bg-background/90 shadow-sm transition-all hover:shadow-lg">
-              <CardContent className="p-4">
-                <div className="mb-4 aspect-square overflow-hidden rounded-[1rem] bg-muted">
-                  <Image
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuAEvOR-fuTwwict_gS5ZgTpJ4E4tF7JDVW-nZEieo-kqthzTXyOWpf7X-SuHM9ZavEUcGDunLOBQWAz9JTBpd7kS5Ycd4VcRpecc9zJ0eMs2qiOOzcmylqZXT9-PsTOs0a6xlVbj8dwgeoPVFIaX5_A0chdyv-ptfBSIdec51vjSKVu8foGlseCSz3wl0y_msmkLYUvMb5PnonjC_Iz_-Li766qC42fZ7R37OmvS4wAyQtUtxYfdtA3kY5bCNmVNuVH5d2DHUWNKzI"
-                    alt="Heirloom russet potatoes"
-                    width={640}
-                    height={640}
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                </div>
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <h3 className="font-heading text-lg font-bold tracking-tight">
-                      Heirloom Russet
-                    </h3>
-                    <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-                      Valley Roots
-                    </p>
-                  </div>
-                  <span className="font-heading text-lg font-bold text-primary">
-                    $2.50
-                  </span>
-                </div>
+              {harvestProducts.map((product) => (
+                <Link
+                  key={product.id}
+                  href={`/products/${product.id}`}
+                  className="group block focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4"
+                >
+                  <Card className="overflow-hidden rounded-[1.5rem] border-border/60 bg-background/90 shadow-sm transition-all hover:shadow-lg">
+                    <CardContent className="p-4">
+                      <div className="mb-4 aspect-square overflow-hidden rounded-[1rem] bg-muted">
+                        {product.imageUrl ? (
+                          <Image
+                            src={product.imageUrl}
+                            alt={product.name}
+                            width={640}
+                            height={640}
+                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          />
+                        ) : (
+                          <div className="flex h-full items-center justify-center">
+                            <Leaf className="h-8 w-8 text-muted-foreground" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <h3 className="font-heading text-lg font-bold tracking-tight">
+                            {product.name}
+                          </h3>
+                          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+                            {product.category}
+                          </p>
+                        </div>
+                        <span className="font-heading text-lg font-bold text-primary">
+                          ${product.priceValue.toFixed(2)}
+                        </span>
+                      </div>
+                      <span className="mt-5 inline-flex h-9 w-full items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground transition group-hover:bg-primary/90">
+                        View details
+                      </span>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <Card className="rounded-[1.5rem] border-border/60 bg-background/90">
+              <CardContent className="p-8 text-center">
+                <Leaf className="mx-auto h-10 w-10 text-muted-foreground" />
+                <h3 className="mt-4 font-heading text-xl font-bold tracking-tight">
+                  No products available
+                </h3>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Check back soon for the next seasonal harvest.
+                </p>
               </CardContent>
             </Card>
-          </div>
+          )}
         </section>
 
         <section className="grid gap-16 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
@@ -479,95 +461,6 @@ export default function HomePage() {
           </div>
         </section>
       </div>
-
-      <footer className="border-t border-border/60 bg-background/80">
-        <div className="mx-auto grid max-w-screen-2xl gap-10 px-6 py-12 md:grid-cols-2 lg:grid-cols-4 md:px-8">
-          <div className="space-y-4">
-            <div
-              className={cn(
-                "text-lg font-extrabold tracking-tighter text-primary",
-                displayFont.className,
-              )}
-            >
-              Botanical Archivist
-            </div>
-            <p className="max-w-xs text-sm leading-7 text-muted-foreground">
-              Cultivating organic minimalism and preserving the heritage of the
-              soil since 2024.
-            </p>
-          </div>
-
-          <div className="space-y-4">
-            <h4 className="text-xs font-bold uppercase tracking-[0.24em] text-foreground">
-              Navigation
-            </h4>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li>
-                <Link
-                  href="#harvest"
-                  className="transition hover:text-foreground"
-                >
-                  Sustainability
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="#philosophy"
-                  className="transition hover:text-foreground"
-                >
-                  Ethical Sourcing
-                </Link>
-              </li>
-              <li>
-                <Link href="#join" className="transition hover:text-foreground">
-                  Shipping
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/login"
-                  className="transition hover:text-foreground"
-                >
-                  Privacy Policy
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          <div className="space-y-4">
-            <h4 className="text-xs font-bold uppercase tracking-[0.24em] text-foreground">
-              Social
-            </h4>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li>
-                <a href="#" className="transition hover:text-foreground">
-                  Instagram
-                </a>
-              </li>
-              <li>
-                <a href="#" className="transition hover:text-foreground">
-                  Journal
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          <div className="space-y-4">
-            <h4 className="text-xs font-bold uppercase tracking-[0.24em] text-foreground">
-              Contact
-            </h4>
-            <p className="text-sm text-muted-foreground">
-              hello@botanicalarchivist.com
-            </p>
-            <p className="text-sm text-muted-foreground">
-              12 Harvest Lane, Organic Valley
-            </p>
-          </div>
-        </div>
-        <div className="mx-auto max-w-screen-2xl border-t border-border/60 px-6 py-6 text-xs text-muted-foreground md:px-8">
-          © 2024 The Botanical Archivist. Cultivating organic minimalism.
-        </div>
-      </footer>
     </main>
   );
 }

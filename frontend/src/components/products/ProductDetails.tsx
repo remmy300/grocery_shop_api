@@ -119,7 +119,7 @@ export default function ProductDetails({ product, related }: Props) {
             {/* ACTIONS */}
             <div className="flex flex-col gap-3">
               <Button asChild className="rounded-full">
-                <Link href={shortlistHref}>Add to shortlist</Link>
+                Add to cart
               </Button>
 
               <Button asChild variant="outline" className="rounded-full">
