@@ -1,0 +1,95 @@
+import React from "react";
+
+import { Card, CardContent } from "../ui/card";
+import Image from "next/image";
+import QuantityButton from "./quantityButton";
+import { Plus, Minus, Trash2 } from "lucide-react";
+import type { CartItem } from "@/contexts/cartContext";
+
+type CartItemCardProps = {
+  item: CartItem;
+  onIncrease: () => void;
+  onDecrease: () => void;
+  onRemove: () => void;
+};
+
+const CartItemCard = ({
+  item,
+  onIncrease,
+  onDecrease,
+  onRemove,
+}: CartItemCardProps) => {
+  return (
+    <Card className="overflow-hidden rounded-[28px] border-none bg-card shadow-sm transition duration-300 hover:-translate-y-0.5">
+      <CardContent className="p-6 md:p-8">
+        <div className="flex flex-col md:flex-row">
+          {/* IMAGE */}
+          <div className="relative h-48 w-full overflow-hidden rounded-2xl bg-muted md:w-48">
+            <Image
+              src={item.imageUrl}
+              alt={item.name}
+              fill
+              className="object-cover"
+            />
+          </div>
+
+          {/* CONTENT */}
+          <div className="mt-6 flex flex-1 flex-col justify-between md:ml-8 md:mt-0">
+            {/* TOP */}
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h3 className="text-2xl font-bold tracking-tight">
+                  {item.name}
+                </h3>
+
+                <p className="mt-1 text-sm font-medium text-muted-foreground">
+                  {item.subtitle}
+                </p>
+              </div>
+
+              <button
+                onClick={onRemove}
+                className="text-muted-foreground transition hover:text-destructive"
+              >
+                <Trash2 className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* BOTTOM */}
+            <div className="mt-8 flex flex-wrap items-end justify-between gap-6">
+              {/* QUANTITY */}
+              <div className="flex items-center rounded-full bg-muted p-1">
+                <QuantityButton onClick={onDecrease}>
+                  <Minus className="h-4 w-4" />
+                </QuantityButton>
+
+                <span className="w-12 text-center text-lg font-bold">
+                  {String(item.quantity).padStart(2, "0")}
+                </span>
+
+                <QuantityButton onClick={onIncrease}>
+                  <Plus className="h-4 w-4" />
+                </QuantityButton>
+              </div>
+
+              {/* PRICE */}
+              <div className="text-right">
+                {item.originalPrice && (
+                  <span className="block text-sm text-muted-foreground line-through">
+                    ${item.originalPrice.toFixed(2)}
+                  </span>
+                )}
+
+                <span className="text-2xl font-extrabold tracking-tight">
+                  ${(item.price * item.quantity).toFixed(2)}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default CartItemCard;

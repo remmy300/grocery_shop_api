@@ -42,9 +42,14 @@ export function ProductCard({ product }: Props) {
         </div>
       </Link>
 
-      <button className="mt-5 w-full rounded-full bg-green-700 py-3 text-sm font-semibold text-white transition hover:bg-green-800">
-        Add to Cart
-      </button>
+      <div className=" flex flex-col gap-2">
+        <button className="mt-5 w-full rounded-full bg-green-700 py-3 text-sm font-semibold text-white transition hover:bg-green-800">
+          Add to Cart
+        </button>
+        <button className="mt-5 w-full rounded-full bg-green-700 py-3 text-sm font-semibold text-white transition hover:bg-green-800">
+          view details
+        </button>
+      </div>
     </article>
   );
 }
