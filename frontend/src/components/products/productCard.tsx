@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { Button } from "../ui/button";
 
 import { ProductView } from "@/types/products";
 
@@ -43,12 +44,15 @@ export function ProductCard({ product }: Props) {
       </Link>
 
       <div className=" flex flex-col gap-2">
-        <button className="mt-5 w-full rounded-full bg-green-700 py-3 text-sm font-semibold text-white transition hover:bg-green-800">
+        <Button className="mt-5 w-full rounded-full bg-green-700 py-3 text-sm font-semibold text-white transition hover:bg-green-800">
           Add to Cart
-        </button>
-        <button className="mt-5 w-full rounded-full bg-green-700 py-3 text-sm font-semibold text-white transition hover:bg-green-800">
-          view details
-        </button>
+        </Button>
+        <Button
+          asChild
+          className="mt-5 w-full rounded-full bg-green-700 py-3 text-sm font-semibold text-white transition hover:bg-green-800"
+        >
+          <Link href={`/products/${product.id}`}>view details</Link>
+        </Button>
       </div>
     </article>
   );

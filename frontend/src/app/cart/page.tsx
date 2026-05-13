@@ -6,6 +6,7 @@ import CartItemCard from "@/components/cart/cartItemCard";
 import SummaryRow from "@/components/cart/cartSummary";
 
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
@@ -143,10 +144,11 @@ export default function CartPage() {
                   </div>
 
                   <Button
+                    asChild
                     className="mt-10 h-14 w-full rounded-full text-base font-bold"
                     size="lg"
                   >
-                    Proceed to Checkout
+                    <Link href="/checkout">Proceed to Checkout</Link>
                   </Button>
 
                   <div className="mt-8 rounded-2xl border-l-4 border-primary bg-background/80 p-4">

@@ -1,4 +1,5 @@
 import { AxiosRequestConfig } from "axios";
+import { CartItem } from "@/contexts/cartContext";
 
 export type ApiRequestOptions = Omit<AxiosRequestConfig, "url" | "data"> & {
   json?: unknown;
@@ -176,3 +177,23 @@ export class ApiError extends Error {
     this.status = status;
   }
 }
+
+export type CheckoutState = {
+  items: CartItem[];
+
+  deliveryMethod: {
+    id: string;
+    name: string;
+    price: number;
+  } | null;
+
+  paymentMethod: "mpesa" | "paypal" | "stripe" | null;
+
+  address: {
+    fullName: string;
+    street: string;
+    city: string;
+    postalCode: string;
+    phone: string;
+  } | null;
+};
