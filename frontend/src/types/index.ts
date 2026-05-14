@@ -178,16 +178,14 @@ export class ApiError extends Error {
   }
 }
 
+export type DeliveryMethod = "standard" | "express";
+
+export type PaymentMethod = "card" | "mpesa" | "paypal" | "stripe";
+
 export type CheckoutState = {
-  items: CartItem[];
+  deliveryMethod: DeliveryMethod | null;
 
-  deliveryMethod: {
-    id: string;
-    name: string;
-    price: number;
-  } | null;
-
-  paymentMethod: "mpesa" | "paypal" | "stripe" | null;
+  paymentMethod: PaymentMethod | null;
 
   address: {
     fullName: string;

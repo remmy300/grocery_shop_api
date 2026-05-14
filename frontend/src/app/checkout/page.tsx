@@ -18,8 +18,8 @@ import { useCart } from "@/hooks/useCart";
 import { useMutation } from "@tanstack/react-query";
 
 import { useState } from "react";
-
-type DeliveryMethod = "standard" | "express";
+import { DeliveryMethod } from "@/types";
+import { getShipping } from "@/lib/checkout/payment";
 
 export default function CheckoutPage() {
   const { items, subtotal, total } = useCart();
@@ -27,7 +27,7 @@ export default function CheckoutPage() {
   const [deliveryMethod, setDeliveryMethod] =
     useState<DeliveryMethod>("standard");
 
-  const shippingFee = deliveryMethod === "express" ? 12.5 : 0;
+  const shippingFee = getShipping(deliveryMethod);
 
   const taxes = 21.2;
 
@@ -70,7 +70,7 @@ export default function CheckoutPage() {
               </h1>
 
               <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-                Finalizing your botanical selection
+                Finalizing your Corner Shop selection
               </p>
             </header>
 
@@ -316,7 +316,7 @@ export default function CheckoutPage() {
 
                     <p className="mt-4 flex items-center justify-center gap-2 text-center text-xs text-muted-foreground">
                       <Lock className="h-4 w-4" />
-                      Your transaction is secured by end-to-end botanical
+                      Your transaction is secured by end-to-end Coner-Shop
                       encryption.
                     </p>
                   </div>

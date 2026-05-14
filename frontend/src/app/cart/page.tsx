@@ -19,11 +19,6 @@ export default function CartPage() {
   const { items, subtotal, carbonOffset, total, updateQuantity, removeItem } =
     useCart();
 
-  /*
-    EXAMPLE TANSTACK MUTATIONS
-    Replace with your API calls
-  */
-
   const updateQuantityMutation = useMutation({
     mutationFn: async ({
       productId,

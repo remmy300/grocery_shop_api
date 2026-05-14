@@ -29,7 +29,7 @@ export default function Navbar() {
           className="flex items-center gap-2 text-2xl font-extrabold tracking-tight text-primary"
         >
           <Leaf className="h-6 w-6" />
-          Botanical Archivist
+          Coner Shop
         </Link>
 
         {/* Navigation */}
