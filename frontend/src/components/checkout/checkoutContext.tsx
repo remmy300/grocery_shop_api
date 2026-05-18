@@ -4,7 +4,6 @@ import { createContext, ReactNode, useContext, useMemo, useState } from "react";
 import { CheckoutState } from "@/types";
 
 import { useCart } from "@/hooks/useCart";
-
 type CheckoutContextType = {
   state: CheckoutState;
 

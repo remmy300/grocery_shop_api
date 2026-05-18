@@ -1,5 +1,4 @@
 import { AxiosRequestConfig } from "axios";
-import { CartItem } from "@/contexts/cartContext";
 
 export type ApiRequestOptions = Omit<AxiosRequestConfig, "url" | "data"> & {
   json?: unknown;

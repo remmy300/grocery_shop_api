@@ -5,7 +5,7 @@ export type ProductOrigin = "Local (20mi)" | "Regional" | "Heritage" | string;
 export type ProductCategory = string;
 
 export interface ProductView {
-  id: string;
+  id: number;
   name: string;
   slug?: string;
   sku: string;

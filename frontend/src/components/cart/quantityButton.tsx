@@ -1,14 +1,17 @@
-const QuantityButton = ({
-  children,
-  onClick,
-}: {
+import React from "react";
+
+type Props = {
   children: React.ReactNode;
   onClick: () => void;
-}) => {
+  disabled?: boolean;
+};
+
+const QuantityButton = ({ children, onClick, disabled = false }: Props) => {
   return (
     <button
       onClick={onClick}
-      className="flex h-10 w-10 items-center justify-center rounded-full text-primary transition hover:bg-background active:scale-95"
+      disabled={disabled}
+      className="flex h-9 w-9 items-center justify-center rounded-full transition hover:bg-background disabled:opacity-40 disabled:cursor-not-allowed"
     >
       {children}
     </button>

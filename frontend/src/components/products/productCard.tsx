@@ -1,14 +1,18 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "../ui/button";
-
 import { ProductView } from "@/types/products";
+import { useCart } from "@/hooks/useCart";
 
-type Props = {
+export type Props = {
   product: ProductView;
 };
 
 export function ProductCard({ product }: Props) {
+  const { addToCart, isAdding } = useCart();
+
   return (
     <article className="group rounded-3xl bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
       <Link
@@ -28,7 +32,6 @@ export function ProductCard({ product }: Props) {
           <div className="flex items-start justify-between gap-4">
             <div>
               <h3 className="font-semibold text-zinc-900">{product.name}</h3>
-
               <p className="text-sm text-zinc-500">{product.category}</p>
             </div>
 
@@ -43,15 +46,17 @@ export function ProductCard({ product }: Props) {
         </div>
       </Link>
 
-      <div className=" flex flex-col gap-2">
-        <Button className="mt-5 w-full rounded-full bg-green-700 py-3 text-sm font-semibold text-white transition hover:bg-green-800">
-          Add to Cart
-        </Button>
+      <div className="mt-5 flex flex-col gap-3">
         <Button
-          asChild
-          className="mt-5 w-full rounded-full bg-green-700 py-3 text-sm font-semibold text-white transition hover:bg-green-800"
+          onClick={() => addToCart(product.id)}
+          disabled={isAdding}
+          className="w-full rounded-full bg-green-700 py-3 text-sm font-semibold text-white transition hover:bg-green-800"
         >
-          <Link href={`/products/${product.id}`}>view details</Link>
+          {isAdding ? "Adding..." : "Add to Cart"}
+        </Button>
+
+        <Button asChild variant="outline" className="w-full rounded-full">
+          <Link href={`/products/${product.id}`}>View Details</Link>
         </Button>
       </div>
     </article>

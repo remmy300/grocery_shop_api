@@ -10,10 +10,10 @@ import {
   ShieldCheck,
   Sprout,
 } from "lucide-react";
+import ArchiveSubscribeForm from "@/components/home/archiveSubscribeForm";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { fetchProducts } from "@/lib/products";
 import { cn } from "@/lib/utils";
 
@@ -27,6 +27,8 @@ export const metadata: Metadata = {
   description:
     "An editorial grocery landing page for fresh seasonal harvests and regenerative sourcing.",
 };
+
+export const dynamic = "force-dynamic";
 
 const storyCards = [
   {
@@ -46,10 +48,23 @@ const storyCards = [
   },
 ];
 
+async function getHomeProducts() {
+  try {
+    return await fetchProducts();
+  } catch (error) {
+    console.error("Failed to load homepage products:", error);
+    return [];
+  }
+}
+
 export default async function HomePage() {
-  const products = await fetchProducts();
+  const products = await getHomeProducts();
   const featuredProduct = products[0];
   const harvestProducts = products.slice(1, 5);
+  const currentArchiveTitle = featuredProduct?.name ?? "Seasonal Arrivals";
+  const currentArchiveDescription = featuredProduct
+    ? featuredProduct.sourcingNote
+    : "Browse the latest harvest once the archive is refreshed.";
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,_rgba(13,99,27,0.10),_transparent_24%),radial-gradient(circle_at_top_right,_rgba(255,219,207,0.75),_transparent_22%),linear-gradient(180deg,_#faf9f6_0%,_#f7f5ef_100%)] text-foreground">
@@ -148,10 +163,10 @@ export default async function HomePage() {
                     displayFont.className,
                   )}
                 >
-                  Purple Cherries
+                  {currentArchiveTitle}
                 </p>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  Sourced from the High Orchards of the North Coast.
+                  {currentArchiveDescription}
                 </p>
               </CardContent>
             </Card>
@@ -444,20 +459,7 @@ export default async function HomePage() {
               Subscribe to our weekly curated harvests and taste the difference
               of true botanical dedication.
             </p>
-
-            <div className="mt-10 flex flex-col gap-4 md:flex-row md:justify-center">
-              <Input
-                type="email"
-                placeholder="Your email address"
-                className="h-12 rounded-full border-primary-foreground/20 bg-primary-foreground/10 px-5 text-primary-foreground placeholder:text-primary-foreground/60 md:w-96"
-              />
-              <Button
-                type="button"
-                className="h-12 rounded-full bg-secondary-fixed px-8 text-secondary-foreground hover:bg-secondary-fixed/90"
-              >
-                Subscribe Now
-              </Button>
-            </div>
+            <ArchiveSubscribeForm />
           </div>
         </section>
       </div>

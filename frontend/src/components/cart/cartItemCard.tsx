@@ -1,32 +1,34 @@
 import React from "react";
-
 import { Card, CardContent } from "../ui/card";
 import Image from "next/image";
-import QuantityButton from "./quantityButton";
 import { Plus, Minus, Trash2 } from "lucide-react";
-import type { CartItem } from "@/contexts/cartContext";
+
+import QuantityButton from "./quantityButton";
+import type { CartItem } from "@/hooks/useCart";
 
 type CartItemCardProps = {
   item: CartItem;
   onIncrease: () => void;
   onDecrease: () => void;
   onRemove: () => void;
+  disabled?: boolean;
 };
 
-const CartItemCard = ({
+export default function CartItemCard({
   item,
   onIncrease,
   onDecrease,
   onRemove,
-}: CartItemCardProps) => {
+  disabled = false,
+}: CartItemCardProps) {
   return (
-    <Card className="overflow-hidden rounded-[28px] border-none bg-card shadow-sm transition duration-300 hover:-translate-y-0.5">
+    <Card className="overflow-hidden rounded-[28px] border-none bg-card shadow-sm transition hover:-translate-y-0.5">
       <CardContent className="p-6 md:p-8">
         <div className="flex flex-col md:flex-row">
           {/* IMAGE */}
           <div className="relative h-48 w-full overflow-hidden rounded-2xl bg-muted md:w-48">
             <Image
-              src={item.imageUrl}
+              src={item.imageUrl || "/placeholder.webp"}
               alt={item.name}
               fill
               className="object-cover"
@@ -41,7 +43,6 @@ const CartItemCard = ({
                 <h3 className="text-2xl font-bold tracking-tight">
                   {item.name}
                 </h3>
-
                 <p className="mt-1 text-sm font-medium text-muted-foreground">
                   {item.subtitle}
                 </p>
@@ -49,7 +50,9 @@ const CartItemCard = ({
 
               <button
                 onClick={onRemove}
-                className="text-muted-foreground transition hover:text-destructive"
+                disabled={disabled}
+                className="text-muted-foreground transition hover:text-destructive disabled:opacity-40"
+                aria-label={`Remove ${item.name}`}
               >
                 <Trash2 className="h-5 w-5" />
               </button>
@@ -59,15 +62,15 @@ const CartItemCard = ({
             <div className="mt-8 flex flex-wrap items-end justify-between gap-6">
               {/* QUANTITY */}
               <div className="flex items-center rounded-full bg-muted p-1">
-                <QuantityButton onClick={onDecrease}>
+                <QuantityButton onClick={onDecrease} disabled={disabled}>
                   <Minus className="h-4 w-4" />
                 </QuantityButton>
 
                 <span className="w-12 text-center text-lg font-bold">
-                  {String(item.quantity).padStart(2, "0")}
+                  {item.quantity.toString().padStart(2, "0")}
                 </span>
 
-                <QuantityButton onClick={onIncrease}>
+                <QuantityButton onClick={onIncrease} disabled={disabled}>
                   <Plus className="h-4 w-4" />
                 </QuantityButton>
               </div>
@@ -75,7 +78,7 @@ const CartItemCard = ({
               {/* PRICE */}
               <div className="text-right">
                 {item.originalPrice && (
-                  <span className="block text-sm text-muted-foreground line-through">
+                  <span className="block text-sm line-through text-muted-foreground">
                     ${item.originalPrice.toFixed(2)}
                   </span>
                 )}
@@ -90,6 +93,4 @@ const CartItemCard = ({
       </CardContent>
     </Card>
   );
-};
-
-export default CartItemCard;
+}

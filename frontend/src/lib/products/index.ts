@@ -89,7 +89,7 @@ export const normalizeProduct = (product: BackendProduct): ProductView => {
   const category = productCategory(product.name);
   const stock = product.stock;
   const priceValue = toNumber(product.price);
-  const id = String(product.id);
+  const id = product.id;
 
   return {
     id,
