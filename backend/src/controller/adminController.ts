@@ -202,7 +202,7 @@ export const getInventoryOverview = async (_req: Request, res: Response) => {
       id: product.id,
       sku: `#ARC-${String(product.id).padStart(4, "0")}`,
       name: product.name,
-      category: inferCategory(product.name),
+      category: product.category || inferCategory(product.name),
       stock: product.stock,
       stockStatus:
         product.stock <= 0

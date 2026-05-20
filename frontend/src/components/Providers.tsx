@@ -3,6 +3,7 @@
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { ThemeProvider } from "next-themes";
 import type { ReactNode } from "react";
+import { CheckoutProvider } from "./checkout/checkoutContext";
 
 import { AppProvider } from "@/contexts/AppContext";
 import ReactQueryProvider from "@/components/ReactQueryProvider";
@@ -21,7 +22,9 @@ export default function Providers({ children }: { children: ReactNode }) {
     <GoogleOAuthProvider clientId={googleClientId}>
       <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
         <ReactQueryProvider>
-          <AppProvider>{children}</AppProvider>
+          <AppProvider>
+            <CheckoutProvider> {children}</CheckoutProvider>
+          </AppProvider>
         </ReactQueryProvider>
         <Toaster />
       </ThemeProvider>

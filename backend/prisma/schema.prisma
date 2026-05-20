@@ -9,7 +9,8 @@ datasource db {
 model Product {
   id        Int     @id @default(autoincrement())
   name      String
-  price     Int
+  category  String  @default("General Grocery")
+  price     Float
   stock     Int
   imageUrl  String?
   deletedAt DateTime?

@@ -31,10 +31,19 @@ import { InventoryResponse } from "@/types";
 
 type ProductFormState = {
   name: string;
+  category: string;
   stock: string;
   price: string;
   imageUrl: string;
 };
+
+const PRODUCT_CATEGORIES = [
+  "Produce",
+  "Bakery & Deli",
+  "Dairy",
+  "Organic Meat",
+  "General Grocery",
+];
 
 type UploadResult =
   | {
@@ -51,6 +60,7 @@ type UploadResult =
 
 const EMPTY_FORM: ProductFormState = {
   name: "",
+  category: "General Grocery",
   stock: "",
   price: "",
   imageUrl: "",
@@ -60,6 +70,7 @@ const toFormState = (
   product: InventoryResponse["products"][number],
 ): ProductFormState => ({
   name: product.name,
+  category: product.category,
   stock: String(product.stock),
   price: String(product.price),
   imageUrl: product.imageUrl || "",
@@ -158,12 +169,17 @@ const InventoryPage = () => {
 
   const validateForm = () => {
     const trimmedName = form.name.trim();
+    const trimmedCategory = form.category.trim();
     const trimmedImageUrl = form.imageUrl.trim();
     const stock = Number(form.stock);
     const price = Number(form.price);
 
     if (!trimmedName) {
       return { success: false, error: "Product name is required." };
+    }
+
+    if (!trimmedCategory) {
+      return { success: false, error: "Product category is required." };
     }
 
     if (!Number.isInteger(stock) || stock < 0) {
@@ -178,6 +194,7 @@ const InventoryPage = () => {
       success: true,
       payload: {
         name: trimmedName,
+        category: trimmedCategory,
         stock,
         price,
         imageUrl: trimmedImageUrl,
@@ -586,6 +603,28 @@ const handleUploadImage = () => {
                       }
                       placeholder="e.g. Fresh Apples"
                     />
+                  </div>
+
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-foreground">
+                      Category
+                    </label>
+                    <select
+                      value={form.category}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          category: event.target.value,
+                        }))
+                      }
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    >
+                      {PRODUCT_CATEGORIES.map((category) => (
+                        <option key={category} value={category}>
+                          {category}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">

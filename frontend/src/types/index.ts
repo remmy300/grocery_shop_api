@@ -7,6 +7,7 @@ export type ApiRequestOptions = Omit<AxiosRequestConfig, "url" | "data"> & {
 export type BackendProduct = {
   id: number;
   name: string;
+  category?: string | null;
   price: number | string;
   stock: number;
   imageUrl?: string | null;
@@ -183,7 +184,6 @@ export type PaymentMethod = "card" | "mpesa" | "paypal" | "stripe";
 
 export type CheckoutState = {
   deliveryMethod: DeliveryMethod | null;
-
   paymentMethod: PaymentMethod | null;
 
   address: {
@@ -192,5 +192,11 @@ export type CheckoutState = {
     city: string;
     postalCode: string;
     phone: string;
+    notes?: string;
+  } | null;
+
+  location: {
+    lat: number;
+    lng: number;
   } | null;
 };

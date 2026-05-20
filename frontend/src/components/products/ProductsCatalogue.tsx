@@ -9,7 +9,7 @@ import { ProductFilters } from "./filterSide";
 import { FeaturedProduct } from "./featuredProducts";
 import { ProductView } from "@/types/products";
 
-const ITEMS_PER_PAGE = 6;
+const ITEMS_PER_PAGE = 10;
 
 export default function ProductsCatalogue({
   products,

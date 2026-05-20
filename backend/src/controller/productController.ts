@@ -15,23 +15,38 @@ const normalizeImageUrl = (value: unknown) => {
   return trimmed ? trimmed : null;
 };
 
+const normalizeCategory = (value: unknown) => {
+  if (typeof value !== "string") {
+    return "General Grocery";
+  }
+
+  const trimmed = value.trim();
+  return trimmed || "General Grocery";
+};
+
 export const createProduct = async (req: Request, res: Response) => {
   try {
-    const { name, stock, price, imageUrl } = req.body;
+    const { name, category, stock, price, imageUrl } = req.body;
 
     const normalizedName = typeof name === "string" ? name.trim() : "";
     const normalizedStock = parseInteger(stock);
     const normalizedPrice = parseInteger(price);
 
-    if (!normalizedName || normalizedStock === null || normalizedPrice === null) {
+    if (
+      !normalizedName ||
+      normalizedStock === null ||
+      normalizedPrice === null
+    ) {
       return res.status(400).json({
-        message: "Name, stock, and price are required and must be valid numbers",
+        message:
+          "Name, stock, and price are required and must be valid numbers",
       });
     }
 
     const product = await prisma.product.create({
       data: {
         name: normalizedName,
+        category: normalizeCategory(category),
         price: normalizedPrice,
         stock: normalizedStock,
         imageUrl: normalizeImageUrl(imageUrl),
@@ -39,7 +54,7 @@ export const createProduct = async (req: Request, res: Response) => {
     });
     res.status(201).json(product);
   } catch (error) {
-    res.status(500).json({ message: "Failed to create new product" });
+    console.error("PRISMA CREATE PRODUCT ERROR:", error);
   }
 };
 
@@ -81,15 +96,20 @@ export const updateProduct = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const productId = Number(id);
-    const { name, stock, imageUrl, price } = req.body;
+    const { name, category, stock, imageUrl, price } = req.body;
 
     const normalizedName = typeof name === "string" ? name.trim() : "";
     const normalizedStock = parseInteger(stock);
     const normalizedPrice = parseInteger(price);
 
-    if (!normalizedName || normalizedStock === null || normalizedPrice === null) {
+    if (
+      !normalizedName ||
+      normalizedStock === null ||
+      normalizedPrice === null
+    ) {
       return res.status(400).json({
-        message: "Name, stock, and price are required and must be valid numbers",
+        message:
+          "Name, stock, and price are required and must be valid numbers",
       });
     }
 
@@ -109,6 +129,7 @@ export const updateProduct = async (req: Request, res: Response) => {
       where: { id: productId },
       data: {
         name: normalizedName,
+        category: normalizeCategory(category),
         stock: normalizedStock,
         imageUrl: normalizeImageUrl(imageUrl),
         price: normalizedPrice,

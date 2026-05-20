@@ -31,7 +31,7 @@ export default function ProductsHero() {
 
         <div className="max-w-3xl">
           <p className="mb-3 text-xs font-bold uppercase tracking-[0.25em] text-secondary">
-            Botanical Archivist
+            Corner Store
           </p>
 
           <h1 className="text-5xl font-extrabold tracking-tight text-foreground md:text-6xl">

@@ -23,7 +23,7 @@ const displayFont = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Botanical Archivist",
+  title: "Corner Store",
   description:
     "An editorial grocery landing page for fresh seasonal harvests and regenerative sourcing.",
 };
@@ -67,8 +67,8 @@ export default async function HomePage() {
     : "Browse the latest harvest once the archive is refreshed.";
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,_rgba(13,99,27,0.10),_transparent_24%),radial-gradient(circle_at_top_right,_rgba(255,219,207,0.75),_transparent_22%),linear-gradient(180deg,_#faf9f6_0%,_#f7f5ef_100%)] text-foreground">
-      <div className="absolute inset-x-0 top-0 h-[28rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.8),rgba(255,255,255,0))]" />
+    <main className="relative min-h-screen overflow-hidden bg-[#faf9f6] text-foreground">
+      <div className="absolute inset-x-0 top-0 h-112 bg-[linear-gradient(180deg,rgba(255,255,255,0.8),rgba(255,255,255,0))]" />
 
       <div className="relative mx-auto flex max-w-screen-2xl flex-col gap-24 px-6 pb-20 pt-28 md:px-8 lg:pt-32">
         <section className="grid items-center gap-14 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
@@ -77,7 +77,7 @@ export default async function HomePage() {
               variant="secondary"
               className="mb-6 rounded-full border-border/60 bg-secondary/70 px-4 py-1 text-[10px] font-bold uppercase tracking-[0.28em]"
             >
-              Est. 2024
+              Est. 2026
             </Badge>
             <h1
               className={cn(
@@ -99,14 +99,6 @@ export default async function HomePage() {
                   Browse Collection
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
-              </Button>
-              <Button
-                asChild
-                variant="outline"
-                size="lg"
-                className="rounded-full px-8"
-              >
-                <Link href="#journal">View Journal</Link>
               </Button>
             </div>
 
@@ -139,7 +131,7 @@ export default async function HomePage() {
 
             <Card className="relative overflow-hidden rounded-[2rem] border-border/50 bg-background/80 shadow-[0_30px_80px_rgba(26,28,28,0.12)]">
               <CardContent className="p-0">
-                <div className="relative aspect-[4/5] overflow-hidden">
+                <div className="relative aspect-4/5 overflow-hidden">
                   <Image
                     src="https://lh3.googleusercontent.com/aida-public/AB6AXuCcJ4qFalRgY8IgJA1HMyLfXjpeLKnP2T4Kt3hkb7al6nzKSEGEEG4-PGGi8qfbjzn6p2psYLmUVtwAAYdtsWV8RS6iqguGkLfDwpozi5urJ1LX9oZ11oruZim21z-AUSQoX4QcCdiAZ0_LkEBPCE92eObB1pzW-xr12tlNrtrPyaD_mwkPXP8jp9HKRNj00YBJpGlXU1f72JLZjhCb-QhD6ioFbtovE3SXa_aeio4s7pocqK1DG4gc78L-Dls_5snD6nfb-4tzunY"
                     alt="Editorial arrangement of heirloom tomatoes and greens"
@@ -148,7 +140,7 @@ export default async function HomePage() {
                     sizes="(max-width: 1024px) 100vw, 50vw"
                     className="object-cover scale-105 transition-transform duration-700 hover:scale-100"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/50 via-black/10 to-transparent" />
                 </div>
               </CardContent>
             </Card>
@@ -198,13 +190,10 @@ export default async function HomePage() {
 
           {featuredProduct ? (
             <div className="grid gap-6 md:grid-cols-4">
-              <Link
-                href={`/products/${featuredProduct.id}`}
-                className="group block focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 md:col-span-2 md:row-span-2"
-              >
-                <Card className="relative min-h-[32rem] overflow-hidden rounded-[1.75rem] border-border/60">
+              <div className="group block focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 md:col-span-2 md:row-span-2">
+                <Card className="relative min-h-128 overflow-hidden rounded-[1.75rem] border-border/60">
                   <CardContent className="h-full p-0">
-                    <div className="relative h-full min-h-[32rem]">
+                    <div className="relative h-full min-h-128">
                       {featuredProduct.imageUrl ? (
                         <Image
                           src={featuredProduct.imageUrl}
@@ -214,11 +203,11 @@ export default async function HomePage() {
                           className="object-cover transition-transform duration-700 group-hover:scale-110"
                         />
                       ) : (
-                        <div className="flex h-full min-h-[32rem] items-center justify-center bg-muted">
+                        <div className="flex h-full min-h-126 items-center justify-center bg-muted">
                           <Leaf className="h-12 w-12 text-muted-foreground" />
                         </div>
                       )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/15 to-transparent opacity-90" />
+                      <div className="absolute inset-0 bg-gradient   -to-t from-black/60 via-black/15 to-transparent opacity-90" />
                       <div className="absolute bottom-0 left-0 p-8 text-white">
                         <Badge className="mb-4 rounded-full bg-secondary px-3 py-1 text-[10px] font-bold uppercase tracking-[0.24em] text-secondary-foreground">
                           {featuredProduct.category}
@@ -239,14 +228,17 @@ export default async function HomePage() {
                             ${featuredProduct.priceValue.toFixed(2)}
                           </span>
                           <span className="inline-flex h-10 items-center rounded-full bg-white px-5 text-sm font-semibold text-primary transition group-hover:bg-secondary group-hover:text-secondary-foreground">
-                            View details
+                            <Link href={`/products/${featuredProduct.id}`}>
+                              {" "}
+                              View details
+                            </Link>
                           </span>
                         </div>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
-              </Link>
+              </div>
 
               {harvestProducts.map((product) => (
                 <Link
@@ -312,7 +304,7 @@ export default async function HomePage() {
             <div className="absolute -top-8 -right-8 h-40 w-40 rounded-full bg-primary/10 blur-3xl" />
             <Card className="overflow-hidden rounded-[1.75rem] border-border/60 bg-background/90 shadow-[0_24px_70px_rgba(26,28,28,0.08)]">
               <CardContent className="p-0">
-                <div className="relative aspect-[4/5]">
+                <div className="relative aspect-4/5">
                   <Image
                     src="https://lh3.googleusercontent.com/aida-public/AB6AXuAC4IlUAQ0K7CdByLOUk7YjB1zPp9NEwS1y6gxWAK6la2wWkQdX9OQUvNvfeiznf3jHh3VYAaL6ChxSWENRzGwW_za5VM07oc0K5h40wBsCcOr5V5mKGA-JtD0SqFk0gLBIcfLi49ea6TD3km4NesBbExl2mhPlCMAknJyduF6j9r3ObAnuh-KlCS1FLWtt7Aq-jaMWBqDbOBplGwkbMPz-JyUyjB5jPsaF725fjKInWN_hlOKFw0DaVVWzyQAbuFvhXoXAKr8MoE0"
                     alt="Lush regenerative farm at sunrise"
