@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useMutation } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 import {
   CreditCard,
@@ -55,11 +55,97 @@ export default function CheckoutPage() {
     );
   };
 
+  /* ---------------- GOOGLE MAPS + PLACES ---------------- */
+  const mapRef = useRef<HTMLDivElement | null>(null);
+  const markerRef = useRef<any>(null);
+
+  const loadGoogleMaps = useCallback(() => {
+    const key = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+    if (!key) return;
+    if ((window as any).google) return;
+    const s = document.createElement("script");
+    s.src = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=places`;
+    s.async = true;
+    s.defer = true;
+    document.head.appendChild(s);
+  }, []);
+
+  useEffect(() => {
+    loadGoogleMaps();
+  }, [loadGoogleMaps]);
+
+  useEffect(() => {
+    if (!mapRef.current) return;
+    const google = (window as any).google;
+    if (!google) return;
+
+    const initialCenter = state.location ?? { lat: -1.286389, lng: 36.817223 }; // Nairobi fallback
+    const map = new google.maps.Map(mapRef.current, {
+      center: initialCenter,
+      zoom: state.location ? 15 : 6,
+    });
+
+    if (state.location) {
+      markerRef.current = new google.maps.Marker({
+        position: state.location,
+        map,
+      });
+    }
+
+    map.addListener("click", (e: any) => {
+      const lat = e.latLng.lat();
+      const lng = e.latLng.lng();
+      setLocation({ lat, lng });
+      if (markerRef.current) markerRef.current.setPosition(e.latLng);
+      else
+        markerRef.current = new google.maps.Marker({ position: e.latLng, map });
+
+      // reverse geocode
+      const geocoder = new google.maps.Geocoder();
+      geocoder.geocode({ location: { lat, lng } }, (results: any) => {
+        if (results && results[0]) {
+          const formatted = results[0].formatted_address;
+          setAddress({
+            ...state.address!,
+            street: formatted,
+          });
+        }
+      });
+    });
+
+    // init autocomplete for street input
+    const input = document.getElementById(
+      "street-input",
+    ) as HTMLInputElement | null;
+    if (input) {
+      const ac = new google.maps.places.Autocomplete(input, {
+        fields: ["formatted_address", "address_components", "geometry"],
+      });
+      ac.addListener("place_changed", () => {
+        const place = ac.getPlace();
+        if (place.formatted_address) {
+          setAddress({ ...state.address!, street: place.formatted_address });
+        }
+        if (place.geometry?.location) {
+          const lat = place.geometry.location.lat();
+          const lng = place.geometry.location.lng();
+          setLocation({ lat, lng });
+          if (markerRef.current)
+            markerRef.current.setPosition(place.geometry.location);
+        }
+      });
+    }
+  }, [state.location, state.address]);
+
   /* ---------------- CHECKOUT MUTATION ---------------- */
 
   const checkoutMutation = useMutation({
     mutationFn: async () => {
-      const res = await fetch("http://localhost:5000/api/orders", {
+      const base =
+        process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000";
+      const addressString = `${state.address?.street ?? ""}${state.address?.city ? ", " + state.address?.city : ""}${state.address?.postalCode ? " " + state.address?.postalCode : ""}`;
+
+      const res = await fetch(`${base}/api/orders`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -69,11 +155,11 @@ export default function CheckoutPage() {
             productId: Number(i.id),
             quantity: i.quantity,
           })),
-
           deliveryMethod: state.deliveryMethod,
           paymentMethod: state.paymentMethod,
-          address: state.address,
-          location: state.location,
+          address: addressString,
+          latitude: state.location?.lat,
+          longitude: state.location?.lng,
 
           subtotal,
           shipping,
@@ -118,6 +204,7 @@ export default function CheckoutPage() {
                 />
 
                 <Input
+                  id="street-input"
                   placeholder="Street Address"
                   onChange={(e) =>
                     setAddress({
