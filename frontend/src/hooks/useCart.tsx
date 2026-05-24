@@ -15,7 +15,7 @@ const CART_URL = API_BASE_URL.endsWith("/api")
   ? `${API_BASE_URL}/cart`
   : `${API_BASE_URL}/api/cart`;
 
-/* ───────────────── TYPES ───────────────── */
+/*  TYPES */
 
 interface ApiCartItem {
   productId: number;
@@ -46,7 +46,7 @@ const toNumber = (value: number | string) => {
   return Number.isFinite(numeric) ? numeric : 0;
 };
 
-/* ───────────────── API ───────────────── */
+/* ───────────────── API */
 
 async function fetchCart(): Promise<ApiCart> {
   const res = await fetch(CART_URL);
