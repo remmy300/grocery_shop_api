@@ -4,12 +4,16 @@ import {
   createOrder,
   updateOrderStatus,
   getOrders,
+  getMyOrders,
+  getNearbyOrders,
 } from "../controller/orderController.js";
 
 const router = express.Router();
 
-router.get("/", getOrders); // Temporarily remove auth for demo
+router.get("/", auth, authorizeRoles("admin"), getOrders);
 router.post("/", createOrder);
+router.get("/my", auth, getMyOrders);
+router.get("/nearby", auth, authorizeRoles("admin"), getNearbyOrders);
 router.patch(
   "/:id/orderStatus",
   auth,

@@ -24,6 +24,9 @@ model Order {
  customer  String
  phone     String
  address   String
+  street    String?
+  city      String?
+  postalCode String?
  latitude  Float?
  longitude Float?
 
@@ -31,6 +34,9 @@ model Order {
  orderStatus    String   @default("pending")
 
  items     OrderItem[]
+
+  userId    Int?
+  user      User?    @relation(fields: [userId], references: [id])
 
  createdAt DateTime @default(now())
 }
@@ -62,6 +68,7 @@ model User {
     role String @default("Admin")
     picture String?
     createdAt DateTime @default(now())
+    orders Order[]
 }
 
 model Cart {
