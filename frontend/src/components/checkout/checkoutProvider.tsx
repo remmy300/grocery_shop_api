@@ -1,4 +1,3 @@
-// app/checkout/layout.tsx
 "use client";
 
 import { CheckoutProvider } from "./checkoutContext";

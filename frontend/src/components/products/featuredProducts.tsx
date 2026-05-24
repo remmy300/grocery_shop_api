@@ -17,7 +17,6 @@ export function FeaturedProduct({ product }: { product: ProductView | null }) {
       href={`/products/${product.id}`}
       className="group flex overflow-hidden rounded-3xl bg-white shadow-xl transition hover:-translate-y-1 hover:shadow-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-green-700 focus-visible:ring-offset-4"
     >
-      {/* IMAGE SECTION */}
       <div className="relative min-h-72 w-1/2 bg-gray-100">
         <Image
           src={product.imageUrl || "/placeholder.webp"}
@@ -42,7 +41,6 @@ export function FeaturedProduct({ product }: { product: ProductView | null }) {
         </button>
       </div>
 
-      {/* CONTENT */}
       <div className="flex flex-1 flex-col justify-between p-10">
         <div>
           <h2 className="text-3xl font-extrabold">{product.name}</h2>
@@ -50,15 +48,9 @@ export function FeaturedProduct({ product }: { product: ProductView | null }) {
           <p className="mt-4 text-gray-500">{product.summary}</p>
         </div>
 
-        {/* FOOTER */}
         <div className="mt-6 flex items-center justify-between">
           <span className="text-2xl font-bold">
             ${product.priceValue.toFixed(2)}
-          </span>
-
-          {/* Optional secondary action (matches product card style consistency) */}
-          <span className="text-sm font-semibold text-green-700 opacity-0 transition group-hover:opacity-100">
-            Quick Add +
           </span>
         </div>
       </div>

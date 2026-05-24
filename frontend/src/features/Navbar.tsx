@@ -17,9 +17,8 @@ export default function Navbar() {
   const { totalItems } = useCart();
 
   return (
-    <nav className="fixed top-0 z-[100] w-full border-b border-surface-variant/30 bg-white/80 backdrop-blur-xl">
+    <nav className="fixed top-0 z-100 w-full border-b border-surface-variant/30 bg-white/80 backdrop-blur-xl">
       <div className="mx-auto flex w-full max-w-screen-2xl items-center justify-between px-6 py-5 md:px-8">
-        {/* Logo */}
         <Link
           href="/"
           className="flex items-center gap-2 text-2xl font-extrabold tracking-tight text-primary"
@@ -58,9 +57,7 @@ export default function Navbar() {
           })}
         </div>
 
-        {/* Actions */}
         <div className="flex items-center gap-3">
-          {/* CART */}
           <Button
             asChild
             variant="ghost"
@@ -71,14 +68,13 @@ export default function Navbar() {
               <ShoppingBag className="h-5 w-5" />
 
               {totalItems > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary px-1 text-[11px] font-bold text-white">
+                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[11px] font-bold text-white">
                   {totalItems}
                 </span>
               )}
             </Link>
           </Button>
 
-          {/* USER */}
           <Button asChild size="icon" className="rounded-full">
             <Link href="/login" aria-label="Admin sign in">
               <UserRound className="h-5 w-5" />

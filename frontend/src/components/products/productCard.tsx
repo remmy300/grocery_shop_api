@@ -29,7 +29,6 @@ export function ProductCard({ product }: Props) {
             className="object-cover transition duration-500 group-hover:scale-105"
           />
 
-          {/* Floating Add Button */}
           <button
             type="button"
             onClick={(e) => {

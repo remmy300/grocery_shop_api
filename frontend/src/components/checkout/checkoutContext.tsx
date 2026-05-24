@@ -46,7 +46,7 @@ type CheckoutContextType = {
 
 const CheckoutContext = createContext<CheckoutContextType | null>(null);
 
-/* ---------------- SHIPPING RULES ---------------- */
+/*  SHIPPING RULES  */
 
 function getShippingFee(method: DeliveryMethod | null, subtotal: number) {
   if (subtotal >= 1000) return 0;
@@ -65,7 +65,7 @@ function getTaxRate(city?: string) {
   return city.toLowerCase() === "nairobi" ? 0.16 : 0.1;
 }
 
-/* ---------------- PROVIDER ---------------- */
+/*  PROVIDER  */
 
 export function CheckoutProvider({ children }: { children: ReactNode }) {
   const { items, subtotal } = useCart();
@@ -77,7 +77,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
     location: null,
   });
 
-  /* ---------------- STATE SETTERS ---------------- */
+  /*  STATE SETTERS  */
 
   const setDelivery = (method: DeliveryMethod) => {
     setState((prev) => ({
@@ -107,7 +107,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
     }));
   };
 
-  /* ---------------- PRICING ---------------- */
+  /* PRICING  */
 
   const shipping = useMemo(() => {
     return getShippingFee(state.deliveryMethod, subtotal);
@@ -122,7 +122,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
     return subtotal + shipping + taxes;
   }, [subtotal, shipping, taxes]);
 
-  /* ---------------- VALIDATION ---------------- */
+  /*  VALIDATION */
 
   const canCheckout = useMemo(() => {
     return (
@@ -133,7 +133,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
     );
   }, [items.length, state.address, state.paymentMethod]);
 
-  /* ---------------- CONTEXT VALUE ---------------- */
+  /*  CONTEXT VALUE*/
 
   return (
     <CheckoutContext.Provider
@@ -158,7 +158,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
   );
 }
 
-/* ---------------- HOOK ---------------- */
+/*  HOOK  */
 
 export function useCheckout() {
   const context = useContext(CheckoutContext);

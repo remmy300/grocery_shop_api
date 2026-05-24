@@ -115,7 +115,7 @@ async function clearCartApi() {
   }
 }
 
-/* ───────────────── HOOK ───────────────── */
+/* HOOK */
 
 export function useCart() {
   const queryClient = useQueryClient();
@@ -145,7 +145,7 @@ export function useCart() {
 
   const total = subtotal;
 
-  /* ───────────────── ADD ───────────────── */
+  /* ADD */
 
   const addMutation = useMutation({
     mutationFn: addToCartApi,
@@ -155,7 +155,7 @@ export function useCart() {
     },
   });
 
-  /* ───────────────── UPDATE ───────────────── */
+  /* UPDATE */
 
   const updateMutation = useMutation({
     mutationFn: ({
@@ -171,7 +171,7 @@ export function useCart() {
     },
   });
 
-  /* ───────────────── REMOVE ───────────────── */
+  /* REMOVE  */
 
   const removeMutation = useMutation({
     mutationFn: removeItemApi,
@@ -181,7 +181,7 @@ export function useCart() {
     },
   });
 
-  /* ───────────────── CLEAR ───────────────── */
+  /* CLEAR  */
 
   const clearMutation = useMutation({
     mutationFn: clearCartApi,

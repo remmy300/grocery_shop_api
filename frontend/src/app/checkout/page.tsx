@@ -15,7 +15,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
 import { useCart } from "@/hooks/useCart";
 import { useCheckout } from "@/components/checkout/checkoutContext";
@@ -38,7 +37,7 @@ export default function CheckoutPage() {
 
   const [paymentTab, setPaymentTab] = useState<"card" | "wallet">("card");
 
-  /* ---------------- LOCATION HANDLER ---------------- */
+  /*  LOCATION HANDLER  */
 
   const handleUseCurrentLocation = () => {
     navigator.geolocation.getCurrentPosition(
@@ -55,7 +54,7 @@ export default function CheckoutPage() {
     );
   };
 
-  /* ---------------- GOOGLE MAPS + PLACES ---------------- */
+  /*  GOOGLE MAPS + PLACES */
   const mapRef = useRef<HTMLDivElement | null>(null);
   const markerRef = useRef<any>(null);
 
@@ -137,7 +136,7 @@ export default function CheckoutPage() {
     }
   }, [state.location, state.address]);
 
-  /* ---------------- CHECKOUT MUTATION ---------------- */
+  /*  CHECKOUT MUTATION  */
 
   const checkoutMutation = useMutation({
     mutationFn: async () => {
@@ -177,9 +176,7 @@ export default function CheckoutPage() {
   return (
     <main className="min-h-screen bg-background text-foreground">
       <div className="mx-auto max-w-screen-2xl px-6 pb-20 pt-32 grid grid-cols-1 lg:grid-cols-12 gap-12">
-        {/* LEFT SIDE */}
         <div className="lg:col-span-8 space-y-12">
-          {/* HEADER */}
           <div>
             <h1 className="text-4xl font-bold">Secure Checkout</h1>
             <p className="text-muted-foreground text-sm uppercase tracking-[0.3em]">

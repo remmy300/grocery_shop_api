@@ -226,7 +226,6 @@ function MapEventsBridge({
             const input: HTMLInputElement | null = document.querySelector(
               "#root input[ref]",
             ) as any;
-            // not reliable; rely on component state instead
           }
         });
       }
