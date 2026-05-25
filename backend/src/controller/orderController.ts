@@ -61,7 +61,7 @@ export const createOrder = async (req: Request, res: Response) => {
       select: { id: true, price: true },
     });
 
-    const existingIdSet = new Set(existingProducts.map((p) => p.id));
+    const existingIdSet = new Set(existingProducts.map((p: any) => p.id));
     const missingIds = productIds.filter(
       (id: number) => !existingIdSet.has(id),
     );
@@ -71,17 +71,20 @@ export const createOrder = async (req: Request, res: Response) => {
       });
     }
 
-    const priceById = new Map(existingProducts.map((p) => [p.id, p.price]));
+    const priceById = new Map(
+      existingProducts.map((p: any) => [p.id, p.price]),
+    );
     let total = 0;
-    parsedItems.forEach((item) => {
-      const productPrice = priceById.get(item.productId) ?? 0;
+    parsedItems.forEach((item: { productId: number; quantity: number }) => {
+      const rawPrice = priceById.get(item.productId);
+      const productPrice = Number(rawPrice ?? 0);
       total += item.quantity * productPrice;
     });
 
     const itemsToCreate = parsedItems.map((item) => ({
       productId: item.productId,
       quantity: item.quantity,
-      price: priceById.get(item.productId) ?? 0,
+      price: Number(priceById.get(item.productId) ?? 0),
     }));
 
     const parsedLatitude = Number(latitude);

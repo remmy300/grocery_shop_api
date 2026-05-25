@@ -261,12 +261,18 @@ export const getOrdersOverview = async (_req: Request, res: Response) => {
             : order.orderStatus === "shipped"
               ? "bg-primary-fixed text-on-primary-fixed-variant"
               : "bg-secondary-fixed text-on-secondary-fixed-variant",
-        items: order.items.map((item) => ({
-          id: item.product.id,
-          name: item.product.name,
-          quantity: item.quantity,
-          price: toNumber(item.price),
-        })),
+        items: order.items.map(
+          (item: {
+            product: ProductType;
+            quantity: number;
+            price: unknown;
+          }) => ({
+            id: item.product.id,
+            name: item.product.name,
+            quantity: item.quantity,
+            price: toNumber(item.price),
+          }),
+        ),
       };
     });
 
@@ -388,23 +394,25 @@ export const getAnalyticsOverview = async (_req: Request, res: Response) => {
     const categoryRevenue = new Map<string, number>();
 
     orders.forEach((order) => {
-      order.items.forEach((item) => {
-        const revenue = toNumber(item.price) * item.quantity;
-        const currentProduct = productRevenue.get(item.product.id) ?? {
-          name: item.product.name,
-          revenue: 0,
-          quantity: 0,
-        };
-        currentProduct.revenue += revenue;
-        currentProduct.quantity += item.quantity;
-        productRevenue.set(item.product.id, currentProduct);
+      order.items.forEach(
+        (item: { product: ProductType; quantity: number; price: unknown }) => {
+          const revenue = toNumber(item.price) * item.quantity;
+          const currentProduct = productRevenue.get(item.product.id) ?? {
+            name: item.product.name,
+            revenue: 0,
+            quantity: 0,
+          };
+          currentProduct.revenue += revenue;
+          currentProduct.quantity += item.quantity;
+          productRevenue.set(item.product.id, currentProduct);
 
-        const category = inferCategory(item.product.name);
-        categoryRevenue.set(
-          category,
-          (categoryRevenue.get(category) ?? 0) + revenue,
-        );
-      });
+          const category = inferCategory(item.product.name);
+          categoryRevenue.set(
+            category,
+            (categoryRevenue.get(category) ?? 0) + revenue,
+          );
+        },
+      );
     });
 
     const maxProductRevenue = Math.max(

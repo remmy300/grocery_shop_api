@@ -44,7 +44,10 @@ export const googleLogin = async (req: Request, res: Response) => {
           picture: payload.picture,
         },
       });
-    } else if (isAdminEmail(payload.email) && normalizeRole(user.role) !== "admin") {
+    } else if (
+      isAdminEmail(payload.email) &&
+      normalizeRole(user.role) !== "admin"
+    ) {
       user = await prisma.user.update({
         where: { id: user.id },
         data: {
@@ -119,8 +122,8 @@ export const getAdmins = async (req: Request, res: Response) => {
 
     res.json(
       admins
-        .filter((admin) => normalizeRole(admin.role) === "admin")
-        .map((admin) => ({
+        .filter((admin: any) => normalizeRole(admin.role) === "admin")
+        .map((admin: any) => ({
           id: admin.id,
           email: admin.email,
           role: normalizeRole(admin.role),
