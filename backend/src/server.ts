@@ -10,9 +10,30 @@ import cartRoutes from "./routes/cartRoutes.js";
 
 const app = express();
 
+const allowedOrigins = (process.env.FRONTEND_URL || "")
+  .split(",")
+  .map((origin) => origin.trim());
+
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL,
+    origin: (requestOrigin, callback) => {
+      if (!requestOrigin) {
+        // Allow non-browser requests like server-to-server or curl
+        return callback(null, true);
+      }
+
+      if (
+        allowedOrigins.includes("*") ||
+        allowedOrigins.includes(requestOrigin)
+      ) {
+        return callback(null, true);
+      }
+
+      return callback(
+        new Error(`CORS policy blocked origin: ${requestOrigin}`),
+        false,
+      );
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   }),
@@ -62,7 +83,7 @@ app.use(
 const PORT = Number(process.env.PORT) || 4000;
 
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📝 FRONTEND_URL: ${process.env.FRONTEND_URL}`);
-  console.log(`🔐 NODE_ENV: ${process.env.NODE_ENV || "development"}`);
+  console.log(` Server running on port ${PORT}`);
+  console.log(` FRONTEND_URL: ${process.env.FRONTEND_URL}`);
+  console.log(` NODE_ENV: ${process.env.NODE_ENV || "development"}`);
 });
