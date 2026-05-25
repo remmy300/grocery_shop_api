@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
+const currentYear = new Date().getFullYear();
+
 export default function Footer() {
   const [email, setEmail] = useState("");
 
@@ -29,7 +31,7 @@ export default function Footer() {
         <div className="space-y-6">
           <div className="flex items-center gap-2 text-2xl font-extrabold text-white">
             <Leaf className="h-6 w-6 text-primary" />
-            Botanical Archivist
+            Corner Shop
           </div>
           <p className="text-sm text-stone-400">
             Dedicated to preserving heritage flavors and supporting regenerative
@@ -91,7 +93,7 @@ export default function Footer() {
       </div>
 
       <div className="mt-16 text-center text-xs text-stone-500">
-        © 2026 Botanical Archivist
+        © {currentYear} Corner Shop
       </div>
     </footer>
   );

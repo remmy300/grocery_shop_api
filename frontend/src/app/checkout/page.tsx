@@ -36,21 +36,63 @@ export default function CheckoutPage() {
   } = useCheckout();
 
   const [paymentTab, setPaymentTab] = useState<"card" | "wallet">("card");
+  const [geoStatus, setGeoStatus] = useState<string | null>(null);
+  const [mapsLoaded, setMapsLoaded] = useState(false);
 
   /*  LOCATION HANDLER  */
 
-  const handleUseCurrentLocation = () => {
+  const handleUseCurrentLocation = async () => {
+    console.log("Use current location clicked");
+
+    if (!("geolocation" in navigator)) {
+      const message = "Geolocation is not supported by your browser.";
+      console.error(message);
+      setGeoStatus(message);
+      return;
+    }
+
+    if ("permissions" in navigator) {
+      try {
+        const status = await (navigator as any).permissions.query({
+          name: "geolocation",
+        });
+        if (status.state === "denied") {
+          const message =
+            "Location access is denied. Please enable location permissions in your browser.";
+          console.error(message);
+          setGeoStatus(message);
+          return;
+        }
+      } catch (error) {
+        console.warn("Geolocation permission check failed", error);
+      }
+    }
+
+    setGeoStatus("Requesting your location...");
+
     navigator.geolocation.getCurrentPosition(
       (pos) => {
+        console.log("Geolocation success", pos);
         setLocation({
           lat: pos.coords.latitude,
           lng: pos.coords.longitude,
         });
+        setGeoStatus("Location found.");
       },
       (err) => {
         console.error("Location error:", err);
-        alert("Unable to get your location");
+        const message =
+          err.code === 1
+            ? "Location permission denied."
+            : err.code === 2
+              ? "Position unavailable."
+              : err.code === 3
+                ? "Location request timed out."
+                : "Unable to get your location.";
+        setGeoStatus(message);
+        alert(message);
       },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
     );
   };
 
@@ -60,12 +102,30 @@ export default function CheckoutPage() {
 
   const loadGoogleMaps = useCallback(() => {
     const key = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-    if (!key) return;
-    if ((window as any).google) return;
+    if (!key) {
+      setGeoStatus("Google Maps API key is missing.");
+      return;
+    }
+
+    if ((window as any).google?.maps) {
+      setMapsLoaded(true);
+      return;
+    }
+
+    if (document.getElementById("google-maps-script")) return;
+
     const s = document.createElement("script");
+    s.id = "google-maps-script";
     s.src = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=places`;
     s.async = true;
     s.defer = true;
+    s.onload = () => {
+      setMapsLoaded(true);
+      setGeoStatus(null);
+    };
+    s.onerror = () => {
+      setGeoStatus("Failed to load Google Maps.");
+    };
     document.head.appendChild(s);
   }, []);
 
@@ -74,9 +134,9 @@ export default function CheckoutPage() {
   }, [loadGoogleMaps]);
 
   useEffect(() => {
-    if (!mapRef.current) return;
+    if (!mapRef.current || !mapsLoaded) return;
     const google = (window as any).google;
-    if (!google) return;
+    if (!google?.maps) return;
 
     const initialCenter = state.location ?? { lat: -1.286389, lng: 36.817223 }; // Nairobi fallback
     const map = new google.maps.Map(mapRef.current, {
@@ -85,6 +145,9 @@ export default function CheckoutPage() {
     });
 
     if (state.location) {
+      if (markerRef.current) {
+        markerRef.current.setMap(null);
+      }
       markerRef.current = new google.maps.Marker({
         position: state.location,
         map,
@@ -244,6 +307,7 @@ export default function CheckoutPage() {
                 />
 
                 <Button
+                  type="button"
                   variant="outline"
                   onClick={handleUseCurrentLocation}
                   className="gap-2"
@@ -251,6 +315,27 @@ export default function CheckoutPage() {
                   <MyLocation />
                   Use Current Location
                 </Button>
+                {geoStatus ? (
+                  <p className="text-sm text-muted-foreground">{geoStatus}</p>
+                ) : null}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-0 overflow-hidden">
+                <div className="h-72" ref={mapRef} />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="grid gap-2">
+                <p className="text-sm text-muted-foreground">
+                  Selected location
+                </p>
+                <p className="text-sm">
+                  Lat: {state.location?.lat?.toFixed(6) ?? "N/A"} <br />
+                  Lng: {state.location?.lng?.toFixed(6) ?? "N/A"}
+                </p>
               </CardContent>
             </Card>
           </section>

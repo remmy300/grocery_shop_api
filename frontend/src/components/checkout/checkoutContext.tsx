@@ -73,7 +73,13 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<CheckoutState>({
     deliveryMethod: "standard",
     paymentMethod: "mpesa",
-    address: null,
+    address: {
+      fullName: "",
+      street: "",
+      city: "",
+      postalCode: "",
+      phone: "",
+    },
     location: null,
   });
 
