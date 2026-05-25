@@ -8,9 +8,7 @@ const libraries = ["places"] as (
   | "visualization"
 )[];
 
-const apiKey =
-  import.meta.env.VITE_GOOGLE_MAPS_API_KEY ||
-  import.meta.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
 
 type Item = { productId: number; quantity: number };
 
@@ -104,7 +102,7 @@ export default function Checkout() {
     }
 
     const res = await fetch(
-      (import.meta.env.VITE_API_BASE_URL || "http://localhost:4000") +
+      (process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000") +
         "/api/orders",
       {
         method: "POST",
