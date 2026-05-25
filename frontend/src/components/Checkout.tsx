@@ -58,7 +58,8 @@ export default function Checkout() {
       if (isLoaded && window.google) {
         const geocoder = new window.google.maps.Geocoder();
         const results = await geocoder.geocode({ location: { lat, lng } });
-        if (results && results[0]) setAddress(results[0].formatted_address);
+        const first = (results as any)?.[0];
+        if (first?.formatted_address) setAddress(first.formatted_address);
       }
     });
   }, [isLoaded]);
@@ -71,7 +72,8 @@ export default function Checkout() {
       if (isLoaded && window.google) {
         const geocoder = new window.google.maps.Geocoder();
         geocoder.geocode({ location: { lat, lng } }, (results: any) => {
-          if (results && results[0]) setAddress(results[0].formatted_address);
+          const first = (results as any)?.[0];
+          if (first?.formatted_address) setAddress(first.formatted_address);
         });
       }
     },
