@@ -1,9 +1,21 @@
 import { BackendProduct } from "@/types";
 import { ProductView } from "@/types/products";
 
-const API_BASE_URL = (
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000"
-).replace(/\/+$/, "");
+const getApiBaseUrl = () => {
+  const configured = process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
+
+  if (configured) {
+    return configured.replace(/\/+$/, "");
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(
+      "NEXT_PUBLIC_API_BASE_URL is not configured in production. Set it to your deployed backend API origin.",
+    );
+  }
+
+  return "http://localhost:4000";
+};
 
 const toNumber = (value: number | string | null | undefined) => {
   const numeric = typeof value === "number" ? value : Number(value);
@@ -112,12 +124,13 @@ export const normalizeProduct = (product: BackendProduct): ProductView => {
 };
 
 const fetchJson = async <T>(path: string): Promise<T> => {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  const url = `${getApiBaseUrl()}${path}`;
+  const response = await fetch(url, {
     cache: "no-store",
   });
 
   if (!response.ok) {
-    const fallback = `Request failed with status ${response.status}`;
+    const fallback = `Request failed for ${url} with status ${response.status} ${response.statusText}`;
     try {
       const payload = (await response.json()) as { message?: string };
       throw new Error(payload.message || fallback);
