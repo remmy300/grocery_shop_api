@@ -17,8 +17,17 @@ const allowedOrigins = (process.env.FRONTEND_URL || "")
 app.use(
   cors({
     origin: (requestOrigin, callback) => {
+      try {
+        console.log("[CORS] incoming Origin:", requestOrigin);
+        console.log(
+          "[CORS] configured FRONTEND_URL:",
+          process.env.FRONTEND_URL,
+        );
+      } catch (e) {}
+
       if (!requestOrigin) {
         // Allow non-browser requests like server-to-server or curl
+        console.log("[CORS] no Origin header present - allowing request");
         return callback(null, true);
       }
 
@@ -26,9 +35,11 @@ app.use(
         allowedOrigins.includes("*") ||
         allowedOrigins.includes(requestOrigin)
       ) {
+        console.log("[CORS] allowed origin:", requestOrigin);
         return callback(null, true);
       }
 
+      console.warn("[CORS] blocked origin:", requestOrigin);
       return callback(
         new Error(`CORS policy blocked origin: ${requestOrigin}`),
         false,
@@ -51,7 +62,6 @@ app.get("/", (req, res) => {
   res.send("API WORKING");
 });
 
-// 404 handler
 app.use((req, res) => {
   res.status(404).json({
     error: "Not Found",
