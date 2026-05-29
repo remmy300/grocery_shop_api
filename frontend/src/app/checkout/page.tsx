@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input";
 
 import { useCart } from "@/hooks/useCart";
 import { useCheckout } from "@/components/checkout/checkoutContext";
+import MpesaPaymentProcessor from "@/components/checkout/MpesaPaymentProcessor";
 
 export default function CheckoutPage() {
   const { items } = useCart();
@@ -38,6 +39,9 @@ export default function CheckoutPage() {
   const [paymentTab, setPaymentTab] = useState<"card" | "wallet">("card");
   const [geoStatus, setGeoStatus] = useState<string | null>(null);
   const [mapsLoaded, setMapsLoaded] = useState(false);
+  const [createdOrderId, setCreatedOrderId] = useState<number | null>(null);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [paymentSuccess, setPaymentSuccess] = useState<string | null>(null);
 
   /*  LOCATION HANDLER  */
 
@@ -217,22 +221,25 @@ export default function CheckoutPage() {
             productId: Number(i.id),
             quantity: i.quantity,
           })),
-          deliveryMethod: state.deliveryMethod,
-          paymentMethod: state.paymentMethod,
+          customer: state.address?.fullName,
+          phone: state.address?.phone,
           address: addressString,
+          street: state.address?.street,
+          city: state.address?.city,
+          postalCode: state.address?.postalCode,
           latitude: state.location?.lat,
           longitude: state.location?.lng,
-
-          subtotal,
-          shipping,
-          taxes,
-          total,
         }),
       });
 
-      if (!res.ok) throw new Error("Checkout failed");
+      if (!res.ok) throw new Error("Failed to create order");
 
-      return res.json();
+      const order = await res.json();
+      setCreatedOrderId(order.id);
+      return order;
+    },
+    onError: (error) => {
+      setPaymentError(error.message || "Failed to create order");
     },
   });
 
@@ -401,16 +408,59 @@ export default function CheckoutPage() {
             </RadioGroup>
           </section>
 
+          {/* M-PESA PAYMENT PROCESSOR */}
+          {createdOrderId && state.paymentMethod === "mpesa" && (
+            <section>
+              <h2 className="text-xl font-bold mb-4">
+                Complete M-Pesa Payment
+              </h2>
+              <MpesaPaymentProcessor
+                orderId={createdOrderId}
+                amount={total}
+                phoneNumber={state.address?.phone || ""}
+                customerName={state.address?.fullName || ""}
+                onSuccess={(receipt) => {
+                  setPaymentSuccess(`Payment successful! Receipt: ${receipt}`);
+                }}
+                onError={(error) => {
+                  setPaymentError(error);
+                }}
+              />
+            </section>
+          )}
+
+          {/* ERROR MESSAGES */}
+          {paymentError && (
+            <Card className="border-red-200 bg-red-50">
+              <CardContent className="p-4">
+                <p className="text-sm font-medium text-red-900">Error</p>
+                <p className="text-xs text-red-700">{paymentError}</p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* SUCCESS MESSAGE */}
+          {paymentSuccess && (
+            <Card className="border-green-200 bg-green-50">
+              <CardContent className="p-4">
+                <p className="text-sm font-medium text-green-900">Success!</p>
+                <p className="text-xs text-green-700">{paymentSuccess}</p>
+              </CardContent>
+            </Card>
+          )}
+
           {/* PAY BUTTON */}
-          <Button
-            disabled={!canCheckout || checkoutMutation.isPending}
-            onClick={() => checkoutMutation.mutate()}
-            className="w-full h-14 text-lg font-bold"
-          >
-            {checkoutMutation.isPending
-              ? "Processing..."
-              : `Place Order • KES ${total.toFixed(2)}`}
-          </Button>
+          {!createdOrderId && (
+            <Button
+              disabled={!canCheckout || checkoutMutation.isPending}
+              onClick={() => checkoutMutation.mutate()}
+              className="w-full h-14 text-lg font-bold"
+            >
+              {checkoutMutation.isPending
+                ? "Processing..."
+                : `Create Order • KES ${total.toFixed(2)}`}
+            </Button>
+          )}
 
           <p className="text-xs text-center text-muted-foreground flex items-center justify-center gap-2">
             <Lock className="h-4 w-4" />

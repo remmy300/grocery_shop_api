@@ -26,12 +26,10 @@
 - Build Command: `npm run build` (default)
 - Output Directory: `.next` (default)
 
-#### Required Environment Variables
-
-```
 NEXT_PUBLIC_GOOGLE_CLIENT_ID=77675829736-cou1kcr2umf1hiu5t5maoj65he01vvho.apps.googleusercontent.com
-NEXT_PUBLIC_API_BASE_URL=https://your-backend-domain.com  # Update to production backend
+NEXT_PUBLIC_API_BASE_URL=https://your-backend-domain.com # Update to production backend
 NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=AIzaSyD-aCOhRZO_gp_FjozkkPIyn4lriD-0YWc
+
 ```
 
 #### Steps
@@ -48,25 +46,32 @@ NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=AIzaSyD-aCOhRZO_gp_FjozkkPIyn4lriD-0YWc
 #### Required Environment Variables
 
 ```
+
 # Database
+
 DATABASE_URL=postgresql://...
 
 # JWT
+
 JWT_ACCESS_SECRET=your_secret_key
 JWT_ACCESS_TOKEN_EXPIRY=15m
 JWT_REFRESH_TOKEN=your_refresh_secret
 JWT_REFRESH_TOKEN_EXPIRY=1d
 
 # Google OAuth
+
 GOOGLE_CLIENT_ID=77675829736-...
 GOOGLE_CLIENT_SECRET=your_secret
 
 # CORS
+
 CORS_ORIGIN=https://your-frontend-domain.vercel.app
 
 # Server
+
 PORT=4000
-```
+
+````
 
 #### Post-Deployment
 
@@ -80,20 +85,20 @@ PORT=4000
 
 ### Issue: "Module not found: Can't resolve '@tanstack/react-query'"
 
-**Cause**: bun.lock conflicts with npm  
-**Solution**: Removed bun.lock from repository  
+**Cause**: bun.lock conflicts with npm
+**Solution**: Removed bun.lock from repository
 **Status**: ✅ FIXED
 
 ### Issue: Build takes too long
 
-**Cause**: First build optimizes Next.js app  
-**Solution**: Builds are cached after first deployment  
+**Cause**: First build optimizes Next.js app
+**Solution**: Builds are cached after first deployment
 **Expected**: 2-3 minutes for first build, <1 minute for subsequent
 
 ### Issue: API calls to localhost:4000
 
-**Cause**: Frontend env var points to local development server  
-**Solution**: Update NEXT_PUBLIC_API_BASE_URL to production backend URL  
+**Cause**: Frontend env var points to local development server
+**Solution**: Update NEXT_PUBLIC_API_BASE_URL to production backend URL
 **Time to Fix**: 1 minute
 
 ---
@@ -111,7 +116,7 @@ curl https://your-frontend-domain.vercel.app -I
 curl -X POST https://your-frontend-domain.vercel.app/api/auth/google \
   -H "Content-Type: application/json" \
   -d '{"token":"..."}'
-```
+````
 
 ### After Backend Deploy
 

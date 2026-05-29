@@ -31,10 +31,13 @@ model Order {
  latitude  Float?
  longitude Float?
 
- total     Int
+ total     Float
  orderStatus    String   @default("pending")
+ paymentStatus  String   @default("pending")
+ paymentMethod  String   @default("mpesa")
 
  items     OrderItem[]
+ payment   Payment?
 
   userId    Int?
   user      User?    @relation(fields: [userId], references: [id])
@@ -53,6 +56,34 @@ model OrderItem {
 
  order     Order   @relation(fields: [orderId], references: [id])
  product   Product @relation(fields: [productId], references: [id])
+}
+
+model Payment {
+ id                    Int     @id @default(autoincrement())
+ orderId               Int     @unique
+ order                 Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+ 
+ amount                Float
+ currency              String  @default("KES")
+ paymentMethod         String  @default("mpesa")
+ 
+ // M-Pesa specific fields
+ merchantRequestId     String?
+ checkoutRequestId     String? @unique
+ responseCode          String?
+ responseDescription   String?
+ customerMessage       String?
+ 
+ // Payment tracking
+ status                String  @default("pending") // pending, completed, failed, cancelled
+ mpesaReceiptNumber    String?
+ resultCode            String?
+ resultDescription     String?
+ 
+ // Timestamps
+ createdAt             DateTime @default(now())
+ updatedAt             DateTime @updatedAt
+ completedAt           DateTime?
 }
 
 
