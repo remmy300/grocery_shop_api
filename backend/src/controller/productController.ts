@@ -77,23 +77,6 @@ export const getProducts = async (_: Request, res: Response) => {
   }
 };
 
-router.get("/db-test", async (_: Request, res: Response) => {
-  try {
-    await prisma.$queryRaw`SELECT NOW()`;
-
-    res.json({
-      success: true,
-    });
-  } catch (error) {
-    console.error(error);
-
-    res.status(500).json({
-      success: false,
-      error,
-    });
-  }
-});
-
 // GET SINGLE PRODUCT
 export const getProduct = async (req: Request, res: Response) => {
   try {

@@ -1,6 +1,7 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
+import prisma from "./lib/prisma.js";
 
 import productRoutes from "./routes/productRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
@@ -72,10 +73,6 @@ app.use("/api/payments", paymentRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
-
-app.get("/", (req, res) => {
-  res.send("API WORKING");
-});
 
 app.use((req, res) => {
   res.status(404).json({

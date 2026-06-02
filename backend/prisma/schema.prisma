@@ -12,7 +12,7 @@ model Product {
   stock      Int
   price      Decimal
   imageUrl   String?
-  deletedAt  DateTime?                   
+  deletedAt  DateTime?
   category   String      @default("General Grocery")
   cartItems  CartItem[]
   orderItems OrderItem[]
@@ -23,7 +23,7 @@ model Order {
   customer      String
   phone         String
   address       String
-  total         Decimal      @db.Real
+  total         Decimal     @db.Decimal(10, 2)
   createdAt     DateTime    @default(now())
   latitude      Float?
   longitude     Float?
@@ -52,7 +52,7 @@ model OrderItem {
 model Payment {
   id                  Int       @id @default(autoincrement())
   orderId             Int       @unique
-  amount              Decimal     @db.Real
+  amount              Decimal   @db.Decimal(10, 2)
   currency            String    @default("KES")
   paymentMethod       String    @default("mpesa")
   merchantRequestId   String?
@@ -88,6 +88,7 @@ model User {
   picture   String?
   createdAt DateTime @default(now())
   orders    Order[]
+  cart      Cart?
 }
 
 model Cart {
@@ -95,8 +96,8 @@ model Cart {
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
   items     CartItem[]
-   userId    Int? @unique
-  user      User? @relation(fields: [userId]references: [id])
+  userId    Int?       @unique
+  user      User?      @relation(fields: [userId], references: [id])
 }
 
 model CartItem {
@@ -107,5 +108,6 @@ model CartItem {
   createdAt DateTime @default(now())
   cart      Cart     @relation(fields: [cartId], references: [id])
   product   Product  @relation(fields: [productId], references: [id])
-    @@unique([cartId, productId])
+
+  @@unique([cartId, productId])
 }
