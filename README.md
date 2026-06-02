@@ -193,8 +193,12 @@ JWT_REFRESH_TOKEN=your-refresh-token-secret
 GOOGLE_CLIENT_ID=your-google-client-id
 ADMIN_EMAILS=admin@example.com
 FRONTEND_URL=http://localhost:3000
+# Optional alias for FRONTEND_URL. Use either or both for CORS origin configuration.
+CORS_ORIGIN=http://localhost:3000
 PORT=4000
 ```
+
+> If your frontend is running on `http://localhost:3000`, make sure the backend's `FRONTEND_URL` or `CORS_ORIGIN` includes that origin. If you are testing a local frontend against a deployed backend, add `http://localhost:3000` to the backend's allowed origins on the deployment platform.
 
 **Frontend (.env)**
 

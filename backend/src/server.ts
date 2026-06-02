@@ -11,19 +11,32 @@ import paymentRoutes from "./routes/paymentRoutes.js";
 
 const app = express();
 
-const allowedOrigins = (process.env.FRONTEND_URL || "")
+const rawCorsOrigins =
+  process.env.CORS_ORIGIN ?? process.env.FRONTEND_URL ?? "";
+const allowedOrigins = rawCorsOrigins
   .split(",")
-  .map((origin) => origin.trim());
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+// In development, allow localhost origins to make local frontend dev convenient
+if (process.env.NODE_ENV !== "production") {
+  const devAllow = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:3001",
+    "http://127.0.0.1:3001",
+  ];
+  devAllow.forEach((o) => {
+    if (!allowedOrigins.includes(o)) allowedOrigins.push(o);
+  });
+}
 
 app.use(
   cors({
     origin: (requestOrigin, callback) => {
       try {
         console.log("[CORS] incoming Origin:", requestOrigin);
-        console.log(
-          "[CORS] configured FRONTEND_URL:",
-          process.env.FRONTEND_URL,
-        );
+        console.log("[CORS] configured origins:", allowedOrigins);
       } catch (e) {}
 
       if (!requestOrigin) {

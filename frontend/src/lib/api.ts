@@ -63,7 +63,7 @@ const createAxiosConfig = (options: ApiRequestOptions = {}) => {
     config.headers!.Authorization = `Bearer ${token}`;
   } else if (!token) {
     console.warn(
-      "⚠️ No auth token found in localStorage. Available keys:",
+      " No auth token found in localStorage. Available keys:",
       Object.keys(localStorage),
     );
   }
@@ -94,7 +94,7 @@ axiosInstance.interceptors.request.use(
           ? "SET"
           : "NONE";
 
-    console.log("🔄 API Request:", {
+    console.log(" API Request:", {
       url: config.url,
       method: config.method?.toUpperCase(),
       hasAuth: !!authHeader,
@@ -124,13 +124,12 @@ axiosInstance.interceptors.response.use(
       // Handle 401 - Token might be expired, refresh or redirect to login
       if (error.response?.status === 401) {
         console.warn(
-          "❌ Unauthorized (401) - Token may have expired or be invalid",
+          "Unauthorized (401) - Token may have expired or be invalid",
         );
         console.warn("Response data:", error.response.data);
         // Optional: Clear session and redirect to login
         if (typeof window !== "undefined") {
           localStorage.removeItem("accessToken");
-          // You could trigger a logout event here
         }
       }
 

@@ -1,5 +1,9 @@
 import prisma from "../lib/prisma.js";
+import express from "express";
 import { Request, Response } from "express";
+import { Router } from "express";
+
+const router = express.Router();
 
 const parseInteger = (value: unknown) => {
   const parsed = Number(value);
@@ -7,23 +11,18 @@ const parseInteger = (value: unknown) => {
 };
 
 const normalizeImageUrl = (value: unknown) => {
-  if (typeof value !== "string") {
-    return null;
-  }
-
+  if (typeof value !== "string") return null;
   const trimmed = value.trim();
-  return trimmed ? trimmed : null;
+  return trimmed || null;
 };
 
 const normalizeCategory = (value: unknown) => {
-  if (typeof value !== "string") {
-    return "General Grocery";
-  }
-
+  if (typeof value !== "string") return "General Grocery";
   const trimmed = value.trim();
   return trimmed || "General Grocery";
 };
 
+// CREATE PRODUCT
 export const createProduct = async (req: Request, res: Response) => {
   try {
     const { name, category, stock, price, imageUrl } = req.body;
@@ -39,7 +38,7 @@ export const createProduct = async (req: Request, res: Response) => {
     ) {
       return res.status(400).json({
         message:
-          "Name, stock, and price are required and must be valid numbers",
+          "Name, stock, and price are required and must be valid integers",
       });
     }
 
@@ -47,32 +46,58 @@ export const createProduct = async (req: Request, res: Response) => {
       data: {
         name: normalizedName,
         category: normalizeCategory(category),
-        price: normalizedPrice,
         stock: normalizedStock,
+        price: normalizedPrice,
         imageUrl: normalizeImageUrl(imageUrl),
       },
     });
-    res.status(201).json(product);
+
+    return res.status(201).json(product);
   } catch (error) {
-    console.error("PRISMA CREATE PRODUCT ERROR:", error);
+    console.error("CREATE PRODUCT ERROR:", error);
+    return res.status(500).json({ message: "Failed to create product" });
   }
 };
 
-export const getProducts = async (req: Request, res: Response) => {
+// GET PRODUCTS (ONLY ACTIVE)
+export const getProducts = async (_: Request, res: Response) => {
   try {
     const products = await prisma.product.findMany({
       where: { deletedAt: null },
     });
-    res.status(200).json(products);
+
+    return res.status(200).json(products);
   } catch (error) {
-    res.status(500).json({ message: "Failed to fetch products" });
+    console.error("GET PRODUCTS ERROR:", error);
+
+    return res.status(500).json({
+      message: "Failed to fetch products",
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
+router.get("/db-test", async (_: Request, res: Response) => {
+  try {
+    await prisma.$queryRaw`SELECT NOW()`;
+
+    res.json({
+      success: true,
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      error,
+    });
+  }
+});
+
+// GET SINGLE PRODUCT
 export const getProduct = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
-    const productId = Number(id);
+    const productId = Number(req.params.id);
 
     if (!Number.isInteger(productId)) {
       return res.status(400).json({ message: "Invalid product id" });
@@ -86,17 +111,22 @@ export const getProduct = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    res.status(200).json(product);
-  } catch (error) {
-    res.status(500).json({ message: "Failed to fetch product by id" });
+    return res.status(200).json(product);
+  } catch {
+    return res.status(500).json({ message: "Failed to fetch product" });
   }
 };
 
+// UPDATE PRODUCT
 export const updateProduct = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
-    const productId = Number(id);
-    const { name, category, stock, imageUrl, price } = req.body;
+    const productId = Number(req.params.id);
+
+    if (!Number.isInteger(productId)) {
+      return res.status(400).json({ message: "Invalid product id" });
+    }
+
+    const { name, category, stock, price, imageUrl } = req.body;
 
     const normalizedName = typeof name === "string" ? name.trim() : "";
     const normalizedStock = parseInteger(stock);
@@ -109,12 +139,8 @@ export const updateProduct = async (req: Request, res: Response) => {
     ) {
       return res.status(400).json({
         message:
-          "Name, stock, and price are required and must be valid numbers",
+          "Name, stock, and price are required and must be valid integers",
       });
-    }
-
-    if (!Number.isInteger(productId)) {
-      return res.status(400).json({ message: "Invalid product id" });
     }
 
     const existingProduct = await prisma.product.findFirst({
@@ -125,57 +151,47 @@ export const updateProduct = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    const product = await prisma.product.update({
+    const updated = await prisma.product.update({
       where: { id: productId },
       data: {
         name: normalizedName,
         category: normalizeCategory(category),
         stock: normalizedStock,
-        imageUrl: normalizeImageUrl(imageUrl),
         price: normalizedPrice,
+        imageUrl: normalizeImageUrl(imageUrl),
       },
     });
-    res.status(200).json(product);
+
+    return res.status(200).json(updated);
   } catch (error) {
-    res.status(500).json({ message: "Failed to update products" });
+    return res.status(500).json({ message: "Failed to update product" });
   }
 };
 
+// SOFT DELETE PRODUCT
 export const deleteProduct = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
-    const productId = Number(id);
+    const productId = Number(req.params.id);
 
     if (!Number.isInteger(productId)) {
       return res.status(400).json({ message: "Invalid product id" });
     }
 
-    const existingProduct = await prisma.product.findUnique({
-      where: { id: productId },
+    const product = await prisma.product.findFirst({
+      where: { id: productId, deletedAt: null },
     });
 
-    if (!existingProduct) {
+    if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    if (existingProduct.deletedAt) {
-      return res.status(200).json({
-        message: "Product already archived",
-      });
-    }
-
     await prisma.product.update({
-      where: {
-        id: productId,
-      },
-      data: {
-        deletedAt: new Date(),
-      },
+      where: { id: productId },
+      data: { deletedAt: new Date() },
     });
 
-    res.json({ message: "Product archived successfully" });
+    return res.status(200).json({ message: "Product archived successfully" });
   } catch (error) {
-    console.error("Failed to archive product:", error);
-    res.status(500).json({ message: "Failed to archive product" });
+    return res.status(500).json({ message: "Failed to archive product" });
   }
 };

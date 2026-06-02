@@ -20,6 +20,8 @@ prisma.$connect().catch((err: any) => {
     " Check DATABASE_URL in .env:",
     (process.env.DATABASE_URL || "").substring(0, 80) + "...",
   );
+
+  console.log("DATABASE_URL:", process.env.DATABASE_URL);
   process.exit(1);
 });
 
