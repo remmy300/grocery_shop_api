@@ -31,6 +31,9 @@ class MpesaService {
   private config: MpesaConfig;
   private baseUrl: string;
 
+  private accessToken: string | null = null;
+  private tokenExpiry: number = 0;
+
   constructor(config: MpesaConfig) {
     this.config = config;
     this.baseUrl =
@@ -44,6 +47,11 @@ class MpesaService {
    */
   async getAccessToken(): Promise<string> {
     try {
+      // Reuse token if still valid
+      if (this.accessToken && Date.now() < this.tokenExpiry) {
+        return this.accessToken;
+      }
+
       const auth = Buffer.from(
         `${this.config.consumerKey}:${this.config.consumerSecret}`,
       ).toString("base64");
@@ -57,13 +65,23 @@ class MpesaService {
         },
       );
 
-      return response.data.access_token;
+      this.accessToken = response.data.access_token;
+
+      // Expire 1 minute early for safety
+      this.tokenExpiry =
+        Date.now() + (Number(response.data.expires_in) - 60) * 1000;
+
+      return this.accessToken;
     } catch (error: any) {
       console.error(
         "Failed to get M-Pesa access token:",
         error.response?.data || error.message,
       );
-      throw new Error("Failed to authenticate with M-Pesa");
+
+      throw new Error(
+        error.response?.data?.errorMessage ||
+          "Failed to authenticate with M-Pesa",
+      );
     }
   }
 
@@ -77,6 +95,11 @@ class MpesaService {
     customerName: string,
   ): Promise<STKPushResponse> {
     try {
+      if (!amount || amount < 1) {
+        throw new Error("Amount must be greater than zero");
+      }
+
+      const formattedPhone = this.formatPhoneNumber(phoneNumber);
       const accessToken = await this.getAccessToken();
       const timestamp = this.generateTimestamp();
       const password = this.generatePassword(timestamp);
@@ -86,10 +109,10 @@ class MpesaService {
         Password: password,
         Timestamp: timestamp,
         TransactionType: "CustomerPayBillOnline",
-        Amount: Math.ceil(amount), // M-Pesa requires whole numbers
-        PartyA: this.formatPhoneNumber(phoneNumber),
+        Amount: Math.ceil(amount),
+        PartyA: formattedPhone,
         PartyB: this.config.shortCode,
-        PhoneNumber: this.formatPhoneNumber(phoneNumber),
+        PhoneNumber: formattedPhone,
         CallBackURL: this.config.callbackUrl,
         AccountReference: `ORDER-${orderId}`,
         TransactionDesc: `Payment for order ${orderId}`,
@@ -112,7 +135,11 @@ class MpesaService {
         "STK Push initiation failed:",
         error.response?.data || error.message,
       );
-      throw new Error("Failed to initiate M-Pesa payment");
+      throw new Error(
+        error.response?.data?.errorMessage ||
+          error.response?.data?.ResponseDescription ||
+          "Failed to initiate M-Pesa payment",
+      );
     }
   }
 
@@ -154,7 +181,10 @@ class MpesaService {
         "STK Push query failed:",
         error.response?.data || error.message,
       );
-      throw new Error("Failed to query M-Pesa payment status");
+      throw new Error(
+        error.response?.data?.errorMessage ||
+          "Failed to query M-Pesa payment status",
+      );
     }
   }
 
@@ -162,30 +192,30 @@ class MpesaService {
    * Validate M-Pesa callback signature
    */
   validateCallbackSignature(body: any, expectedSignature: string): boolean {
-    // In production, validate the signature from M-Pesa
-    // For now, we'll do basic validation
-    return true;
+    return true; //sandbox
   }
 
   /**
    * Format phone number to international format (254XXXXXXXXX)
    */
   private formatPhoneNumber(phoneNumber: string): string {
-    // Remove any non-digit characters
     const cleaned = phoneNumber.replace(/\D/g, "");
 
-    // If starts with 0, replace with 254
+    let formatted = cleaned;
+
     if (cleaned.startsWith("0")) {
-      return "254" + cleaned.substring(1);
+      formatted = `254${cleaned.slice(1)}`;
+    } else if (cleaned.startsWith("254")) {
+      formatted = cleaned;
     }
 
-    // If starts with +254, remove +
-    if (cleaned.startsWith("254")) {
-      return cleaned;
+    if (!/^2547\d{8}$/.test(formatted)) {
+      throw new Error(
+        "Invalid phone number. Use format 0712345678 or 254712345678",
+      );
     }
 
-    // If already in format, return as is
-    return cleaned;
+    return formatted;
   }
 
   /**

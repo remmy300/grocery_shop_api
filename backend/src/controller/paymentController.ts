@@ -1,14 +1,32 @@
 import { Request, Response } from "express";
+import { Prisma } from "@prisma/client";
 import prisma from "../lib/prisma.js";
 import MpesaService from "../utils/mpesaService.js";
 
-// Initialize M-Pesa service
+//  ENV VALIDATION
+
+const requiredEnv = [
+  "MPESA_CONSUMER_KEY",
+  "MPESA_CONSUMER_SECRET",
+  "MPESA_SHORT_CODE",
+  "MPESA_PASSKEY",
+  "MPESA_CALLBACK_URL",
+];
+
+for (const key of requiredEnv) {
+  if (!process.env[key]) {
+    throw new Error(`Missing environment variable: ${key}`);
+  }
+}
+
+//  MPESA CONFIG
+
 const mpesaConfig = {
-  consumerKey: process.env.MPESA_CONSUMER_KEY || "",
-  consumerSecret: process.env.MPESA_CONSUMER_SECRET || "",
-  shortCode: process.env.MPESA_SHORT_CODE || "",
-  passkey: process.env.MPESA_PASSKEY || "",
-  callbackUrl: process.env.MPESA_CALLBACK_URL || "",
+  consumerKey: process.env.MPESA_CONSUMER_KEY!,
+  consumerSecret: process.env.MPESA_CONSUMER_SECRET!,
+  shortCode: process.env.MPESA_SHORT_CODE!,
+  passkey: process.env.MPESA_PASSKEY!,
+  callbackUrl: process.env.MPESA_CALLBACK_URL!,
   environment: (process.env.MPESA_ENVIRONMENT || "sandbox") as
     | "sandbox"
     | "production",
@@ -16,27 +34,24 @@ const mpesaConfig = {
 
 const mpesaService = new MpesaService(mpesaConfig);
 
-/**
- * Initiate M-Pesa STK Push payment
- */
+//  INITIATE PAYMENT
+
 export const initiatePayment = async (req: Request, res: Response) => {
   try {
     const { orderId, phoneNumber, amount } = req.body;
 
-    // Validate input
-    if (!orderId || !phoneNumber || !amount) {
-      return res
-        .status(400)
-        .json({
-          message: "Missing required fields: orderId, phoneNumber, amount",
-        });
+    if (orderId === undefined || !phoneNumber || amount === undefined) {
+      return res.status(400).json({
+        message: "Missing required fields: orderId, phoneNumber, amount",
+      });
     }
 
     if (amount <= 0) {
-      return res.status(400).json({ message: "Amount must be greater than 0" });
+      return res.status(400).json({
+        message: "Amount must be greater than 0",
+      });
     }
 
-    // Verify order exists
     const order = await prisma.order.findUnique({
       where: { id: Number(orderId) },
     });
@@ -45,110 +60,103 @@ export const initiatePayment = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Order not found" });
     }
 
-    // Check if payment already exists
     let payment = await prisma.payment.findUnique({
       where: { orderId: Number(orderId) },
     });
 
-    // If payment exists and is completed, reject
     if (payment && payment.status === "completed") {
-      return res
-        .status(400)
-        .json({ message: "Payment already completed for this order" });
-    }
-
-    try {
-      // Initiate STK Push
-      const stkResponse = await mpesaService.initiateStkPush(
-        phoneNumber,
-        amount,
-        Number(orderId),
-        order.customer,
-      );
-
-      // Check response code
-      if (stkResponse.ResponseCode !== "0") {
-        return res.status(400).json({
-          message: stkResponse.ResponseDescription,
-          responseCode: stkResponse.ResponseCode,
-        });
-      }
-
-      // Create or update payment record
-      if (!payment) {
-        payment = await prisma.payment.create({
-          data: {
-            orderId: Number(orderId),
-            amount,
-            paymentMethod: "mpesa",
-            status: "pending",
-            merchantRequestId: stkResponse.MerchantRequestID,
-            checkoutRequestId: stkResponse.CheckoutRequestID,
-            responseCode: stkResponse.ResponseCode,
-            responseDescription: stkResponse.ResponseDescription,
-            customerMessage: stkResponse.CustomerMessage,
-          },
-        });
-      } else {
-        payment = await prisma.payment.update({
-          where: { id: payment.id },
-          data: {
-            merchantRequestId: stkResponse.MerchantRequestID,
-            checkoutRequestId: stkResponse.CheckoutRequestID,
-            responseCode: stkResponse.ResponseCode,
-            responseDescription: stkResponse.ResponseDescription,
-            customerMessage: stkResponse.CustomerMessage,
-            status: "pending",
-          },
-        });
-      }
-
       return res.status(200).json({
-        message: "M-Pesa STK Push initiated",
-        checkoutRequestId: stkResponse.CheckoutRequestID,
-        merchantRequestId: stkResponse.MerchantRequestID,
-        customerMessage: stkResponse.CustomerMessage,
-        payment: payment,
-      });
-    } catch (mpesaError: any) {
-      console.error("M-Pesa error:", mpesaError);
-      return res.status(400).json({
-        message: mpesaError.message || "Failed to initiate M-Pesa payment",
+        message: "Payment already completed for this order",
       });
     }
-  } catch (error) {
+
+    const stkResponse = await mpesaService.initiateStkPush(
+      phoneNumber,
+      amount,
+      Number(orderId),
+      order.customer,
+    );
+
+    if (stkResponse.ResponseCode !== "0") {
+      return res.status(400).json({
+        message: stkResponse.ResponseDescription,
+        responseCode: stkResponse.ResponseCode,
+      });
+    }
+
+    if (!payment) {
+      payment = await prisma.payment.create({
+        data: {
+          orderId: Number(orderId),
+          amount: new Prisma.Decimal(amount),
+          paymentMethod: "mpesa",
+          status: "pending",
+          merchantRequestId: stkResponse.MerchantRequestID,
+          checkoutRequestId: stkResponse.CheckoutRequestID,
+          responseCode: stkResponse.ResponseCode,
+          responseDescription: stkResponse.ResponseDescription,
+          customerMessage: stkResponse.CustomerMessage,
+        },
+      });
+    } else {
+      payment = await prisma.payment.update({
+        where: { id: payment.id },
+        data: {
+          merchantRequestId: stkResponse.MerchantRequestID,
+          checkoutRequestId: stkResponse.CheckoutRequestID,
+          responseCode: stkResponse.ResponseCode,
+          responseDescription: stkResponse.ResponseDescription,
+          customerMessage: stkResponse.CustomerMessage,
+          status: "pending",
+        },
+      });
+    }
+
+    return res.status(200).json({
+      message: "M-Pesa STK Push initiated",
+      checkoutRequestId: stkResponse.CheckoutRequestID,
+      merchantRequestId: stkResponse.MerchantRequestID,
+      customerMessage: stkResponse.CustomerMessage,
+      payment,
+    });
+  } catch (error: any) {
     console.error("Payment initiation error:", error);
-    res.status(500).json({ message: "Failed to initiate payment" });
+    return res.status(500).json({
+      message: error.message || "Failed to initiate payment",
+    });
   }
 };
 
-/**
- * Handle M-Pesa callback
- */
+//  CALLBACK HANDLER
+
 export const handleMpesaCallback = async (req: Request, res: Response) => {
   try {
     const body = req.body;
-    console.log("M-Pesa Callback received:", JSON.stringify(body, null, 2));
+    console.log("M-Pesa Callback:", JSON.stringify(body, null, 2));
 
-    // Parse the callback response
     const callbackData = mpesaService.parseCallbackResponse(body);
 
-    // Find payment by checkoutRequestId
     const payment = await prisma.payment.findUnique({
-      where: { checkoutRequestId: callbackData.checkoutRequestId || "" },
+      where: {
+        checkoutRequestId: callbackData.checkoutRequestId || "",
+      },
     });
 
     if (!payment) {
-      console.warn(
-        "Payment not found for callback:",
-        callbackData.checkoutRequestId,
-      );
-      // Still return 200 to acknowledge receipt
-      return res.status(200).json({ message: "Callback received" });
+      return res.status(200).json({
+        ResultCode: 0,
+        ResultDesc: "Callback received",
+      });
     }
 
-    // Update payment record
-    const updatedPayment = await prisma.payment.update({
+    if (payment.status === "completed") {
+      return res.status(200).json({
+        ResultCode: 0,
+        ResultDesc: "Already processed",
+      });
+    }
+
+    await prisma.payment.update({
       where: { id: payment.id },
       data: {
         resultCode: callbackData.resultCode,
@@ -159,14 +167,30 @@ export const handleMpesaCallback = async (req: Request, res: Response) => {
       },
     });
 
-    // Update order status if payment successful
     if (callbackData.resultCode === "0") {
-      await prisma.order.update({
-        where: { id: payment.orderId },
-        data: {
-          paymentStatus: "completed",
-          orderStatus: "confirmed",
-        },
+      await prisma.$transaction(async (tx: any) => {
+        await tx.order.update({
+          where: { id: payment.orderId },
+          data: {
+            paymentStatus: "completed",
+            orderStatus: "confirmed",
+          },
+        });
+
+        const items = await tx.orderItem.findMany({
+          where: { orderId: payment.orderId },
+        });
+
+        for (const item of items) {
+          await tx.product.update({
+            where: { id: item.productId },
+            data: {
+              stock: {
+                decrement: item.quantity,
+              },
+            },
+          });
+        }
       });
     } else {
       await prisma.order.update({
@@ -177,32 +201,24 @@ export const handleMpesaCallback = async (req: Request, res: Response) => {
       });
     }
 
-    // Return success response to M-Pesa
-    res.status(200).json({
+    return res.status(200).json({
       ResultCode: 0,
-      ResultDesc: "Callback received successfully",
+      ResultDesc: "Processed successfully",
     });
   } catch (error) {
-    console.error("Callback handling error:", error);
-    res.status(500).json({
+    console.error("Callback error:", error);
+    return res.status(500).json({
       ResultCode: 1,
-      ResultDesc: "Error processing callback",
+      ResultDesc: "Callback processing failed",
     });
   }
 };
 
-/**
- * Query payment status
- */
+//  QUERY PAYMENT STATUS
+
 export const queryPaymentStatus = async (req: Request, res: Response) => {
   try {
     const { orderId, checkoutRequestId } = req.query;
-
-    if (!orderId && !checkoutRequestId) {
-      return res
-        .status(400)
-        .json({ message: "Provide either orderId or checkoutRequestId" });
-    }
 
     let payment;
 
@@ -213,24 +229,26 @@ export const queryPaymentStatus = async (req: Request, res: Response) => {
       });
     } else {
       payment = await prisma.payment.findUnique({
-        where: { checkoutRequestId: checkoutRequestId as string },
+        where: {
+          checkoutRequestId: checkoutRequestId as string,
+        },
         include: { order: true },
       });
     }
 
     if (!payment) {
-      return res.status(404).json({ message: "Payment not found" });
+      return res.status(404).json({
+        message: "Payment not found",
+      });
     }
 
-    // If status is still pending, query M-Pesa for latest status
     if (payment.status === "pending" && payment.checkoutRequestId) {
       try {
         const queryResult = await mpesaService.querySTKPushStatus(
           payment.checkoutRequestId,
         );
 
-        // Update if we get a result
-        if (queryResult.ResultCode === "0" && payment.status !== "completed") {
+        if (queryResult.ResultCode === "0") {
           await prisma.payment.update({
             where: { id: payment.id },
             data: {
@@ -247,32 +265,36 @@ export const queryPaymentStatus = async (req: Request, res: Response) => {
               orderStatus: "confirmed",
             },
           });
-
-          payment = await prisma.payment.findUnique({
+        } else {
+          await prisma.payment.update({
             where: { id: payment.id },
-            include: { order: true },
-          })!;
+            data: {
+              status: "failed",
+              resultCode: queryResult.ResultCode,
+              resultDescription: queryResult.ResultDescription,
+            },
+          });
         }
-      } catch (error) {
-        console.error("Error querying STK status:", error);
-        // Continue with existing payment data if query fails
+      } catch (err) {
+        console.error("STK query error:", err);
       }
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       payment,
       status: payment.status,
       message: `Payment ${payment.status}`,
     });
   } catch (error) {
-    console.error("Query payment error:", error);
-    res.status(500).json({ message: "Failed to query payment status" });
+    console.error("Query error:", error);
+    return res.status(500).json({
+      message: "Failed to query payment",
+    });
   }
 };
 
-/**
- * Get payment details
- */
+//  GET PAYMENT DETAILS
+
 export const getPaymentDetails = async (req: Request, res: Response) => {
   try {
     const { orderId } = req.params;
@@ -283,12 +305,16 @@ export const getPaymentDetails = async (req: Request, res: Response) => {
     });
 
     if (!payment) {
-      return res.status(404).json({ message: "Payment not found" });
+      return res.status(404).json({
+        message: "Payment not found",
+      });
     }
 
-    res.status(200).json(payment);
+    return res.status(200).json(payment);
   } catch (error) {
-    console.error("Get payment details error:", error);
-    res.status(500).json({ message: "Failed to fetch payment details" });
+    console.error("Get payment error:", error);
+    return res.status(500).json({
+      message: "Failed to fetch payment",
+    });
   }
 };
