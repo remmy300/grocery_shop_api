@@ -15,9 +15,23 @@ import {
   ApiError,
 } from "@/types";
 
-const API_BASE_URL = (
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000"
-).replace(/\/+$/, "");
+export const getApiBaseUrl = (): string => {
+  const configured = process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
+
+  if (configured) {
+    return configured.replace(/\/+$/, "");
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(
+      "NEXT_PUBLIC_API_BASE_URL is not configured in production. Set it to your deployed backend API origin.",
+    );
+  }
+
+  return "http://localhost:4000";
+};
+
+export const API_BASE_URL = getApiBaseUrl();
 
 const SETTINGS_STORAGE_KEY = "corner-store-admin-settings";
 const PROFILE_STORAGE_KEY = "corner-store-profile";

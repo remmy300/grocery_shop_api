@@ -1,21 +1,6 @@
 import { BackendProduct } from "@/types";
 import { ProductView } from "@/types/products";
-
-const getApiBaseUrl = () => {
-  const configured = process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
-
-  if (configured) {
-    return configured.replace(/\/+$/, "");
-  }
-
-  if (process.env.NODE_ENV === "production") {
-    throw new Error(
-      "NEXT_PUBLIC_API_BASE_URL is not configured in production. Set it to your deployed backend API origin.",
-    );
-  }
-
-  return "http://localhost:4000";
-};
+import { getApiBaseUrl } from "@/lib/api";
 
 const toNumber = (value: number | string | null | undefined) => {
   const numeric = typeof value === "number" ? value : Number(value);

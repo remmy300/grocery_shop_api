@@ -1,4 +1,4 @@
-import "dotenv/config";
+import "../config/env.js";
 import prisma from "../lib/prisma.js";
 
 const ADMIN_EMAIL = "jenta@admin.com";

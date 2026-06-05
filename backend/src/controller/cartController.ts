@@ -1,10 +1,25 @@
 import { Request, Response } from "express";
 import prisma from "../lib/prisma.js";
 
+const getAuthenticatedUserId = (req: Request) => {
+  const userId = Number(req.user?.id);
+  return Number.isInteger(userId) && userId > 0 ? userId : null;
+};
+
+const parsePositiveInteger = (value: unknown) => {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+};
+
 // GET CART (USER-SCOPED)
 export const getCartController = async (req: Request, res: Response) => {
   try {
-    const userId = req.user?.id;
+    const userId = getAuthenticatedUserId(req);
+    if (!userId) {
+      return res.status(401).json({
+        message: "Unauthorized",
+      });
+    }
 
     const cart = await prisma.cart.findFirst({
       where: { userId },
@@ -18,6 +33,7 @@ export const getCartController = async (req: Request, res: Response) => {
 
     return res.status(200).json(cart ?? { items: [] });
   } catch (error) {
+    console.error("Fetch cart error:", error);
     return res.status(500).json({ message: "Failed to fetch cart" });
   }
 };
@@ -25,15 +41,18 @@ export const getCartController = async (req: Request, res: Response) => {
 // ADD TO CART
 export const addToCartController = async (req: Request, res: Response) => {
   try {
-    const userId = req.user?.id;
-    const productId = Number(req.body.productId);
-    const quantity = Number(req.body.quantity);
+    const userId = getAuthenticatedUserId(req);
 
-    if (
-      !Number.isInteger(productId) ||
-      !Number.isInteger(quantity) ||
-      quantity < 1
-    ) {
+    if (!userId) {
+      return res.status(401).json({
+        message: "Unauthorized",
+      });
+    }
+
+    const productId = parsePositiveInteger(req.body.productId);
+    const quantity = parsePositiveInteger(req.body.quantity);
+
+    if (!productId || !quantity) {
       return res.status(400).json({ message: "Invalid product or quantity" });
     }
 
@@ -45,39 +64,39 @@ export const addToCartController = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    let cart = await prisma.cart.findFirst({
+    const cart = await prisma.cart.upsert({
       where: { userId },
+      update: {},
+      create: {
+        userId,
+      },
     });
 
-    if (!cart) {
-      cart = await prisma.cart.create({
-        data: { userId },
-      });
-    }
-
-    const existingItem = await prisma.cartItem.findFirst({
-      where: { cartId: cart.id, productId },
-    });
-
-    if (existingItem) {
-      const updated = await prisma.cartItem.update({
-        where: { id: existingItem.id },
-        data: { quantity: existingItem.quantity + quantity },
-      });
-
-      return res.status(200).json(updated);
-    }
-
-    const item = await prisma.cartItem.create({
-      data: {
+    const item = await prisma.cartItem.upsert({
+      where: {
+        cartId_productId: {
+          cartId: cart.id,
+          productId,
+        },
+      },
+      update: {
+        quantity: {
+          increment: quantity,
+        },
+      },
+      create: {
         cartId: cart.id,
         productId,
         quantity,
+      },
+      include: {
+        product: true,
       },
     });
 
     return res.status(201).json(item);
   } catch (error) {
+    console.error("Add to cart error:", error);
     return res.status(500).json({ message: "Failed to add item" });
   }
 };
@@ -85,15 +104,17 @@ export const addToCartController = async (req: Request, res: Response) => {
 // UPDATE CART ITEM
 export const updateCartItemController = async (req: Request, res: Response) => {
   try {
-    const userId = req.user?.id;
-    const productId = Number(req.params.productId);
-    const quantity = Number(req.body.quantity);
+    const userId = getAuthenticatedUserId(req);
+    if (!userId) {
+      return res.status(401).json({
+        message: "Unauthorized",
+      });
+    }
 
-    if (
-      !Number.isInteger(productId) ||
-      !Number.isInteger(quantity) ||
-      quantity < 1
-    ) {
+    const productId = parsePositiveInteger(req.params.productId);
+    const quantity = parsePositiveInteger(req.body.quantity);
+
+    if (!productId || !quantity) {
       return res.status(400).json({ message: "Invalid quantity" });
     }
 
@@ -116,10 +137,14 @@ export const updateCartItemController = async (req: Request, res: Response) => {
     const updated = await prisma.cartItem.update({
       where: { id: item.id },
       data: { quantity },
+      include: {
+        product: true,
+      },
     });
 
     return res.status(200).json(updated);
-  } catch {
+  } catch (error) {
+    console.error("Update cart item error:", error);
     return res.status(500).json({ message: "Failed to update cart item" });
   }
 };
@@ -127,8 +152,17 @@ export const updateCartItemController = async (req: Request, res: Response) => {
 // REMOVE CART ITEM
 export const removeCartItemController = async (req: Request, res: Response) => {
   try {
-    const userId = req.user?.id;
-    const productId = Number(req.params.productId);
+    const userId = getAuthenticatedUserId(req);
+    if (!userId) {
+      return res.status(401).json({
+        message: "Unauthorized",
+      });
+    }
+
+    const productId = parsePositiveInteger(req.params.productId);
+    if (!productId) {
+      return res.status(400).json({ message: "Invalid product" });
+    }
 
     const cart = await prisma.cart.findFirst({
       where: { userId },
@@ -151,7 +185,8 @@ export const removeCartItemController = async (req: Request, res: Response) => {
     });
 
     return res.status(200).json({ message: "Item removed" });
-  } catch {
+  } catch (error) {
+    console.error("Remove cart item error:", error);
     return res.status(500).json({ message: "Failed to remove item" });
   }
 };
@@ -159,7 +194,12 @@ export const removeCartItemController = async (req: Request, res: Response) => {
 // CLEAR CART
 export const clearCartController = async (req: Request, res: Response) => {
   try {
-    const userId = req.user?.id;
+    const userId = getAuthenticatedUserId(req);
+    if (!userId) {
+      return res.status(401).json({
+        message: "Unauthorized",
+      });
+    }
 
     const cart = await prisma.cart.findFirst({
       where: { userId },
@@ -174,7 +214,8 @@ export const clearCartController = async (req: Request, res: Response) => {
     });
 
     return res.status(200).json({ message: "Cart cleared" });
-  } catch {
+  } catch (error) {
+    console.error("Clear cart error:", error);
     return res.status(500).json({ message: "Failed to clear cart" });
   }
 };

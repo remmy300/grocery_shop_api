@@ -7,7 +7,7 @@ export const auth = async (req: Request, res: Response, next: NextFunction) => {
     process.env.JWT_ACCESS_SECRET || process.env.JWT_SECRET_KEY;
 
   if (!SECRET_KEY) {
-    console.error("❌ JWT secret not configured");
+    console.error(" JWT secret not configured");
     return res.status(500).json({
       message: "Server configuration error: JWT secret missing",
       error: "AUTH_CONFIG_ERROR",

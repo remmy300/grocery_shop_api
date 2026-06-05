@@ -1,4 +1,4 @@
-import "dotenv/config";
+import "../config/env.js";
 import { createRequire } from "module";
 import { PrismaPg } from "@prisma/adapter-pg";
 

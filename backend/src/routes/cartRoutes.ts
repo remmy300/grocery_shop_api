@@ -1,5 +1,3 @@
-// src/routes/cart.routes.ts
-
 import { Router } from "express";
 import {
   getCartController,
@@ -8,8 +6,11 @@ import {
   removeCartItemController,
   clearCartController,
 } from "../controller/cartController.js";
+import { auth } from "../middleware/auth.js";
 
 const router = Router();
+
+router.use(auth);
 
 router.get("/", getCartController);
 

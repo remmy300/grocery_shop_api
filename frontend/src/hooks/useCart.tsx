@@ -2,18 +2,46 @@
 
 import { useCallback, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { getApiBaseUrl } from "@/lib/api";
 
 const CART_QUERY_KEY = ["cart"] as const;
 
-const API_BASE_URL = (
-  process.env.NEXT_PUBLIC_API_BASE_URL ??
-  process.env.NEXT_PUBLIC_API_URL ??
-  "http://localhost:4000"
-).replace(/\/+$/, "");
+const API_BASE_URL = getApiBaseUrl();
 
 const CART_URL = API_BASE_URL.endsWith("/api")
   ? `${API_BASE_URL}/cart`
   : `${API_BASE_URL}/api/cart`;
+
+const getAccessToken = () => {
+  if (typeof window === "undefined") {
+    return "";
+  }
+
+  return (
+    localStorage.getItem("accessToken") || localStorage.getItem("token") || ""
+  );
+};
+
+const getAuthHeaders = () => {
+  const token = getAccessToken();
+
+  if (!token) {
+    return null;
+  }
+
+  return {
+    Authorization: `Bearer ${token}`,
+  };
+};
+
+const getErrorMessage = async (res: Response, fallback: string) => {
+  try {
+    const body = (await res.json()) as { message?: string; error?: string };
+    return body.message || body.error || fallback;
+  } catch {
+    return fallback;
+  }
+};
 
 /*  TYPES */
 
@@ -49,19 +77,34 @@ const toNumber = (value: number | string) => {
 /* ───────────────── API */
 
 async function fetchCart(): Promise<ApiCart> {
-  const res = await fetch(CART_URL);
+  const authHeaders = getAuthHeaders();
+
+  if (!authHeaders) {
+    return { items: [] };
+  }
+
+  const res = await fetch(CART_URL, {
+    headers: authHeaders,
+  });
 
   if (!res.ok) {
-    throw new Error("Failed to fetch cart");
+    throw new Error(await getErrorMessage(res, "Failed to fetch cart"));
   }
 
   return res.json();
 }
 
 async function addToCartApi(productId: number) {
+  const authHeaders = getAuthHeaders();
+
+  if (!authHeaders) {
+    throw new Error("Please sign in before adding items to your cart");
+  }
+
   const res = await fetch(CART_URL, {
     method: "POST",
     headers: {
+      ...authHeaders,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
@@ -71,47 +114,68 @@ async function addToCartApi(productId: number) {
   });
 
   if (!res.ok) {
-    throw new Error("Failed to add item");
+    throw new Error(await getErrorMessage(res, "Failed to add item"));
   }
 
   return res.json();
 }
 
 async function updateItemApi(productId: number, quantity: number) {
+  const authHeaders = getAuthHeaders();
+
+  if (!authHeaders) {
+    throw new Error("Please sign in before updating your cart");
+  }
+
   const res = await fetch(`${CART_URL}/${productId}`, {
     method: "PATCH",
     headers: {
+      ...authHeaders,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ quantity }),
   });
 
   if (!res.ok) {
-    throw new Error("Failed to update item");
+    throw new Error(await getErrorMessage(res, "Failed to update item"));
   }
 
   return res.json();
 }
 
 async function removeItemApi(productId: number) {
+  const authHeaders = getAuthHeaders();
+
+  if (!authHeaders) {
+    throw new Error("Please sign in before updating your cart");
+  }
+
   const res = await fetch(`${CART_URL}/${productId}`, {
     method: "DELETE",
+    headers: authHeaders,
   });
 
   if (!res.ok) {
-    throw new Error("Failed to remove item");
+    throw new Error(await getErrorMessage(res, "Failed to remove item"));
   }
 
   return res.json();
 }
 
 async function clearCartApi() {
+  const authHeaders = getAuthHeaders();
+
+  if (!authHeaders) {
+    throw new Error("Please sign in before updating your cart");
+  }
+
   const res = await fetch(CART_URL, {
     method: "DELETE",
+    headers: authHeaders,
   });
 
   if (!res.ok) {
-    throw new Error("Failed to clear cart");
+    throw new Error(await getErrorMessage(res, "Failed to clear cart"));
   }
 }
 

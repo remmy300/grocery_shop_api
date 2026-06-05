@@ -10,6 +10,7 @@ import {
   LocalShipping,
   MyLocation,
 } from "@mui/icons-material";
+import { getApiBaseUrl } from "@/lib/api";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -207,8 +208,7 @@ export default function CheckoutPage() {
 
   const checkoutMutation = useMutation({
     mutationFn: async () => {
-      const base =
-        process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000";
+      const base = getApiBaseUrl();
       const addressString = `${state.address?.street ?? ""}${state.address?.city ? ", " + state.address?.city : ""}${state.address?.postalCode ? " " + state.address?.postalCode : ""}`;
 
       const res = await fetch(`${base}/api/orders`, {
