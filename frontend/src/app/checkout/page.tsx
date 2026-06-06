@@ -21,6 +21,16 @@ import { useCart } from "@/hooks/useCart";
 import { useCheckout } from "@/components/checkout/checkoutContext";
 import MpesaPaymentProcessor from "@/components/checkout/MpesaPaymentProcessor";
 
+const getAccessToken = () => {
+  if (typeof window === "undefined") {
+    return "";
+  }
+
+  return (
+    localStorage.getItem("accessToken") || localStorage.getItem("token") || ""
+  );
+};
+
 export default function CheckoutPage() {
   const { items } = useCart();
 
@@ -209,11 +219,17 @@ export default function CheckoutPage() {
   const checkoutMutation = useMutation({
     mutationFn: async () => {
       const base = getApiBaseUrl();
+      const token = getAccessToken();
       const addressString = `${state.address?.street ?? ""}${state.address?.city ? ", " + state.address?.city : ""}${state.address?.postalCode ? " " + state.address?.postalCode : ""}`;
+
+      if (!token) {
+        throw new Error("Please sign in before placing your order");
+      }
 
       const res = await fetch(`${base}/api/orders`, {
         method: "POST",
         headers: {
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({

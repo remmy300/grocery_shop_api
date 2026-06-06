@@ -6,11 +6,12 @@ import {
   removeCartItemController,
   clearCartController,
 } from "../controller/cartController.js";
-import { auth } from "../middleware/auth.js";
 
 const router = Router();
 
-router.use(auth);
+// Cart endpoints are now accessible to both authenticated users and guests
+// Guests will use localStorage-based carts on the frontend
+// Authenticated users will have backend-persisted carts
 
 router.get("/", getCartController);
 

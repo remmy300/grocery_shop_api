@@ -1,6 +1,9 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useLoadScript } from "@react-google-maps/api";
 import { getApiBaseUrl } from "@/lib/api";
+import { useApp } from "@/contexts/AppContext";
+import { useCart } from "@/hooks/useCart";
 
 const libraries = ["places"] as (
   | "places"
@@ -14,6 +17,34 @@ const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
 type Item = { productId: number; quantity: number };
 
 export default function Checkout() {
+  const router = useRouter();
+  const { state } = useApp();
+
+  // Enforce login before accessing checkout
+  useEffect(() => {
+    if (!state.loading && !state.isAuthenticated) {
+      router.replace("/login");
+    }
+  }, [state.loading, state.isAuthenticated, router]);
+
+  // Show loading state while checking authentication
+  if (state.loading) {
+    return (
+      <div style={{ maxWidth: 900, margin: "0 auto", padding: 20 }}>
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
+  // Don't render checkout if not authenticated
+  if (!state.isAuthenticated) {
+    return null;
+  }
+
+  return <CheckoutForm />;
+}
+
+function CheckoutForm() {
   const { isLoaded, loadError } = useLoadScript({
     googleMapsApiKey: String(apiKey),
     libraries,
@@ -25,10 +56,12 @@ export default function Checkout() {
   );
   const [customer, setCustomer] = useState("");
   const [phone, setPhone] = useState("");
-  const [items, setItems] = useState<Item[]>([{ productId: 1, quantity: 1 }]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const autocompleteRef = useRef<HTMLInputElement | null>(null);
   const autoCompleteObj = useRef<any>(null);
+
+  const { items: cartItems, clearCart } = useCart();
 
   useEffect(() => {
     if (!isLoaded || !window.google || !autocompleteRef.current) return;
@@ -81,44 +114,54 @@ export default function Checkout() {
     [isLoaded],
   );
 
-  const updateItem = (index: number, key: keyof Item, value: number) => {
-    setItems((s) =>
-      s.map((it, i) => (i === index ? { ...it, [key]: value } : it)),
-    );
-  };
-
-  const addItem = () => setItems((s) => [...s, { productId: 1, quantity: 1 }]);
+  const orderItems = cartItems.map((item) => ({
+    productId: Number(item.id),
+    quantity: item.quantity,
+  }));
 
   const submit = async () => {
-    if (!customer || !phone || !address || items.length === 0)
-      return alert("Fill required fields");
+    if (isSubmitting) return;
 
-    const payload: any = {
-      customer,
-      phone,
-      address,
-      items,
-    };
-    if (latLng) {
-      payload.latitude = latLng.lat;
-      payload.longitude = latLng.lng;
-    }
+    setIsSubmitting(true);
 
-    const res = await fetch(`${getApiBaseUrl()}/api/orders`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    if (res.ok) {
-      alert("Order placed");
-      setCustomer("");
-      setPhone("");
-      setAddress("");
-      setLatLng(null);
-      setItems([{ productId: 1, quantity: 1 }]);
-    } else {
-      const err = await res.json();
-      alert(err.message || "Failed");
+    try {
+      const token = localStorage.getItem("accessToken");
+
+      const payload = {
+        customer,
+        phone,
+        address,
+        items: cartItems.map((it) => ({
+          productId: Number(it.id),
+          quantity: it.quantity,
+        })),
+        ...(latLng && {
+          latitude: latLng.lat,
+          longitude: latLng.lng,
+        }),
+      };
+
+      const res = await fetch(`${getApiBaseUrl()}/api/orders`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Order failed");
+      }
+
+      alert("Order placed successfully");
+
+      await clearCart();
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -126,77 +169,145 @@ export default function Checkout() {
   if (!isLoaded) return <div>Loading maps...</div>;
 
   return (
-    <div style={{ maxWidth: 900, margin: "0 auto" }}>
+    <div style={{ maxWidth: 900, margin: "0 auto", padding: 16 }}>
       <h2>Checkout</h2>
-      <div>
-        <label>Name</label>
-        <input value={customer} onChange={(e) => setCustomer(e.target.value)} />
-      </div>
-      <div>
-        <label>Phone</label>
-        <input value={phone} onChange={(e) => setPhone(e.target.value)} />
-      </div>
-      <div>
-        <label>Address (autocomplete)</label>
+
+      {/* CUSTOMER INFO */}
+      <section style={{ marginBottom: 16 }}>
+        <h4>Customer Details</h4>
+
+        <div>
+          <label>Name</label>
+          <input
+            value={customer}
+            onChange={(e) => setCustomer(e.target.value)}
+          />
+        </div>
+
+        <div>
+          <label>Phone</label>
+          <input value={phone} onChange={(e) => setPhone(e.target.value)} />
+        </div>
+      </section>
+
+      {/* ADDRESS */}
+      <section style={{ marginBottom: 16 }}>
+        <h4>Delivery Address</h4>
+
         <input
           ref={autocompleteRef}
           value={address}
           onChange={(e) => setAddress(e.target.value)}
+          placeholder="Enter delivery address"
+          style={{ width: "100%" }}
         />
-        <button onClick={useCurrentLocation}>Use current location</button>
-      </div>
 
-      <div style={{ height: 400, marginTop: 12 }}>
-        {/* simple map using google maps JS via window object to avoid adding additional wrappers */}
-        <div id="map" style={{ width: "100%", height: "100%" }} />
-      </div>
+        <button onClick={useCurrentLocation} style={{ marginTop: 8 }}>
+          Use current location
+        </button>
+      </section>
 
-      <div style={{ marginTop: 12 }}>
-        <h4>Items</h4>
-        {items.map((it, idx) => (
-          <div
-            key={idx}
-            style={{ display: "flex", gap: 8, alignItems: "center" }}
-          >
-            <input
-              type="number"
-              value={it.productId}
-              onChange={(e) =>
-                updateItem(idx, "productId", Number(e.target.value))
-              }
-            />
-            <input
-              type="number"
-              value={it.quantity}
-              onChange={(e) =>
-                updateItem(idx, "quantity", Number(e.target.value))
-              }
-            />
-          </div>
-        ))}
-        <button onClick={addItem}>Add item</button>
-      </div>
+      {/* MAP */}
+      <section style={{ marginBottom: 16 }}>
+        <h4>Select Location</h4>
 
-      <div style={{ marginTop: 12 }}>
-        <button onClick={submit}>Place order</button>
-      </div>
+        <div style={{ height: 350, width: "100%" }}>
+          <div id="map" style={{ width: "100%", height: "100%" }} />
+        </div>
+      </section>
+
+      {/* CART SUMMARY */}
+      <section style={{ marginBottom: 16 }}>
+        <h4>Order Summary</h4>
+
+        {cartItems?.length === 0 ? (
+          <p style={{ color: "red" }}>Your cart is empty</p>
+        ) : (
+          <>
+            {cartItems.map((it) => (
+              <div
+                key={it.id}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  padding: "6px 0",
+                }}
+              >
+                <span>{it.name}</span>
+                <span>x {it.quantity}</span>
+              </div>
+            ))}
+
+            <hr />
+
+            <div style={{ fontWeight: "bold" }}>
+              Total Items:{" "}
+              {cartItems.reduce((acc, item) => acc + item.quantity, 0)}
+            </div>
+          </>
+        )}
+      </section>
+
+      {/* SUBMIT */}
+      <button
+        onClick={submit}
+        disabled={
+          isSubmitting ||
+          cartItems.length === 0 ||
+          !customer ||
+          !phone ||
+          !address
+        }
+        style={{
+          width: "100%",
+          padding: 12,
+          background: isSubmitting ? "#ccc" : "#000",
+          color: "#fff",
+          cursor: isSubmitting ? "not-allowed" : "pointer",
+        }}
+      >
+        {isSubmitting ? "Placing order..." : "Place Order"}
+      </button>
 
       <script
         dangerouslySetInnerHTML={{
           __html: `
-        (function initMap(){
-          if(!window.google) return;
-          const map = new google.maps.Map(document.getElementById('map'), { center: { lat: 0, lng: 0 }, zoom: 2 });
-          let marker = null;
-          map.addListener('click', function(e){
-            const lat = e.latLng.lat(); const lng = e.latLng.lng();
-            if(marker) marker.setPosition(e.latLng); else marker = new google.maps.Marker({ position: e.latLng, map });
-            // communicate to React by dispatching custom event
-            window.dispatchEvent(new CustomEvent('map-click', { detail: { lat, lng } }));
-          });
-          window.__grocery_map = map;
-        })();
-      `,
+          (function initMap(){
+            if(!window.google) return;
+
+            const map = new google.maps.Map(
+              document.getElementById('map'),
+              {
+                center: { lat: 0, lng: 0 },
+                zoom: 2
+              }
+            );
+
+            let marker = null;
+
+            map.addListener('click', function(e){
+              const lat = e.latLng.lat();
+              const lng = e.latLng.lng();
+
+              if(marker) {
+                marker.setPosition(e.latLng);
+              } else {
+                marker = new google.maps.Marker({
+                  position: e.latLng,
+                  map
+                });
+              }
+
+              window.dispatchEvent(
+                new CustomEvent('map-click', {
+                  detail: { lat, lng }
+                })
+              );
+            });
+
+            window.__grocery_map = map;
+          })();
+        `,
         }}
       />
 

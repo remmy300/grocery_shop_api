@@ -11,7 +11,7 @@ import {
 const router = express.Router();
 
 router.get("/", auth, authorizeRoles("admin"), getOrders);
-router.post("/", createOrder);
+router.post("/", auth, createOrder);
 router.get("/my", auth, getMyOrders);
 router.get("/nearby", auth, authorizeRoles("admin"), getNearbyOrders);
 router.patch(

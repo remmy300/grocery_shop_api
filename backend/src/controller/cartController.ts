@@ -11,26 +11,30 @@ const parsePositiveInteger = (value: unknown) => {
   return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
 };
 
+const getCartWithItemsByUserId = (userId: number) =>
+  prisma.cart.findUnique({
+    where: { userId },
+    include: {
+      items: {
+        orderBy: { createdAt: "desc" },
+        include: { product: true },
+      },
+    },
+  });
+
 // GET CART (USER-SCOPED)
+// Authenticated users: returns their persisted cart from database
+// Unauthenticated users: returns empty cart (they use localStorage on frontend)
 export const getCartController = async (req: Request, res: Response) => {
   try {
     const userId = getAuthenticatedUserId(req);
+
+    // For unauthenticated requests, return empty cart (frontend uses localStorage)
     if (!userId) {
-      return res.status(401).json({
-        message: "Unauthorized",
-      });
+      return res.status(200).json({ items: [] });
     }
 
-    const cart = await prisma.cart.findFirst({
-      where: { userId },
-      include: {
-        items: {
-          orderBy: { createdAt: "desc" },
-          include: { product: true },
-        },
-      },
-    });
-
+    const cart = await getCartWithItemsByUserId(userId);
     return res.status(200).json(cart ?? { items: [] });
   } catch (error) {
     console.error("Fetch cart error:", error);
@@ -39,14 +43,17 @@ export const getCartController = async (req: Request, res: Response) => {
 };
 
 // ADD TO CART
+// Authenticated users: adds to database cart
+// Unauthenticated users: returns 401 (they should use localStorage on frontend)
 export const addToCartController = async (req: Request, res: Response) => {
   try {
     const userId = getAuthenticatedUserId(req);
 
+    // For unauthenticated requests, return 401 (frontend handles with localStorage)
     if (!userId) {
-      return res.status(401).json({
-        message: "Unauthorized",
-      });
+      return res
+        .status(401)
+        .json({ message: "Please sign in to persist cart" });
     }
 
     const productId = parsePositiveInteger(req.body.productId);
@@ -67,12 +74,10 @@ export const addToCartController = async (req: Request, res: Response) => {
     const cart = await prisma.cart.upsert({
       where: { userId },
       update: {},
-      create: {
-        userId,
-      },
+      create: { userId },
     });
 
-    const item = await prisma.cartItem.upsert({
+    await prisma.cartItem.upsert({
       where: {
         cartId_productId: {
           cartId: cart.id,
@@ -89,12 +94,10 @@ export const addToCartController = async (req: Request, res: Response) => {
         productId,
         quantity,
       },
-      include: {
-        product: true,
-      },
     });
 
-    return res.status(201).json(item);
+    const cartWithItems = await getCartWithItemsByUserId(userId);
+    return res.status(201).json(cartWithItems);
   } catch (error) {
     console.error("Add to cart error:", error);
     return res.status(500).json({ message: "Failed to add item" });
@@ -102,13 +105,13 @@ export const addToCartController = async (req: Request, res: Response) => {
 };
 
 // UPDATE CART ITEM
+// Authenticated users only (guests use localStorage frontend cart)
 export const updateCartItemController = async (req: Request, res: Response) => {
   try {
     const userId = getAuthenticatedUserId(req);
+
     if (!userId) {
-      return res.status(401).json({
-        message: "Unauthorized",
-      });
+      return res.status(401).json({ message: "Unauthorized" });
     }
 
     const productId = parsePositiveInteger(req.params.productId);
@@ -118,7 +121,7 @@ export const updateCartItemController = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Invalid quantity" });
     }
 
-    const cart = await prisma.cart.findFirst({
+    const cart = await prisma.cart.findUnique({
       where: { userId },
     });
 
@@ -134,15 +137,13 @@ export const updateCartItemController = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Cart item not found" });
     }
 
-    const updated = await prisma.cartItem.update({
+    await prisma.cartItem.update({
       where: { id: item.id },
       data: { quantity },
-      include: {
-        product: true,
-      },
     });
 
-    return res.status(200).json(updated);
+    const cartWithItems = await getCartWithItemsByUserId(userId);
+    return res.status(200).json(cartWithItems);
   } catch (error) {
     console.error("Update cart item error:", error);
     return res.status(500).json({ message: "Failed to update cart item" });
@@ -150,13 +151,13 @@ export const updateCartItemController = async (req: Request, res: Response) => {
 };
 
 // REMOVE CART ITEM
+// Authenticated users only (guests use localStorage frontend cart)
 export const removeCartItemController = async (req: Request, res: Response) => {
   try {
     const userId = getAuthenticatedUserId(req);
+
     if (!userId) {
-      return res.status(401).json({
-        message: "Unauthorized",
-      });
+      return res.status(401).json({ message: "Unauthorized" });
     }
 
     const productId = parsePositiveInteger(req.params.productId);
@@ -164,7 +165,7 @@ export const removeCartItemController = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Invalid product" });
     }
 
-    const cart = await prisma.cart.findFirst({
+    const cart = await prisma.cart.findUnique({
       where: { userId },
     });
 
@@ -184,7 +185,8 @@ export const removeCartItemController = async (req: Request, res: Response) => {
       where: { id: item.id },
     });
 
-    return res.status(200).json({ message: "Item removed" });
+    const cartWithItems = await getCartWithItemsByUserId(userId);
+    return res.status(200).json(cartWithItems);
   } catch (error) {
     console.error("Remove cart item error:", error);
     return res.status(500).json({ message: "Failed to remove item" });
@@ -192,28 +194,29 @@ export const removeCartItemController = async (req: Request, res: Response) => {
 };
 
 // CLEAR CART
+// Authenticated users only (guests use localStorage frontend cart)
 export const clearCartController = async (req: Request, res: Response) => {
   try {
     const userId = getAuthenticatedUserId(req);
+
     if (!userId) {
-      return res.status(401).json({
-        message: "Unauthorized",
-      });
+      return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const cart = await prisma.cart.findFirst({
+    const cart = await prisma.cart.findUnique({
       where: { userId },
     });
 
     if (!cart) {
-      return res.status(404).json({ message: "Cart not found" });
+      return res.status(200).json({ items: [] });
     }
 
     await prisma.cartItem.deleteMany({
       where: { cartId: cart.id },
     });
 
-    return res.status(200).json({ message: "Cart cleared" });
+    const cartWithItems = await getCartWithItemsByUserId(userId);
+    return res.status(200).json(cartWithItems);
   } catch (error) {
     console.error("Clear cart error:", error);
     return res.status(500).json({ message: "Failed to clear cart" });

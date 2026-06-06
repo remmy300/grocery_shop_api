@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getApiBaseUrl } from "@/lib/api";
 
 const CART_QUERY_KEY = ["cart"] as const;
+const GUEST_CART_KEY = "guestCart";
 
 const API_BASE_URL = getApiBaseUrl();
 
@@ -32,6 +33,31 @@ const getAuthHeaders = () => {
   return {
     Authorization: `Bearer ${token}`,
   };
+};
+
+const isAuthenticated = () => !!getAccessToken();
+
+const getGuestCart = (): ApiCart => {
+  if (typeof window === "undefined") {
+    return { items: [] };
+  }
+
+  try {
+    const stored = localStorage.getItem(GUEST_CART_KEY);
+    return stored ? JSON.parse(stored) : { items: [] };
+  } catch {
+    return { items: [] };
+  }
+};
+
+const saveGuestCart = (cart: ApiCart) => {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(GUEST_CART_KEY, JSON.stringify(cart));
+};
+
+const clearGuestCart = () => {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem(GUEST_CART_KEY);
 };
 
 const getErrorMessage = async (res: Response, fallback: string) => {
@@ -77,106 +103,157 @@ const toNumber = (value: number | string) => {
 /* ───────────────── API */
 
 async function fetchCart(): Promise<ApiCart> {
-  const authHeaders = getAuthHeaders();
+  const token = getAccessToken();
 
-  if (!authHeaders) {
-    return { items: [] };
+  // If authenticated, fetch from backend
+  if (token) {
+    const res = await fetch(CART_URL, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!res.ok) {
+      console.error("Failed to fetch cart from server, using guest cart");
+      return getGuestCart();
+    }
+
+    return res.json();
   }
 
-  const res = await fetch(CART_URL, {
-    headers: authHeaders,
-  });
-
-  if (!res.ok) {
-    throw new Error(await getErrorMessage(res, "Failed to fetch cart"));
-  }
-
-  return res.json();
+  // Otherwise return guest cart from localStorage
+  return getGuestCart();
 }
 
 async function addToCartApi(productId: number) {
-  const authHeaders = getAuthHeaders();
+  const token = getAccessToken();
 
-  if (!authHeaders) {
-    throw new Error("Please sign in before adding items to your cart");
+  // For authenticated users, sync with backend
+  if (token) {
+    const res = await fetch(CART_URL, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        productId,
+        quantity: 1,
+      }),
+    });
+
+    if (!res.ok) {
+      throw new Error(await getErrorMessage(res, "Failed to add item"));
+    }
+
+    return res.json();
   }
 
-  const res = await fetch(CART_URL, {
-    method: "POST",
-    headers: {
-      ...authHeaders,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
+  // For guests, store in localStorage
+  const cart = getGuestCart();
+  const existingItem = cart.items.find((item) => item.productId === productId);
+
+  if (existingItem) {
+    existingItem.quantity += 1;
+  } else {
+    // Add placeholder product info (will be filled later)
+    cart.items.push({
       productId,
       quantity: 1,
-    }),
-  });
-
-  if (!res.ok) {
-    throw new Error(await getErrorMessage(res, "Failed to add item"));
+      product: {
+        name: "",
+        imageUrl: null,
+        price: 0,
+      },
+    });
   }
 
-  return res.json();
+  saveGuestCart(cart);
+  return cart;
 }
 
 async function updateItemApi(productId: number, quantity: number) {
-  const authHeaders = getAuthHeaders();
+  const token = getAccessToken();
 
-  if (!authHeaders) {
-    throw new Error("Please sign in before updating your cart");
+  // For authenticated users, sync with backend
+  if (token) {
+    const res = await fetch(`${CART_URL}/${productId}`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ quantity }),
+    });
+
+    if (!res.ok) {
+      throw new Error(await getErrorMessage(res, "Failed to update item"));
+    }
+
+    return res.json();
   }
 
-  const res = await fetch(`${CART_URL}/${productId}`, {
-    method: "PATCH",
-    headers: {
-      ...authHeaders,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ quantity }),
-  });
-
-  if (!res.ok) {
-    throw new Error(await getErrorMessage(res, "Failed to update item"));
+  // For guests, update localStorage
+  if (quantity <= 0) {
+    return removeItemApi(productId);
   }
 
-  return res.json();
+  const cart = getGuestCart();
+  const item = cart.items.find((item) => item.productId === productId);
+
+  if (item) {
+    item.quantity = quantity;
+  }
+
+  saveGuestCart(cart);
+  return cart;
 }
 
 async function removeItemApi(productId: number) {
-  const authHeaders = getAuthHeaders();
+  const token = getAccessToken();
 
-  if (!authHeaders) {
-    throw new Error("Please sign in before updating your cart");
+  // For authenticated users, sync with backend
+  if (token) {
+    const res = await fetch(`${CART_URL}/${productId}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!res.ok) {
+      throw new Error(await getErrorMessage(res, "Failed to remove item"));
+    }
+
+    return res.json();
   }
 
-  const res = await fetch(`${CART_URL}/${productId}`, {
-    method: "DELETE",
-    headers: authHeaders,
-  });
-
-  if (!res.ok) {
-    throw new Error(await getErrorMessage(res, "Failed to remove item"));
-  }
-
-  return res.json();
+  // For guests, remove from localStorage
+  const cart = getGuestCart();
+  cart.items = cart.items.filter((item) => item.productId !== productId);
+  saveGuestCart(cart);
+  return cart;
 }
 
 async function clearCartApi() {
-  const authHeaders = getAuthHeaders();
+  const token = getAccessToken();
 
-  if (!authHeaders) {
-    throw new Error("Please sign in before updating your cart");
+  // For authenticated users, sync with backend
+  if (token) {
+    const res = await fetch(CART_URL, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!res.ok) {
+      throw new Error(await getErrorMessage(res, "Failed to clear cart"));
+    }
   }
 
-  const res = await fetch(CART_URL, {
-    method: "DELETE",
-    headers: authHeaders,
-  });
-
-  if (!res.ok) {
-    throw new Error(await getErrorMessage(res, "Failed to clear cart"));
-  }
+  // Clear guest cart
+  clearGuestCart();
 }
 
 /* HOOK */
@@ -210,11 +287,53 @@ export function useCart() {
   const total = subtotal;
 
   /* ADD */
-
   const addMutation = useMutation({
     mutationFn: addToCartApi,
 
-    onSuccess: () => {
+    // Optimistic update: immediately reflect the add in the cache
+    onMutate: async (productId: number) => {
+      console.log("Adding product (optimistic):", productId);
+
+      await queryClient.cancelQueries({ queryKey: CART_QUERY_KEY });
+
+      const previous =
+        (queryClient.getQueryData(CART_QUERY_KEY) as ApiCart) ?? getGuestCart();
+
+      const items = [...(previous.items ?? [])];
+      const idx = items.findIndex((it) => it.productId === productId);
+
+      if (idx > -1) {
+        items[idx] = { ...items[idx], quantity: items[idx].quantity + 1 };
+      } else {
+        items.unshift({
+          productId,
+          quantity: 1,
+          product: { name: "", imageUrl: null, price: 0 },
+        });
+      }
+
+      const optimisticCart: ApiCart = { items };
+      queryClient.setQueryData(CART_QUERY_KEY, optimisticCart);
+
+      return { previous };
+    },
+
+    onError: (err, _productId, context: { previous?: ApiCart } | undefined) => {
+      console.error("Add to cart failed, rolling back:", err);
+      if (context?.previous) {
+        queryClient.setQueryData(CART_QUERY_KEY, context.previous);
+      }
+    },
+
+    onSuccess: (updatedCart) => {
+      // Replace optimistic value with authoritative server response (or guest cart)
+      console.log("Cart updated (server):", updatedCart);
+      if (updatedCart) {
+        queryClient.setQueryData(CART_QUERY_KEY, updatedCart);
+      }
+    },
+
+    onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
     },
   });
@@ -230,7 +349,59 @@ export function useCart() {
       quantity: number;
     }) => updateItemApi(productId, quantity),
 
-    onSuccess: () => {
+    // Optimistic update for quantity changes
+    onMutate: async ({
+      productId,
+      quantity,
+    }: {
+      productId: number;
+      quantity: number;
+    }) => {
+      await queryClient.cancelQueries({ queryKey: CART_QUERY_KEY });
+
+      const previous =
+        (queryClient.getQueryData(CART_QUERY_KEY) as ApiCart) ?? getGuestCart();
+
+      const items = [...(previous.items ?? [])];
+      const idx = items.findIndex((it) => it.productId === productId);
+
+      if (quantity <= 0) {
+        // treat as remove
+        if (idx > -1) items.splice(idx, 1);
+      } else if (idx > -1) {
+        items[idx] = { ...items[idx], quantity };
+      } else {
+        items.unshift({
+          productId,
+          quantity,
+          product: { name: "", imageUrl: null, price: 0 },
+        });
+      }
+
+      const optimisticCart: ApiCart = { items };
+      queryClient.setQueryData(CART_QUERY_KEY, optimisticCart);
+
+      if (!isAuthenticated()) saveGuestCart(optimisticCart);
+
+      return { previous };
+    },
+
+    onError: (err, vars, context: { previous?: ApiCart } | undefined) => {
+      console.error("Update cart failed, rolling back:", err);
+      if (context?.previous) {
+        queryClient.setQueryData(CART_QUERY_KEY, context.previous);
+        if (!isAuthenticated()) saveGuestCart(context.previous);
+      }
+    },
+
+    onSuccess: (updatedCart) => {
+      if (updatedCart) {
+        queryClient.setQueryData(CART_QUERY_KEY, updatedCart);
+        if (!isAuthenticated()) saveGuestCart(updatedCart as ApiCart);
+      }
+    },
+
+    onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
     },
   });
@@ -240,7 +411,40 @@ export function useCart() {
   const removeMutation = useMutation({
     mutationFn: removeItemApi,
 
-    onSuccess: () => {
+    // Optimistic remove
+    onMutate: async (productId: number) => {
+      await queryClient.cancelQueries({ queryKey: CART_QUERY_KEY });
+
+      const previous =
+        (queryClient.getQueryData(CART_QUERY_KEY) as ApiCart) ?? getGuestCart();
+
+      const items = (previous.items ?? []).filter(
+        (it) => it.productId !== productId,
+      );
+      const optimisticCart: ApiCart = { items };
+      queryClient.setQueryData(CART_QUERY_KEY, optimisticCart);
+
+      if (!isAuthenticated()) saveGuestCart(optimisticCart);
+
+      return { previous };
+    },
+
+    onError: (err, _productId, context: { previous?: ApiCart } | undefined) => {
+      console.error("Remove cart item failed, rolling back:", err);
+      if (context?.previous) {
+        queryClient.setQueryData(CART_QUERY_KEY, context.previous);
+        if (!isAuthenticated()) saveGuestCart(context.previous);
+      }
+    },
+
+    onSuccess: (updatedCart) => {
+      if (updatedCart) {
+        queryClient.setQueryData(CART_QUERY_KEY, updatedCart as ApiCart);
+        if (!isAuthenticated()) saveGuestCart(updatedCart as ApiCart);
+      }
+    },
+
+    onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
     },
   });

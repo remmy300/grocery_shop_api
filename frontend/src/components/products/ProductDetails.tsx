@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 
 import { ProductView } from "@/types/products";
 import { useCart } from "@/hooks/useCart";
+import { log } from "console";
 
 type Props = {
   product: ProductView;
@@ -125,7 +126,11 @@ export default function ProductDetails({ product, related }: Props) {
                 type="button"
                 className="rounded-full"
                 disabled={isAdding || product.stock <= 0}
-                onClick={() => addToCart(product.id)}
+                onClick={() => {
+                  console.log("btn clicked");
+
+                  addToCart(product.id);
+                }}
               >
                 {isAdding ? "Adding..." : "Add to cart"}
               </Button>
