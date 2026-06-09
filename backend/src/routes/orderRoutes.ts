@@ -12,7 +12,7 @@ const router = express.Router();
 
 router.get("/", auth, authorizeRoles("admin"), getOrders);
 router.post("/", auth, createOrder);
-router.get("/my", auth, getMyOrders);
+router.get("/orders", auth, authorizeRoles("user", "admin"), getMyOrders);
 router.get("/nearby", auth, authorizeRoles("admin"), getNearbyOrders);
 router.patch(
   "/:id/orderStatus",

@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import prisma from "../lib/prisma.js";
 import { Request, Response } from "express";
 import { generateAccessToken, generateRefreshToken } from "../utils/token.js";
-import { JwtPayload } from "../types/express.js";
+import { JwtPayload, AuthenticatedRequest } from "../types/express.js";
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const normalizeRole = (role?: string | null) => (role || "").toLowerCase();
@@ -106,12 +106,8 @@ export const refreshToken = (req: Request, res: Response) => {
   }
 };
 
-export const getCurrentUser = (req: Request, res: Response) => {
-  if (!req.user) {
-    return res.status(401).json({ message: "Not authenticated" });
-  }
-
-  res.json(req.user);
+export const getCurrentUser = (req: AuthenticatedRequest, res: Response) => {
+  return res.json(req.user);
 };
 
 export const getAdmins = async (req: Request, res: Response) => {

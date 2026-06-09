@@ -1,3 +1,6 @@
+import { Request } from "express";
+import { JwtPayload } from "./express.js";
+
 export interface JwtPayload {
   id: string;
   email: string;
@@ -12,3 +15,7 @@ declare global {
     }
   }
 }
+
+export type AuthenticatedRequest = Request & {
+  user: JwtPayload;
+};

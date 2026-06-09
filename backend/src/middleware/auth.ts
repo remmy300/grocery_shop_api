@@ -58,19 +58,21 @@ export const auth = async (req: Request, res: Response, next: NextFunction) => {
 export const authorizeRoles =
   (...roles: string[]) =>
   (req: Request, res: Response, next: NextFunction) => {
-    if (!req.user) {
+    const userRole = req.user?.role?.toLowerCase();
+
+    if (!userRole) {
       return res.status(401).json({
         message: "Unauthorized",
         error: "NO_USER_CONTEXT",
       });
     }
 
-    const requestedRoles = roles.map((role) => role.toLowerCase());
-    if (!requestedRoles.includes(req.user.role.toLowerCase())) {
+    const allowedRoles = roles.map((r) => r.toLowerCase());
+
+    if (!allowedRoles.includes(userRole)) {
       return res.status(403).json({
-        message: `Forbidden: This action requires one of: ${roles.join(", ")}`,
+        message: "Forbidden",
         error: "INSUFFICIENT_PERMISSIONS",
-        userRole: req.user.role,
       });
     }
 
