@@ -1,10 +1,11 @@
+"use client";
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { useMpesaPayment } from "@/hooks/useMpesaPayment";
 import { AlertCircle, CheckCircle2, Loader } from "lucide-react";
-
 interface MpesaPaymentProcessorProps {
   orderId: number;
   amount: number;
@@ -18,10 +19,16 @@ export default function MpesaPaymentProcessor({
   orderId,
   amount,
   phoneNumber,
-  customerName,
+
   onSuccess,
   onError,
 }: MpesaPaymentProcessorProps) {
+  console.log(" MpesaPaymentProcessor mounted", {
+    orderId,
+    amount,
+    phoneNumber,
+  });
+
   const [inputPhone, setInputPhone] = useState(phoneNumber);
   const {
     initiate,
@@ -50,26 +57,30 @@ export default function MpesaPaymentProcessor({
       onError?.(error);
     }
   }, [isPaymentFailed, status.data]);
+  const handleInitiatePayment = () => {
+    console.log("CLICKED");
 
-  const handleInitiatePayment = async () => {
-    if (!inputPhone.trim()) {
-      onError?.("Please enter a valid phone number");
-      return;
-    }
-
-    try {
-      await initiate.mutateAsync({
+    initiate.mutate(
+      {
         orderId,
         phoneNumber: inputPhone,
         amount,
-      });
-
-      // Start polling for payment status
-      startPolling(3000); // Poll every 3 seconds
-    } catch (error: any) {
-      onError?.(error.message || "Failed to initiate payment");
-    }
+      },
+      {
+        onSuccess: () => {
+          console.log("INIT SUCCESS");
+          startPolling(3000);
+        },
+        onError: (err) => {
+          console.error("INIT ERROR", err);
+          onError?.(err.message);
+        },
+      },
+    );
   };
+
+  console.log("Button disabled?", initiate.isPending || !inputPhone.trim());
+  console.log("inputPhone:", JSON.stringify(inputPhone));
 
   return (
     <div className="space-y-4">
@@ -147,11 +158,7 @@ export default function MpesaPaymentProcessor({
               disabled={initiate.isPending}
               className="mt-1"
             />
-            <p className="text-xs text-muted-foreground mt-1">
-              Format: 254XXXXXXXXX (international) or 0XXXXXXXXX (local)
-            </p>
           </div>
-
           <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
             <p className="text-xs text-blue-900">
               <strong>Order Total:</strong> KES {amount.toFixed(2)}
@@ -163,7 +170,13 @@ export default function MpesaPaymentProcessor({
           </div>
 
           <Button
-            onClick={handleInitiatePayment}
+            onClick={() => {
+              console.log("Button Clicked");
+              console.log("inputPhone", inputPhone);
+              console.log("isPending", initiate.isPending);
+
+              handleInitiatePayment();
+            }}
             disabled={initiate.isPending || !inputPhone.trim()}
             className="w-full h-11 font-semibold"
           >

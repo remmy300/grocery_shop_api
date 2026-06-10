@@ -2,8 +2,6 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { getApiBaseUrl } from "@/lib/api";
 
-const API_BASE_URL = getApiBaseUrl();
-
 interface InitiatePaymentPayload {
   orderId: number;
   phoneNumber: string;
@@ -38,38 +36,83 @@ interface PaymentStatus {
 export function useMpesaPayment() {
   const [pollInterval, setPollInterval] = useState<number | false>(false);
 
+  console.log("HOOK RENDERED");
+
   // Initiate payment
   const initiateMutation = useMutation({
     mutationFn: async (payload: InitiatePaymentPayload) => {
-      const res = await fetch(`${API_BASE_URL}/api/payments/initiate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      console.log("MUTATION FUNCTION ENTERED");
+      console.log(payload);
+      try {
+        // Evaluate API_BASE_URL at runtime, not at module load time
+        const API_BASE_URL = getApiBaseUrl();
+        const paymentUrl = `${API_BASE_URL}/api/payments/initiate`;
 
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || "Failed to initiate payment");
+        console.log(" Initiating M-Pesa payment to:", paymentUrl);
+        console.log(" Payload:", payload);
+
+        console.log("API_BASE_URL =", API_BASE_URL);
+        console.log("paymentUrl =", paymentUrl);
+
+        const res = await fetch(paymentUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+
+        console.log(" Response status:", res.status, res.statusText);
+
+        // Clone response to read body safely
+        const responseText = await res.text();
+        console.log(" Response body:", responseText);
+
+        let responseData: any;
+        try {
+          responseData = JSON.parse(responseText);
+        } catch {
+          throw new Error(`Invalid JSON response: ${responseText}`);
+        }
+
+        if (!res.ok) {
+          console.error(" Payment initiation failed:", responseData);
+          throw new Error(
+            responseData?.message ||
+              `Payment initiation failed: ${res.statusText}`,
+          );
+        }
+
+        console.log(" Payment initiated successfully:", responseData);
+        return responseData as PaymentResponse;
+      } catch (error) {
+        console.error(" M-Pesa mutation error:", error);
+        throw error;
       }
-
-      return (await res.json()) as PaymentResponse;
     },
   });
 
   // Query payment status
   const statusQuery = useQuery({
-    queryKey: ["paymentStatus", pollInterval],
+    queryKey: ["paymentStatus", initiateMutation.data?.payment.id],
     queryFn: async () => {
       if (!initiateMutation.data?.payment.id) {
         throw new Error("No payment ID available");
       }
 
-      const res = await fetch(
-        `${API_BASE_URL}/api/payments/status?orderId=${initiateMutation.data.payment.id}`,
-      );
+      const API_BASE_URL = getApiBaseUrl();
+      const statusUrl = `${API_BASE_URL}/api/payments/status?orderId=${initiateMutation.data.payment.id}`;
+
+      console.log(" Querying payment status from:", statusUrl);
+
+      const res = await fetch(statusUrl);
 
       if (!res.ok) throw new Error("Failed to fetch payment status");
-      return (await res.json()) as PaymentStatus;
+
+      const data = await res.json();
+      console.log("Payment status received:", data);
+
+      return data as PaymentStatus;
     },
     enabled: !!pollInterval && !!initiateMutation.data,
     refetchInterval: pollInterval || false,
@@ -93,14 +136,27 @@ export function usePaymentDetails(orderId: number | null) {
   return useQuery({
     queryKey: ["paymentDetails", orderId],
     queryFn: async () => {
+      const API_BASE_URL = getApiBaseUrl();
+      const token =
+        typeof window !== "undefined" ? localStorage.getItem("token") : "";
+
+      console.log(" Fetching payment details for order:", orderId);
+
       const res = await fetch(`${API_BASE_URL}/api/payments/${orderId}`, {
         headers: {
-          Authorization: `Bearer ${typeof window !== "undefined" ? localStorage.getItem("token") : ""}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
-      if (!res.ok) throw new Error("Failed to fetch payment details");
-      return await res.json();
+      if (!res.ok) {
+        const error = await res.text();
+        console.error(" Failed to fetch payment details:", error);
+        throw new Error("Failed to fetch payment details");
+      }
+
+      const data = await res.json();
+      console.log(" Payment details:", data);
+      return data;
     },
     enabled: !!orderId,
   });

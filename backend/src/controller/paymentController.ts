@@ -38,6 +38,10 @@ const mpesaService = new MpesaService(mpesaConfig);
 
 export const initiatePayment = async (req: Request, res: Response) => {
   try {
+    console.log("🎬 initiatePayment endpoint called");
+    console.log("📦 Request body:", req.body);
+    console.log("🔧 M-Pesa environment:", mpesaConfig.environment);
+
     const { orderId, phoneNumber, amount } = req.body;
 
     if (orderId === undefined || !phoneNumber || amount === undefined) {
@@ -72,15 +76,20 @@ export const initiatePayment = async (req: Request, res: Response) => {
 
     const stkResponse = await mpesaService.initiateStkPush(
       phoneNumber,
-      amount,
+      Math.ceil(Number(amount)),
       Number(orderId),
       order.customer,
     );
 
+    console.log("STK RESPONSE:", stkResponse);
+
     if (stkResponse.ResponseCode !== "0") {
+      console.error("MPESA REJECTED REQUEST:", stkResponse);
+
       return res.status(400).json({
         message: stkResponse.ResponseDescription,
         responseCode: stkResponse.ResponseCode,
+        raw: stkResponse,
       });
     }
 
@@ -120,9 +129,11 @@ export const initiatePayment = async (req: Request, res: Response) => {
       payment,
     });
   } catch (error: any) {
-    console.error("Payment initiation error:", error);
+    console.error("Payment initiation error FULL:", error);
+
     return res.status(500).json({
-      message: error.message || "Failed to initiate payment",
+      message: error.message,
+      detail: error.response?.data || null,
     });
   }
 };
@@ -205,11 +216,12 @@ export const handleMpesaCallback = async (req: Request, res: Response) => {
       ResultCode: 0,
       ResultDesc: "Processed successfully",
     });
-  } catch (error) {
-    console.error("Callback error:", error);
+  } catch (error: any) {
+    console.error("Payment initiation error FULL:", error);
+
     return res.status(500).json({
-      ResultCode: 1,
-      ResultDesc: "Callback processing failed",
+      message: error.message,
+      detail: error.response?.data || null,
     });
   }
 };
@@ -285,10 +297,12 @@ export const queryPaymentStatus = async (req: Request, res: Response) => {
       status: payment.status,
       message: `Payment ${payment.status}`,
     });
-  } catch (error) {
-    console.error("Query error:", error);
+  } catch (error: any) {
+    console.error("Payment initiation error FULL:", error);
+
     return res.status(500).json({
-      message: "Failed to query payment",
+      message: error.message,
+      detail: error.response?.data || null,
     });
   }
 };
@@ -311,10 +325,12 @@ export const getPaymentDetails = async (req: Request, res: Response) => {
     }
 
     return res.status(200).json(payment);
-  } catch (error) {
-    console.error("Get payment error:", error);
+  } catch (error: any) {
+    console.error("Payment initiation error FULL:", error);
+
     return res.status(500).json({
-      message: "Failed to fetch payment",
+      message: error.message,
+      detail: error.response?.data || null,
     });
   }
 };

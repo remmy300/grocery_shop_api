@@ -118,6 +118,8 @@ class MpesaService {
         TransactionDesc: `Payment for order ${orderId}`,
       };
 
+      console.log("USING PHONE:", formattedPhone);
+
       const response = await axios.post<STKPushResponse>(
         `${this.baseUrl}/mpesa/stkpush/v1/processrequest`,
         payload,
@@ -128,18 +130,17 @@ class MpesaService {
           },
         },
       );
+      console.log("MPESA PAYLOAD:", payload);
 
       return response.data;
     } catch (error: any) {
-      console.error(
-        "STK Push initiation failed:",
-        error.response?.data || error.message,
-      );
-      throw new Error(
-        error.response?.data?.errorMessage ||
-          error.response?.data?.ResponseDescription ||
-          "Failed to initiate M-Pesa payment",
-      );
+      console.error("MPESA FULL ERROR:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
+
+      throw error;
     }
   }
 
@@ -177,14 +178,13 @@ class MpesaService {
 
       return response.data;
     } catch (error: any) {
-      console.error(
-        "STK Push query failed:",
-        error.response?.data || error.message,
-      );
-      throw new Error(
-        error.response?.data?.errorMessage ||
-          "Failed to query M-Pesa payment status",
-      );
+      console.error("MPESA FULL ERROR:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
+
+      throw error;
     }
   }
 
@@ -199,23 +199,17 @@ class MpesaService {
    * Format phone number to international format (254XXXXXXXXX)
    */
   private formatPhoneNumber(phoneNumber: string): string {
-    const cleaned = phoneNumber.replace(/\D/g, "");
-
-    let formatted = cleaned;
+    const cleaned = phoneNumber.replace(/\s+/g, "").replace(/\D/g, "");
 
     if (cleaned.startsWith("0")) {
-      formatted = `254${cleaned.slice(1)}`;
-    } else if (cleaned.startsWith("254")) {
-      formatted = cleaned;
+      return `254${cleaned.slice(1)}`;
     }
 
-    if (!/^2547\d{8}$/.test(formatted)) {
-      throw new Error(
-        "Invalid phone number. Use format 0712345678 or 254712345678",
-      );
+    if (cleaned.startsWith("254")) {
+      return cleaned;
     }
 
-    return formatted;
+    throw new Error(`Invalid phone number format: ${phoneNumber}`);
   }
 
   /**
@@ -276,17 +270,14 @@ class MpesaService {
           body.merchantRequestId ||
           null,
       };
-    } catch (error) {
-      console.error("Error parsing M-Pesa callback:", error);
-      return {
-        resultCode: "1",
-        resultDescription: "Error parsing callback",
-        mpesaReceiptNumber: null,
-        amount: null,
-        phoneNumber: null,
-        checkoutRequestId: null,
-        merchantRequestId: null,
-      };
+    } catch (error: any) {
+      console.error("MPESA FULL ERROR:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
+
+      throw error;
     }
   }
 }

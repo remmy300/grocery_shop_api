@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { JwtPayload } from "../types/express.js";
 import { findUserProfile, findOrCreateCart } from "../services/userServices.js";
 
 export const getProfile = async (req: Request, res: Response) => {
@@ -34,3 +35,11 @@ export const getCart = async (req: Request, res: Response) => {
     });
   }
 };
+
+export function getUser(req: Request): JwtPayload {
+  if (!req.user) {
+    throw new Error("User not authenticated");
+  }
+
+  return req.user;
+}

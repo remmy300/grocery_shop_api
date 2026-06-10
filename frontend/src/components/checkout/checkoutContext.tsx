@@ -133,11 +133,12 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
   const canCheckout = useMemo(() => {
     return (
       items.length > 0 &&
+      !!state.address?.fullName &&
       !!state.address?.street &&
       !!state.address?.phone &&
       !!state.paymentMethod
     );
-  }, [items.length, state.address, state.paymentMethod]);
+  }, [items.length, state.address]);
 
   /*  CONTEXT VALUE*/
 

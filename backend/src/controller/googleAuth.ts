@@ -1,9 +1,10 @@
 import { OAuth2Client } from "google-auth-library";
 import jwt from "jsonwebtoken";
 import prisma from "../lib/prisma.js";
+import { getUser } from "./userController.js";
 import { Request, Response } from "express";
 import { generateAccessToken, generateRefreshToken } from "../utils/token.js";
-import { JwtPayload, AuthenticatedRequest } from "../types/express.js";
+import { JwtPayload } from "../types/express.js";
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const normalizeRole = (role?: string | null) => (role || "").toLowerCase();
@@ -106,8 +107,9 @@ export const refreshToken = (req: Request, res: Response) => {
   }
 };
 
-export const getCurrentUser = (req: AuthenticatedRequest, res: Response) => {
-  return res.json(req.user);
+export const getCurrentUser = (req: Request, res: Response) => {
+  const user = getUser(req);
+  return res.json(user);
 };
 
 export const getAdmins = async (req: Request, res: Response) => {
