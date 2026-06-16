@@ -1,26 +1,21 @@
 import { Router } from "express";
+import { auth, optionalAuth } from "../middleware/auth.js";
 import {
   getCartController,
   addToCartController,
   updateCartItemController,
   removeCartItemController,
   clearCartController,
+  mergeCartController,
 } from "../controller/cartController.js";
 
 const router = Router();
 
-// Cart endpoints are now accessible to both authenticated users and guests
-// Guests will use localStorage-based carts on the frontend
-// Authenticated users will have backend-persisted carts
-
-router.get("/", getCartController);
-
-router.post("/", addToCartController);
-
-router.patch("/:productId", updateCartItemController);
-
-router.delete("/:productId", removeCartItemController);
-
-router.delete("/", clearCartController);
+router.get("/", optionalAuth, getCartController);
+router.post("/merge", auth, mergeCartController);
+router.post("/", optionalAuth, addToCartController);
+router.patch("/:productId", optionalAuth, updateCartItemController);
+router.delete("/:productId", optionalAuth, removeCartItemController);
+router.delete("/", optionalAuth, clearCartController);
 
 export default router;

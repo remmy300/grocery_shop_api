@@ -55,6 +55,28 @@ export const auth = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
+export const optionalAuth = async (
+  req: Request,
+  _res: Response,
+  next: NextFunction,
+) => {
+  const SECRET_KEY =
+    process.env.JWT_ACCESS_SECRET || process.env.JWT_SECRET_KEY;
+
+  const token = req.headers.authorization?.split(" ")[1];
+
+  if (SECRET_KEY && token) {
+    try {
+      const decoded = jwt.verify(token, SECRET_KEY) as JwtPayload;
+      req.user = decoded;
+    } catch {
+      // expired / invalid — continue as guest
+    }
+  }
+
+  next();
+};
+
 export const authorizeRoles =
   (...roles: string[]) =>
   (req: Request, res: Response, next: NextFunction) => {

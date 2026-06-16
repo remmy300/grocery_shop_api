@@ -1,6 +1,7 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getApiBaseUrl } from "@/lib/api";
+import { getAccessToken } from "@/hooks/useCart";
 
 interface InitiatePaymentPayload {
   orderId: number;
@@ -30,133 +31,103 @@ interface PaymentStatus {
   status: string;
 }
 
-/**
-  Hook for handling M-Pesa payment flow
- */
+// Maximum time to poll before giving up (5 minutes)
+const MAX_POLL_MS = 5 * 60 * 1000;
+
 export function useMpesaPayment() {
   const [pollInterval, setPollInterval] = useState<number | false>(false);
+  const pollStartTime = useRef<number | null>(null);
 
-  console.log("HOOK RENDERED");
-
-  // Initiate payment
   const initiateMutation = useMutation({
     mutationFn: async (payload: InitiatePaymentPayload) => {
-      console.log("MUTATION FUNCTION ENTERED");
-      console.log(payload);
-      try {
-        // Evaluate API_BASE_URL at runtime, not at module load time
-        const API_BASE_URL = getApiBaseUrl();
-        const paymentUrl = `${API_BASE_URL}/api/payments/initiate`;
+      const API_BASE_URL = getApiBaseUrl();
+      const token = getAccessToken();
 
-        console.log(" Initiating M-Pesa payment to:", paymentUrl);
-        console.log(" Payload:", payload);
+      const res = await fetch(`${API_BASE_URL}/api/payments/initiate`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(payload),
+      });
 
-        console.log("API_BASE_URL =", API_BASE_URL);
-        console.log("paymentUrl =", paymentUrl);
+      const data = await res.json();
 
-        const res = await fetch(paymentUrl, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
-        });
-
-        console.log(" Response status:", res.status, res.statusText);
-
-        // Clone response to read body safely
-        const responseText = await res.text();
-        console.log(" Response body:", responseText);
-
-        let responseData: any;
-        try {
-          responseData = JSON.parse(responseText);
-        } catch {
-          throw new Error(`Invalid JSON response: ${responseText}`);
-        }
-
-        if (!res.ok) {
-          console.error(" Payment initiation failed:", responseData);
-          throw new Error(
-            responseData?.message ||
-              `Payment initiation failed: ${res.statusText}`,
-          );
-        }
-
-        console.log(" Payment initiated successfully:", responseData);
-        return responseData as PaymentResponse;
-      } catch (error) {
-        console.error(" M-Pesa mutation error:", error);
-        throw error;
+      if (!res.ok) {
+        throw new Error(data?.message || `Payment initiation failed (${res.status})`);
       }
+
+      return data as PaymentResponse;
     },
   });
 
-  // Query payment status
+  // Status query — reads from the DB only; callback is the source of truth.
   const statusQuery = useQuery({
-    queryKey: ["paymentStatus", initiateMutation.data?.payment.id],
+    queryKey: ["paymentStatus", initiateMutation.data?.checkoutRequestId],
     queryFn: async () => {
-      if (!initiateMutation.data?.payment.id) {
-        throw new Error("No payment ID available");
-      }
+      const checkoutRequestId = initiateMutation.data?.checkoutRequestId;
+      if (!checkoutRequestId) throw new Error("No checkout request ID");
 
       const API_BASE_URL = getApiBaseUrl();
-      const statusUrl = `${API_BASE_URL}/api/payments/status?orderId=${initiateMutation.data.payment.id}`;
-
-      console.log(" Querying payment status from:", statusUrl);
-
-      const res = await fetch(statusUrl);
+      const res = await fetch(
+        `${API_BASE_URL}/api/payments/status?checkoutRequestId=${encodeURIComponent(checkoutRequestId)}`,
+      );
 
       if (!res.ok) throw new Error("Failed to fetch payment status");
 
-      const data = await res.json();
-      console.log("Payment status received:", data);
-
-      return data as PaymentStatus;
+      return (await res.json()) as PaymentStatus;
     },
-    enabled: !!pollInterval && !!initiateMutation.data,
+    enabled: !!pollInterval && !!initiateMutation.data?.checkoutRequestId,
     refetchInterval: pollInterval || false,
     refetchOnWindowFocus: false,
   });
 
+  // Stop polling after MAX_POLL_MS to avoid infinite polling when callback
+  // never arrives (e.g. user ignored the STK prompt).
+  useEffect(() => {
+    if (!pollInterval) return;
+    const timer = setTimeout(() => {
+      setPollInterval(false);
+    }, MAX_POLL_MS);
+    return () => clearTimeout(timer);
+  }, [pollInterval]);
+
+  const startPolling = (interval = 3000) => {
+    pollStartTime.current = Date.now();
+    setPollInterval(interval);
+  };
+
+  const stopPolling = () => {
+    setPollInterval(false);
+    pollStartTime.current = null;
+  };
+
   return {
     initiate: initiateMutation,
     status: statusQuery,
+    isPolling: !!pollInterval,
     isPaymentCompleted: statusQuery.data?.payment.status === "completed",
     isPaymentFailed: statusQuery.data?.payment.status === "failed",
-    startPolling: (interval: number = 3000) => setPollInterval(interval),
-    stopPolling: () => setPollInterval(false),
+    startPolling,
+    stopPolling,
   };
 }
 
-/**
- * Hook to get payment details for an order
- */
 export function usePaymentDetails(orderId: number | null) {
   return useQuery({
     queryKey: ["paymentDetails", orderId],
     queryFn: async () => {
       const API_BASE_URL = getApiBaseUrl();
-      const token =
-        typeof window !== "undefined" ? localStorage.getItem("token") : "";
-
-      console.log(" Fetching payment details for order:", orderId);
+      const token = getAccessToken();
 
       const res = await fetch(`${API_BASE_URL}/api/payments/${orderId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
-      if (!res.ok) {
-        const error = await res.text();
-        console.error(" Failed to fetch payment details:", error);
-        throw new Error("Failed to fetch payment details");
-      }
+      if (!res.ok) throw new Error("Failed to fetch payment details");
 
-      const data = await res.json();
-      console.log(" Payment details:", data);
-      return data;
+      return res.json();
     },
     enabled: !!orderId,
   });

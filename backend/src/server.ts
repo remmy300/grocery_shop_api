@@ -21,12 +21,7 @@ const allowedOrigins = rawCorsOrigins
 
 // In development, allow localhost origins to make local frontend dev convenient
 if (process.env.NODE_ENV !== "production") {
-  const devAllow = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://localhost:3001",
-    "http://127.0.0.1:3001",
-  ];
+  const devAllow = ["http://localhost:3000", "http://127.0.0.1:3000"];
   devAllow.forEach((o) => {
     if (!allowedOrigins.includes(o)) allowedOrigins.push(o);
   });

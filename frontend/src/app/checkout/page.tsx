@@ -4,12 +4,7 @@ import Image from "next/image";
 import { useMutation } from "@tanstack/react-query";
 import { useState, useEffect, useRef, useCallback } from "react";
 
-import {
-  CreditCard,
-  Lock,
-  LocalShipping,
-  MyLocation,
-} from "@mui/icons-material";
+import { CreditCard, Lock, Truck, Navigation } from "lucide-react";
 import { getApiBaseUrl } from "@/lib/api";
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -335,7 +330,7 @@ export default function CheckoutPage() {
                   onClick={handleUseCurrentLocation}
                   className="gap-2"
                 >
-                  <MyLocation />
+                  <Navigation className="h-4 w-4" />
                   Use Current Location
                 </Button>
                 {geoStatus ? (
@@ -375,7 +370,7 @@ export default function CheckoutPage() {
               <label className="cursor-pointer">
                 <RadioGroupItem value="standard" className="sr-only" />
                 <Card className="p-4 border">
-                  <LocalShipping />
+                  <Truck className="h-5 w-5" />
                   <p className="font-bold">Standard</p>
                   <p className="text-sm text-muted-foreground">3–5 days</p>
                 </Card>

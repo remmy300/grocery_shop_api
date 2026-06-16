@@ -9,10 +9,14 @@ import { auth } from "../middleware/auth.js";
 
 const router = express.Router();
 
-router.post("/initiate", initiatePayment);
+// Requires a valid JWT — prevents anonymous STK-push spam
+router.post("/initiate", auth, initiatePayment);
 
+// Safaricom posts here; no user auth (it's a server-to-server callback)
 router.post("/callback", handleMpesaCallback);
 
+// Frontend polls this; no auth needed (orderId is not guessable enough to need it,
+// and the response contains no sensitive data beyond status)
 router.get("/status", queryPaymentStatus);
 
 router.get("/:orderId", auth, getPaymentDetails);

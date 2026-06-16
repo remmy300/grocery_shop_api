@@ -17,6 +17,7 @@ const CART_URL = API_BASE_URL.endsWith("/api")
 
 export const getAccessToken = () => {
   if (typeof window === "undefined") return "";
+  console.log("Getting access token...");
   return (
     localStorage.getItem("accessToken") || localStorage.getItem("token") || ""
   );
@@ -94,6 +95,12 @@ async function fetchCart(): Promise<ApiCart> {
     },
   });
 
+  if (res.status === 401) {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("token");
+    return getGuestCart();
+  }
+
   if (!res.ok) {
     throw new Error("Failed to fetch cart");
   }
@@ -153,7 +160,20 @@ async function addToCartApi(productId: number) {
       body: JSON.stringify({ productId, quantity: 1 }),
     });
 
-    if (!res.ok) throw new Error("Failed");
+    if (res.status === 401) {
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("token");
+      return addToCartApi(productId);
+    }
+
+    if (!res.ok) {
+      const errorBody = await res.text();
+      console.error("Add to cart API error:", {
+        status: res.status,
+        body: errorBody,
+      });
+      throw new Error(errorBody || `HTTP ${res.status}`);
+    }
 
     return res.json();
   }
@@ -178,26 +198,27 @@ async function updateItemApi(productId: number, quantity: number) {
 }
 
 export function useCartSyncOnLogin() {
+  const queryClient = useQueryClient();
+
   const run = async () => {
     const token = getAccessToken();
-    if (!token) {
-      return;
-    }
+    if (!token) return;
 
     const guest = getGuestCart();
 
-    if (!guest.items.length) return;
+    if (guest.items.length) {
+      await fetch(`${CART_URL}/merge`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ items: guest.items }),
+      });
+      localStorage.removeItem(GUEST_CART_KEY);
+    }
 
-    await fetch(`${CART_URL}/merge`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ items: guest.items }),
-    });
-
-    localStorage.removeItem(GUEST_CART_KEY);
+    await queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
   };
 
   return { run };
@@ -288,6 +309,7 @@ export function useCart() {
   const totalItems = items.length;
   const total = subtotal;
 
+  // console.log(items);
   /* ───────────────── MUTATIONS */
 
   const addToCart = useMutation({
@@ -333,8 +355,9 @@ export function useCart() {
     },
 
     onSuccess: (data) => {
-      console.log("Server cart:", data);
-      queryClient.setQueryData(CART_QUERY_KEY, data);
+      if (data) {
+        queryClient.setQueryData(CART_QUERY_KEY, data);
+      }
     },
 
     onSettled: () => {

@@ -193,6 +193,48 @@ export const removeCartItemController = async (req: Request, res: Response) => {
   }
 };
 
+// MERGE GUEST CART ON LOGIN
+export const mergeCartController = async (req: Request, res: Response) => {
+  try {
+    const userId = getAuthenticatedUserId(req);
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const { items } = req.body as {
+      items: Array<{ productId: number; quantity: number }>;
+    };
+
+    if (!Array.isArray(items) || !items.length) {
+      return res.status(200).json(await getCartWithItemsByUserId(userId) ?? { items: [] });
+    }
+
+    const cart = await prisma.cart.upsert({
+      where: { userId },
+      update: {},
+      create: { userId },
+    });
+
+    for (const item of items) {
+      const productId = parsePositiveInteger(item.productId);
+      const quantity = parsePositiveInteger(item.quantity);
+      if (!productId || !quantity) continue;
+
+      await prisma.cartItem.upsert({
+        where: { cartId_productId: { cartId: cart.id, productId } },
+        update: { quantity: { increment: quantity } },
+        create: { cartId: cart.id, productId, quantity },
+      });
+    }
+
+    const cartWithItems = await getCartWithItemsByUserId(userId);
+    return res.status(200).json(cartWithItems ?? { items: [] });
+  } catch (error) {
+    console.error("Merge cart error:", error);
+    return res.status(500).json({ message: "Failed to merge cart" });
+  }
+};
+
 // CLEAR CART
 // Authenticated users only (guests use localStorage frontend cart)
 export const clearCartController = async (req: Request, res: Response) => {

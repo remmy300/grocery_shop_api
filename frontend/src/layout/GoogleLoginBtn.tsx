@@ -4,9 +4,11 @@ import { useState } from "react";
 import { GoogleLogin, type CredentialResponse } from "@react-oauth/google";
 import { useApp } from "@/contexts/AppContext";
 import { apiRequest } from "@/lib/api";
+import { useCartSyncOnLogin } from "@/hooks/useCart";
 
 const GoogleLoginButton = () => {
   const { applySessionTokens } = useApp();
+  const { run: syncCart } = useCartSyncOnLogin();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -36,6 +38,8 @@ const GoogleLoginButton = () => {
         accessToken: response.accessToken,
         refreshToken: response.refreshToken,
       });
+
+      await syncCart();
     } catch (requestError) {
       setError(
         requestError instanceof Error
