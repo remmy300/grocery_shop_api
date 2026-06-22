@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useMutation } from "@tanstack/react-query";
 import { useState, useEffect, useRef, useCallback } from "react";
 
+import { useRouter } from "next/navigation";
 import { CreditCard, Lock, Truck, Navigation } from "lucide-react";
 import { getApiBaseUrl } from "@/lib/api";
 
@@ -27,6 +28,7 @@ const getAccessToken = () => {
 };
 
 export default function CheckoutPage() {
+  const router = useRouter();
   const { items } = useCart();
 
   const {
@@ -47,7 +49,6 @@ export default function CheckoutPage() {
   const [mapsLoaded, setMapsLoaded] = useState(false);
   const [createdOrderId, setCreatedOrderId] = useState<number | null>(null);
   const [paymentError, setPaymentError] = useState<string | null>(null);
-  const [paymentSuccess, setPaymentSuccess] = useState<string | null>(null);
 
   /*  LOCATION HANDLER  */
 
@@ -431,7 +432,9 @@ export default function CheckoutPage() {
                 phoneNumber={state.address?.phone || ""}
                 customerName={state.address?.fullName || ""}
                 onSuccess={(receipt) => {
-                  setPaymentSuccess(`Payment successful! Receipt: ${receipt}`);
+                  router.push(
+                    `/order-success?orderId=${createdOrderId}&receipt=${encodeURIComponent(receipt)}&amount=${total.toFixed(2)}`
+                  );
                 }}
                 onError={(error) => {
                   setPaymentError(error);
@@ -446,16 +449,6 @@ export default function CheckoutPage() {
               <CardContent className="p-4">
                 <p className="text-sm font-medium text-red-900">Error</p>
                 <p className="text-xs text-red-700">{paymentError}</p>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* SUCCESS MESSAGE */}
-          {paymentSuccess && (
-            <Card className="border-green-200 bg-green-50">
-              <CardContent className="p-4">
-                <p className="text-sm font-medium text-green-900">Success!</p>
-                <p className="text-xs text-green-700">{paymentSuccess}</p>
               </CardContent>
             </Card>
           )}

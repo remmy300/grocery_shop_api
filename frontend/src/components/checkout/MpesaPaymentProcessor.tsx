@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { useMpesaPayment } from "@/hooks/useMpesaPayment";
+import { useMpesaPayment, MpesaPaymentError } from "@/hooks/useMpesaPayment";
 import { AlertCircle, CheckCircle2, Loader } from "lucide-react";
 
 interface MpesaPaymentProcessorProps {
@@ -38,22 +38,24 @@ export default function MpesaPaymentProcessor({
   useEffect(() => {
     if (isPaymentCompleted) {
       stopPolling();
-      onSuccess?.(status.data?.payment.mpesaReceiptNumber || "PAYMENT_COMPLETED");
+      onSuccess?.(
+        status.data?.payment.mpesaReceiptNumber || "PAYMENT_COMPLETED",
+      );
     }
-  }, [isPaymentCompleted]);
+  }, [isPaymentCompleted, stopPolling, onSuccess, status.data]);
 
   useEffect(() => {
     if (isPaymentFailed) {
       stopPolling();
       onError?.(status.data?.payment.resultDescription || "Payment failed");
     }
-  }, [isPaymentFailed]);
+  }, [isPaymentFailed, stopPolling, onError, status.data]);
 
   const handleInitiatePayment = () => {
     initiate.mutate(
       { orderId, phoneNumber: inputPhone, amount },
       {
-        onSuccess: () => startPolling(3000),
+        onSuccess: () => startPolling(),
         onError: (err) => onError?.(err.message),
       },
     );
@@ -61,7 +63,6 @@ export default function MpesaPaymentProcessor({
 
   return (
     <div className="space-y-4">
-
       {/* Initiation in progress */}
       {initiate.isPending && (
         <Card>
@@ -73,17 +74,38 @@ export default function MpesaPaymentProcessor({
       )}
 
       {/* Initiation error */}
-      {initiate.isError && (
-        <Card className="border-red-200 bg-red-50">
-          <CardContent className="p-4 flex items-center gap-3">
-            <AlertCircle className="h-4 w-4 text-red-600" />
-            <div>
-              <p className="text-sm font-medium text-red-900">Payment Error</p>
-              <p className="text-xs text-red-700">{initiate.error?.message}</p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {initiate.isError &&
+        (() => {
+          const err = initiate.error as MpesaPaymentError;
+          const isRetryable = err?.retryable;
+          return (
+            <Card
+              className={
+                isRetryable
+                  ? "border-yellow-300 bg-yellow-50"
+                  : "border-red-200 bg-red-50"
+              }
+            >
+              <CardContent className="p-4 flex items-center gap-3">
+                <AlertCircle
+                  className={`h-4 w-4 ${isRetryable ? "text-yellow-600" : "text-red-600"}`}
+                />
+                <div>
+                  <p
+                    className={`text-sm font-medium ${isRetryable ? "text-yellow-900" : "text-red-900"}`}
+                  >
+                    {isRetryable ? "M-Pesa Busy" : "Payment Error"}
+                  </p>
+                  <p
+                    className={`text-xs ${isRetryable ? "text-yellow-700" : "text-red-700"}`}
+                  >
+                    {err?.message}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })()}
 
       {/* Waiting for user to enter PIN — only shown once polling starts */}
       {isPolling && !isPaymentCompleted && !isPaymentFailed && (
@@ -91,7 +113,9 @@ export default function MpesaPaymentProcessor({
           <CardContent className="p-4 flex items-center gap-3">
             <Loader className="h-4 w-4 animate-spin" />
             <div>
-              <p className="text-sm font-medium">Waiting for payment confirmation…</p>
+              <p className="text-sm font-medium">
+                Waiting for payment confirmation…
+              </p>
               <p className="text-xs text-muted-foreground">
                 Enter your M-Pesa PIN on your phone to complete the payment.
               </p>
@@ -106,7 +130,9 @@ export default function MpesaPaymentProcessor({
           <CardContent className="p-4 flex items-center gap-3">
             <CheckCircle2 className="h-4 w-4 text-green-600" />
             <div>
-              <p className="text-sm font-medium text-green-900">Payment Successful!</p>
+              <p className="text-sm font-medium text-green-900">
+                Payment Successful!
+              </p>
               <p className="text-xs text-green-700">
                 Receipt: {status.data?.payment.mpesaReceiptNumber}
               </p>
@@ -168,7 +194,7 @@ export default function MpesaPaymentProcessor({
       {/* Completion state */}
       {isPaymentCompleted && (
         <Button className="w-full h-11 font-semibold" disabled>
-          ✓ Payment Complete
+          Payment Complete
         </Button>
       )}
 

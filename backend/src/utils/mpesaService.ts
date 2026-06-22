@@ -1,5 +1,39 @@
 import axios from "axios";
 
+// Retry a Safaricom API call on transient errors (503, 429, network timeout).
+// surfaces as a 500 to the end user.
+async function withRetry<T>(
+  fn: () => Promise<T>,
+  maxAttempts = 3,
+  baseDelayMs = 1000,
+): Promise<T> {
+  let lastError: any;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await fn();
+    } catch (error: any) {
+      lastError = error;
+      const status = error.response?.status;
+      const safaricomCode: string = error.response?.data?.errorCode ?? "";
+
+      const isTransient =
+        !status ||
+        status === 503 ||
+        status === 429 ||
+        safaricomCode.startsWith("500.003");
+
+      if (!isTransient || attempt === maxAttempts) throw error;
+
+      const delay = baseDelayMs * 2 ** (attempt - 1);
+      console.warn(
+        `[mpesa] attempt ${attempt} transient error (HTTP ${status ?? "none"} errorCode ${safaricomCode || "n/a"}), retrying in ${delay}ms`,
+      );
+      await new Promise((r) => setTimeout(r, delay));
+    }
+  }
+  throw lastError;
+}
+
 interface MpesaConfig {
   consumerKey: string;
   consumerSecret: string;
@@ -59,10 +93,12 @@ class MpesaService {
 
       return this.accessToken;
     } catch (error: any) {
-      console.error("[mpesa] Failed to get access token:", error.response?.status);
-      throw new Error(
-        error.response?.data?.errorMessage || "Failed to authenticate with M-Pesa",
+      console.error(
+        "[mpesa] Failed to get access token:",
+        error.response?.status,
+        error.response?.data,
       );
+      throw error;
     }
   }
 
@@ -80,14 +116,6 @@ class MpesaService {
     const timestamp = this.generateTimestamp();
     const password = this.generatePassword(timestamp);
 
-    // Temporary diagnostics — remove once STK push is confirmed working
-    console.log("[mpesa-debug] shortCode:", this.config.shortCode);
-    console.log("[mpesa-debug] timestamp:", timestamp);
-    console.log("[mpesa-debug] passkey first 8 chars:", this.config.passkey?.slice(0, 8));
-    console.log("[mpesa-debug] password first 8 chars:", password?.slice(0, 8));
-    console.log("[mpesa-debug] raw concat prefix (shortCode+passkey[0..7]+timestamp):",
-      `${this.config.shortCode}${this.config.passkey?.slice(0, 8)}...${timestamp}`);
-
     const payload = {
       BusinessShortCode: this.config.shortCode,
       Password: password,
@@ -103,15 +131,17 @@ class MpesaService {
     };
 
     try {
-      const response = await axios.post<STKPushResponse>(
-        `${this.baseUrl}/mpesa/stkpush/v1/processrequest`,
-        payload,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
+      const response = await withRetry(() =>
+        axios.post<STKPushResponse>(
+          `${this.baseUrl}/mpesa/stkpush/v1/processrequest`,
+          payload,
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "Content-Type": "application/json",
+            },
           },
-        },
+        ),
       );
 
       return response.data;
@@ -136,20 +166,22 @@ class MpesaService {
     const password = this.generatePassword(timestamp);
 
     try {
-      const response = await axios.post(
-        `${this.baseUrl}/mpesa/stkpushquery/v1/query`,
-        {
-          BusinessShortCode: this.config.shortCode,
-          Password: password,
-          Timestamp: timestamp,
-          CheckoutRequestID: checkoutRequestId,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
+      const response = await withRetry(() =>
+        axios.post(
+          `${this.baseUrl}/mpesa/stkpushquery/v1/query`,
+          {
+            BusinessShortCode: this.config.shortCode,
+            Password: password,
+            Timestamp: timestamp,
+            CheckoutRequestID: checkoutRequestId,
           },
-        },
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "Content-Type": "application/json",
+            },
+          },
+        ),
       );
 
       return response.data;
@@ -184,9 +216,13 @@ class MpesaService {
       amount: findItem("Amount"),
       phoneNumber: findItem("PhoneNumber"),
       checkoutRequestId:
-        body.Body?.stkCallback?.CheckoutRequestID ?? body.checkoutRequestId ?? null,
+        body.Body?.stkCallback?.CheckoutRequestID ??
+        body.checkoutRequestId ??
+        null,
       merchantRequestId:
-        body.Body?.stkCallback?.MerchantRequestID ?? body.merchantRequestId ?? null,
+        body.Body?.stkCallback?.MerchantRequestID ??
+        body.merchantRequestId ??
+        null,
     };
   }
 
@@ -209,17 +245,16 @@ class MpesaService {
   }
 
   private generateTimestamp(): string {
-    // Safaricom requires EAT (UTC+3). toLocaleString with timeZone is unreliable
-    // on Windows Node builds that ship without full ICU data, so we add the offset manually.
-    const eat = new Date(Date.now() + 3 * 60 * 60 * 1000);
-    return [
-      eat.getUTCFullYear(),
-      String(eat.getUTCMonth() + 1).padStart(2, "0"),
-      String(eat.getUTCDate()).padStart(2, "0"),
-      String(eat.getUTCHours()).padStart(2, "0"),
-      String(eat.getUTCMinutes()).padStart(2, "0"),
-      String(eat.getUTCSeconds()).padStart(2, "0"),
-    ].join("");
+    const now = new Date();
+
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    const hours = String(now.getHours()).padStart(2, "0");
+    const minutes = String(now.getMinutes()).padStart(2, "0");
+    const seconds = String(now.getSeconds()).padStart(2, "0");
+
+    return `${year}${month}${day}${hours}${minutes}${seconds}`;
   }
 
   private generatePassword(timestamp: string): string {

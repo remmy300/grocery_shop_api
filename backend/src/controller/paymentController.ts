@@ -3,12 +3,6 @@ import { Prisma } from "@prisma/client";
 import prisma from "../lib/prisma.js";
 import MpesaService from "../utils/mpesaService.js";
 
-// ---------------------------------------------------------------------------
-// Lazy service initialisation
-// Throwing at module-load time crashes the whole process. By initialising
-// on first use we get a proper 500 response and a clear log instead.
-// ---------------------------------------------------------------------------
-
 const REQUIRED_ENV = [
   "MPESA_CONSUMER_KEY",
   "MPESA_CONSUMER_SECRET",
@@ -28,9 +22,6 @@ function getMpesaService(): MpesaService {
   }
 
   const key = process.env.MPESA_CONSUMER_KEY!;
-  console.log(
-    `[mpesa] initialising service — env:${process.env.MPESA_ENVIRONMENT} shortCode:${process.env.MPESA_SHORT_CODE} key:${key.slice(0, 6)}... passkey:${process.env.MPESA_PASSKEY?.slice(0, 8)}...`,
-  );
 
   _mpesaService = new MpesaService({
     consumerKey: key,
@@ -46,7 +37,6 @@ function getMpesaService(): MpesaService {
   return _mpesaService;
 }
 
-// Generic error payload — never leak internals to the client in production
 function errorPayload(error: any) {
   if (process.env.NODE_ENV !== "production") {
     return { message: error.message, detail: error.response?.data ?? null };
@@ -54,25 +44,23 @@ function errorPayload(error: any) {
   return { message: "An error occurred. Please try again." };
 }
 
-// ---------------------------------------------------------------------------
 // INITIATE PAYMENT
-// ---------------------------------------------------------------------------
 
 export const initiatePayment = async (req: Request, res: Response) => {
   try {
     const { orderId, phoneNumber, amount } = req.body;
 
     if (orderId === undefined || !phoneNumber || amount === undefined) {
-      return res
-        .status(400)
-        .json({ message: "Missing required fields: orderId, phoneNumber, amount" });
+      return res.status(400).json({
+        message: "Missing required fields: orderId, phoneNumber, amount",
+      });
     }
 
     if (Number(amount) <= 0) {
       return res.status(400).json({ message: "Amount must be greater than 0" });
     }
 
-    // --- ownership check: authenticated user must own the order ---
+    //  ownership check: authenticated user must own the order
     const order = await prisma.order.findUnique({
       where: { id: Number(orderId) },
     });
@@ -85,7 +73,6 @@ export const initiatePayment = async (req: Request, res: Response) => {
       return res.status(403).json({ message: "Forbidden" });
     }
 
-    // --- guard against double-charge ---
     // Check for an existing payment record BEFORE calling Safaricom.
     const existing = await prisma.payment.findUnique({
       where: { orderId: Number(orderId) },
@@ -99,21 +86,20 @@ export const initiatePayment = async (req: Request, res: Response) => {
 
     // If a pending payment was initiated less than 2 minutes ago, block a
     // duplicate STK push (Daraja prompts expire in ~3 min).
-    if (existing?.status === "pending" && existing.createdAt) {
-      const ageMs = Date.now() - new Date(existing.createdAt).getTime();
+    if (existing?.status === "pending" && existing.updatedAt) {
+      const ageMs = Date.now() - new Date(existing.updatedAt).getTime();
       if (ageMs < 2 * 60 * 1000) {
         return res.status(409).json({
-          message: "A payment for this order is already in progress. Please check your phone.",
+          message:
+            "A payment for this order is already in progress. Please check your phone.",
           checkoutRequestId: existing.checkoutRequestId,
           payment: { id: existing.id, status: existing.status },
         });
       }
     }
 
-    // --- create / reset the payment record BEFORE calling Safaricom ---
+    // create / reset the payment record BEFORE calling Safaricom ---
     // The unique constraint on orderId is the race-condition guard.
-    // If two requests arrive simultaneously the second upsert wins harmlessly;
-    // only one STK push is sent because we only reach this point once per window.
     const payment = await prisma.payment.upsert({
       where: { orderId: Number(orderId) },
       update: {
@@ -130,7 +116,7 @@ export const initiatePayment = async (req: Request, res: Response) => {
       },
     });
 
-    // --- call Safaricom ---
+    // call Safaricom
     let stkResponse;
     try {
       stkResponse = await getMpesaService().initiateStkPush(
@@ -179,15 +165,60 @@ export const initiatePayment = async (req: Request, res: Response) => {
     });
   } catch (error: any) {
     console.error("[payment] initiatePayment error:", error.message);
+    const upstreamStatus = error.response?.status;
+    const safaricomCode: string = error.response?.data?.errorCode ?? "";
+
+    // Safaricom "System is busy" — errorCode 500.003.x or HTTP 503/429.
+    const isSafaricomBusy =
+      safaricomCode.startsWith("500.003") ||
+      upstreamStatus === 503 ||
+      upstreamStatus === 429;
+
+    if (isSafaricomBusy) {
+      console.warn(
+        "[payment] Safaricom busy:",
+        safaricomCode || upstreamStatus,
+      );
+      return res.status(503).json({
+        message:
+          "M-Pesa is temporarily busy. Please wait a moment and try again.",
+        retryable: true,
+      });
+    }
+
+    // Safaricom config/validation error (500.001.x, 500.002.x)
+    if (upstreamStatus === 500 && safaricomCode) {
+      console.error(
+        "[payment] Safaricom rejected request:",
+        safaricomCode,
+        error.response?.data?.errorMessage,
+      );
+      return res.status(502).json({
+        message:
+          process.env.NODE_ENV !== "production"
+            ? `Safaricom error ${safaricomCode}: ${error.response?.data?.errorMessage ?? "check STK push configuration"}`
+            : "Payment gateway error. Contact support.",
+        safaricomCode,
+      });
+    }
+
+    if (upstreamStatus === 401 || upstreamStatus === 403) {
+      console.error(
+        "[payment] Safaricom auth error — check MPESA_CONSUMER_KEY/SECRET/PASSKEY",
+      );
+      return res.status(502).json({
+        message:
+          process.env.NODE_ENV !== "production"
+            ? `Safaricom auth failed (${upstreamStatus}): ${error.response?.data?.errorMessage ?? "check credentials"}`
+            : "Payment gateway authentication failed. Contact support.",
+      });
+    }
+
     return res.status(500).json(errorPayload(error));
   }
 };
 
-// ---------------------------------------------------------------------------
 // CALLBACK HANDLER
-// Safaricom posts the payment result here. This is the authoritative status
-// update — the status-poll endpoint should only READ from the DB.
-// ---------------------------------------------------------------------------
 
 export const handleMpesaCallback = async (req: Request, res: Response) => {
   try {
@@ -213,7 +244,9 @@ export const handleMpesaCallback = async (req: Request, res: Response) => {
     }
 
     if (payment.status === "completed") {
-      return res.status(200).json({ ResultCode: 0, ResultDesc: "Already processed" });
+      return res
+        .status(200)
+        .json({ ResultCode: 0, ResultDesc: "Already processed" });
     }
 
     const isSuccess = callbackData.resultCode === "0";
@@ -262,11 +295,7 @@ export const handleMpesaCallback = async (req: Request, res: Response) => {
   }
 };
 
-// ---------------------------------------------------------------------------
 // QUERY PAYMENT STATUS
-// Reads from the DB only. The callback is the source of truth.
-// No Daraja API calls on every poll — that would hammer the rate limit.
-// ---------------------------------------------------------------------------
 
 export const queryPaymentStatus = async (req: Request, res: Response) => {
   try {
@@ -308,9 +337,7 @@ export const queryPaymentStatus = async (req: Request, res: Response) => {
   }
 };
 
-// ---------------------------------------------------------------------------
 // GET PAYMENT DETAILS
-// ---------------------------------------------------------------------------
 
 export const getPaymentDetails = async (req: Request, res: Response) => {
   try {
@@ -325,7 +352,7 @@ export const getPaymentDetails = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Payment not found" });
     }
 
-    // Ensure the requesting user owns the order
+    // Ensuring the requesting user owns the order
     if (
       payment.order.userId !== null &&
       payment.order.userId !== req.user?.id

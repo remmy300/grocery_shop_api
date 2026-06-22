@@ -1,7 +1,12 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { getApiBaseUrl } from "@/lib/api";
 import { getAccessToken } from "@/hooks/useCart";
+
+export interface MpesaPaymentError extends Error {
+  retryable?: boolean;
+  status?: number;
+}
 
 interface InitiatePaymentPayload {
   orderId: number;
@@ -31,12 +36,11 @@ interface PaymentStatus {
   status: string;
 }
 
-// Maximum time to poll before giving up (5 minutes)
-const MAX_POLL_MS = 5 * 60 * 1000;
+const POLL_INTERVAL_MS = 2000;
+const MAX_POLL_MS = 3 * 60 * 1000; // give up after 3 minutes
 
 export function useMpesaPayment() {
-  const [pollInterval, setPollInterval] = useState<number | false>(false);
-  const pollStartTime = useRef<number | null>(null);
+  const [polling, setPolling] = useState(false);
 
   const initiateMutation = useMutation({
     mutationFn: async (payload: InitiatePaymentPayload) => {
@@ -55,14 +59,21 @@ export function useMpesaPayment() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data?.message || `Payment initiation failed (${res.status})`);
+        const err = new Error(
+          data?.message ||
+            (res.status === 503
+              ? "M-Pesa is temporarily busy. Please wait a moment and try again."
+              : `Payment initiation failed (${res.status})`),
+        ) as Error & { retryable?: boolean; status?: number };
+        err.retryable = !!data?.retryable;
+        err.status = res.status;
+        throw err;
       }
 
       return data as PaymentResponse;
     },
   });
 
-  // Status query — reads from the DB only; callback is the source of truth.
   const statusQuery = useQuery({
     queryKey: ["paymentStatus", initiateMutation.data?.checkoutRequestId],
     queryFn: async () => {
@@ -78,35 +89,35 @@ export function useMpesaPayment() {
 
       return (await res.json()) as PaymentStatus;
     },
-    enabled: !!pollInterval && !!initiateMutation.data?.checkoutRequestId,
-    refetchInterval: pollInterval || false,
+    // Stable number — avoids new function ref on every render resetting the interval
+    enabled: polling && !!initiateMutation.data?.checkoutRequestId,
+    refetchInterval: POLL_INTERVAL_MS,
     refetchOnWindowFocus: false,
+    refetchIntervalInBackground: false,
   });
 
-  // Stop polling after MAX_POLL_MS to avoid infinite polling when callback
-  // never arrives (e.g. user ignored the STK prompt).
+  // Stop polling when payment reaches a terminal state
   useEffect(() => {
-    if (!pollInterval) return;
-    const timer = setTimeout(() => {
-      setPollInterval(false);
-    }, MAX_POLL_MS);
+    const status = statusQuery.data?.payment?.status;
+    if (status === "completed" || status === "failed") {
+      setPolling(false);
+    }
+  }, [statusQuery.data?.payment?.status]);
+
+  // Stop polling after MAX_POLL_MS (user ignored the STK prompt)
+  useEffect(() => {
+    if (!polling) return;
+    const timer = setTimeout(() => setPolling(false), MAX_POLL_MS);
     return () => clearTimeout(timer);
-  }, [pollInterval]);
+  }, [polling]);
 
-  const startPolling = (interval = 3000) => {
-    pollStartTime.current = Date.now();
-    setPollInterval(interval);
-  };
-
-  const stopPolling = () => {
-    setPollInterval(false);
-    pollStartTime.current = null;
-  };
+  const startPolling = () => setPolling(true);
+  const stopPolling = () => setPolling(false);
 
   return {
     initiate: initiateMutation,
     status: statusQuery,
-    isPolling: !!pollInterval,
+    isPolling: polling,
     isPaymentCompleted: statusQuery.data?.payment.status === "completed",
     isPaymentFailed: statusQuery.data?.payment.status === "failed",
     startPolling,
