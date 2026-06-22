@@ -168,40 +168,42 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarContent>
-          <SidebarFooter className="border-t border-border p-4">
+          <SidebarFooter className="border-t border-border p-3">
             <Link
               href="/dashboard/profile"
-              className="mb-4 block rounded-xl bg-surface-container-low px-3 py-3 transition-transform hover:-translate-y-0.5 hover:bg-surface-container"
+              className="mb-3 block overflow-hidden rounded-xl bg-surface-container-low px-3 py-3 transition-transform hover:-translate-y-0.5 hover:bg-surface-container"
             >
-              <div className="flex items-center gap-3">
-                <Avatar className="h-10 w-10">
-                  <AvatarFallback>{profile?.initials || "SO"}</AvatarFallback>
+              <div className="flex min-w-0 items-center gap-2">
+                <Avatar className="h-9 w-9 shrink-0">
+                  <AvatarFallback className="text-xs">
+                    {profile?.initials || "SO"}
+                  </AvatarFallback>
                 </Avatar>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-xs font-bold">
+                <div className="min-w-0 flex-1 overflow-hidden">
+                  <p className="truncate text-xs font-bold leading-tight">
                     {profile?.displayName || "Signed out"}
                   </p>
-                  <p className="truncate text-[10px] text-muted-foreground">
+                  <p className="truncate text-[10px] leading-snug text-muted-foreground">
                     {profile?.email || "Not signed in"}
                   </p>
-                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground/80">
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground/80">
                     {roleLabel || "Guest"}
                   </p>
                 </div>
-                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
               </div>
-              <p className="mt-3 text-[10px] uppercase tracking-[0.3em] text-primary/80">
+              <p className="mt-2 text-[10px] uppercase tracking-widest text-primary/80">
                 View profile
               </p>
             </Link>
             <Button
               type="button"
               variant="outline"
-              className="mb-4 w-full justify-start rounded-xl border-border px-3 py-3 text-sm font-medium"
+              className="mb-3 w-full justify-start rounded-xl border-border px-3 py-2.5 text-sm font-medium"
               onClick={handleLogout}
             >
-              <LogOut className="mr-2 h-4 w-4" />
-              Log out
+              <LogOut className="mr-2 h-4 w-4 shrink-0" />
+              <span>Log out</span>
             </Button>
             <SidebarMenu>
               <SidebarMenuItem>
@@ -210,7 +212,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
                     href="/dashboard/settings"
                     className="flex items-center gap-3 px-3 py-2"
                   >
-                    <Settings className="h-5 w-5" />
+                    <Settings className="h-5 w-5 shrink-0" />
                     <span>Settings</span>
                   </Link>
                 </SidebarMenuButton>
@@ -225,7 +227,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
                     href="/dashboard/profile"
                     className="flex items-center gap-3 px-3 py-2"
                   >
-                    <User className="h-5 w-5" />
+                    <User className="h-5 w-5 shrink-0" />
                     <span>Profile</span>
                   </Link>
                 </SidebarMenuButton>

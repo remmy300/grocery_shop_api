@@ -1,11 +1,11 @@
 "use client";
 
-import { createContext, ReactNode, useContext, useMemo, useState } from "react";
+import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from "react";
 
 import { useCart } from "@/hooks/useCart";
 
 export type DeliveryMethod = "standard" | "express";
-export type PaymentMethod = "mpesa" | "card" | "cod";
+export type PaymentMethod = "mpesa" | "cod";
 
 export type CheckoutAddress = {
   fullName: string;
@@ -49,15 +49,11 @@ const CheckoutContext = createContext<CheckoutContextType | null>(null);
 /*  SHIPPING RULES  */
 
 function getShippingFee(method: DeliveryMethod | null, subtotal: number) {
+  // Self pickup is always free
+  if (method === "express") return 0;
+  // Home delivery is free on orders over KES 1000
   if (subtotal >= 1000) return 0;
-
-  switch (method) {
-    case "express":
-      return 250;
-    case "standard":
-    default:
-      return 100;
-  }
+  return 100;
 }
 
 function getTaxRate(city?: string) {
@@ -65,23 +61,43 @@ function getTaxRate(city?: string) {
   return city.toLowerCase() === "nairobi" ? 0.16 : 0.1;
 }
 
+const SESSION_KEY = "checkout_state";
+
+const defaultState: CheckoutState = {
+  deliveryMethod: "standard",
+  paymentMethod: "mpesa",
+  address: { fullName: "", street: "", city: "", postalCode: "", phone: "" },
+  location: null,
+};
+
+function loadPersistedState(): CheckoutState {
+  if (typeof window === "undefined") return defaultState;
+  try {
+    const raw = sessionStorage.getItem(SESSION_KEY);
+    if (!raw) return defaultState;
+    return { ...defaultState, ...JSON.parse(raw) };
+  } catch {
+    return defaultState;
+  }
+}
+
 /*  PROVIDER  */
 
 export function CheckoutProvider({ children }: { children: ReactNode }) {
   const { items, subtotal } = useCart();
 
-  const [state, setState] = useState<CheckoutState>({
-    deliveryMethod: "standard",
-    paymentMethod: "mpesa",
-    address: {
-      fullName: "",
-      street: "",
-      city: "",
-      postalCode: "",
-      phone: "",
-    },
-    location: null,
-  });
+  const [state, setState] = useState<CheckoutState>(loadPersistedState);
+
+  // Persist address/delivery/payment to sessionStorage on every change.
+  // location (lat/lng) is not persisted — it's derived from the address via Maps.
+  useEffect(() => {
+    const { location: _loc, ...persistable } = state;
+    try {
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify(persistable));
+    } catch {
+      // sessionStorage may be unavailable in private browsing
+    }
+  }, [state]);
 
   /*  STATE SETTERS  */
 

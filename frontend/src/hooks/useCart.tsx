@@ -69,6 +69,7 @@ export interface CartItem {
   price: number;
   quantity: number;
   subtitle: string;
+  stock: number;
 }
 
 /* ───────────────── HELPERS */
@@ -298,6 +299,7 @@ export function useCart() {
         price: product?.priceValue ?? toNumber(item.product?.price ?? 0),
         quantity: item.quantity,
         subtitle: product?.category ?? "",
+        stock: product?.stock ?? 9999,
       };
     });
   }, [cartQuery.data, productMap]);

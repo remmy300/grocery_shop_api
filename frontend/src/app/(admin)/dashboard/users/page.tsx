@@ -8,6 +8,8 @@ import {
   Users,
   Pencil,
   Trash,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -108,7 +110,7 @@ const UsersPage = () => {
           <nav className="mb-4 flex items-center gap-2 text-xs font-label uppercase tracking-widest text-secondary-foreground">
             <span>Admin</span>
             <span className="material-symbols-outlined text-xs">
-              chevron_right
+              <ChevronRight />
             </span>
             <span className="text-foreground font-bold">User Management</span>
           </nav>
@@ -299,7 +301,7 @@ const UsersPage = () => {
               disabled
             >
               <span className="material-symbols-outlined text-sm">
-                chevron_left
+                <ChevronLeft />
               </span>
             </Button>
             <div className="flex gap-1">
@@ -314,7 +316,7 @@ const UsersPage = () => {
               disabled
             >
               <span className="material-symbols-outlined text-sm">
-                chevron_right
+                <ChevronRight />
               </span>
             </Button>
           </div>

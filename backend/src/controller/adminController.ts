@@ -40,6 +40,17 @@ const fullDateFormatter = new Intl.DateTimeFormat("en-US", {
   year: "numeric",
 });
 
+const relativeTime = (date: Date): string => {
+  const diffMs = Date.now() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60_000);
+  const diffHours = Math.floor(diffMs / 3_600_000);
+  const diffDays = Math.floor(diffMs / 86_400_000);
+  if (diffMins < 1) return "just now";
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  return `${diffDays}d ago`;
+};
+
 const toNumber = (value: unknown) => {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : 0;
@@ -122,10 +133,9 @@ export const getDashboardOverview = async (_req: Request, res: Response) => {
       getDashboardUsers(),
     ]);
 
-    const totalRevenue = orders.reduce(
-      (sum, order) => sum + toNumber(order.total),
-      0,
-    );
+    const totalRevenue = orders
+      .filter((order) => order.paymentStatus === "completed")
+      .reduce((sum, order) => sum + toNumber(order.total), 0);
     const totalProducts = products.length;
     const lowStockItems = products.filter(
       (product) => product.stock <= 10,
@@ -166,12 +176,12 @@ export const getDashboardOverview = async (_req: Request, res: Response) => {
       revenue: revenueByMonth.get(month.key) ?? 0,
     }));
 
-    const recentActivity = orders.slice(0, 5).map((order, index) => ({
+    const recentActivity = orders.slice(0, 5).map((order) => ({
       id: order.id,
       user: order.customer,
       action: "placed an order",
       item: `Order #${order.id}`,
-      time: index === 0 ? "just now" : `${index * 3} mins ago`,
+      time: relativeTime(new Date(order.createdAt)),
       initials: getInitials(order.customer),
     }));
 
@@ -194,11 +204,24 @@ export const getDashboardOverview = async (_req: Request, res: Response) => {
   }
 };
 
-export const getInventoryOverview = async (_req: Request, res: Response) => {
+export const getInventoryOverview = async (req: Request, res: Response) => {
   try {
-    const products = await getDashboardProducts();
+    const page = Math.max(1, Number(req.query.page ?? 1));
+    const limit = Math.min(100, Math.max(1, Number(req.query.limit ?? 50)));
+    const skip = (page - 1) * limit;
 
-    const mappedProducts = products.map((product) => ({
+    const [allProducts, pagedProducts, total] = await Promise.all([
+      getDashboardProducts(), // for stats only
+      prisma.product.findMany({
+        where: { deletedAt: null },
+        orderBy: { id: "asc" },
+        skip,
+        take: limit,
+      }),
+      prisma.product.count({ where: { deletedAt: null } }),
+    ]);
+
+    const mappedProducts = pagedProducts.map((product: ProductType) => ({
       id: product.id,
       sku: `#ARC-${String(product.id).padStart(4, "0")}`,
       name: product.name,
@@ -214,22 +237,18 @@ export const getInventoryOverview = async (_req: Request, res: Response) => {
       imageUrl: product.imageUrl,
     }));
 
-    const totalProducts = mappedProducts.length;
-    const lowStockItems = mappedProducts.filter(
-      (product) => product.stockStatus === "Low Stock",
-    ).length;
-    const inventoryValue = mappedProducts.reduce(
-      (sum, product) => sum + product.stock * product.price,
+    const totalProducts = allProducts.length;
+    const lowStockItems = allProducts.filter((p: ProductType) => p.stock > 0 && p.stock <= 10).length;
+    const outOfStockItems = allProducts.filter((p: ProductType) => p.stock <= 0).length;
+    const inventoryValue = allProducts.reduce(
+      (sum: number, p: ProductType) => sum + p.stock * toNumber(p.price),
       0,
     );
 
     res.json({
-      stats: {
-        totalProducts,
-        lowStockItems,
-        inventoryValue,
-      },
+      stats: { totalProducts, lowStockItems, outOfStockItems, inventoryValue },
       products: mappedProducts,
+      pagination: { page, limit, total, pages: Math.ceil(total / limit) },
     });
   } catch (error) {
     console.error(error);
@@ -237,14 +256,28 @@ export const getInventoryOverview = async (_req: Request, res: Response) => {
   }
 };
 
-export const getOrdersOverview = async (_req: Request, res: Response) => {
+export const getOrdersOverview = async (req: Request, res: Response) => {
   try {
-    const orders = (await prisma.order.findMany({
-      include: { items: { include: { product: true } } },
-      orderBy: { createdAt: "desc" },
-    })) as OrderWithItems[];
+    const page = Math.max(1, Number(req.query.page ?? 1));
+    const limit = Math.min(100, Math.max(1, Number(req.query.limit ?? 50)));
+    const skip = (page - 1) * limit;
+    const status = req.query.status as string | undefined;
 
-    const mappedOrders = orders.map((order) => {
+    const where: any = status ? { orderStatus: status } : {};
+
+    const [orderTotal, rawOrders] = await Promise.all([
+      prisma.order.count({ where }),
+      prisma.order.findMany({
+        where,
+        include: { items: { include: { product: true } } },
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: limit,
+      }),
+    ]);
+    const orders = rawOrders as OrderWithItems[];
+
+    const mappedOrders = orders.map((order: OrderWithItems) => {
       const orderStatus = titleCase(order.orderStatus || "pending");
       return {
         id: `#ARC-${String(order.id).padStart(4, "0")}`,
@@ -258,15 +291,13 @@ export const getOrdersOverview = async (_req: Request, res: Response) => {
         statusColor:
           order.orderStatus === "delivered"
             ? "bg-surface-container-highest text-on-surface-variant"
-            : order.orderStatus === "shipped"
+            : order.orderStatus === "out_for_delivery"
               ? "bg-primary-fixed text-on-primary-fixed-variant"
-              : "bg-secondary-fixed text-on-secondary-fixed-variant",
+              : order.orderStatus === "confirmed"
+                ? "bg-tertiary-fixed text-on-tertiary-fixed-variant"
+                : "bg-secondary-fixed text-on-secondary-fixed-variant",
         items: order.items.map(
-          (item: {
-            product: ProductType;
-            quantity: number;
-            price: unknown;
-          }) => ({
+          (item: { product: ProductType; quantity: number; price: unknown }) => ({
             id: item.product.id,
             name: item.product.name,
             quantity: item.quantity,
@@ -277,18 +308,20 @@ export const getOrdersOverview = async (_req: Request, res: Response) => {
     });
 
     const stats = {
-      totalOrders: mappedOrders.length,
-      pendingOrders: orders.filter((order) => order.orderStatus === "pending")
-        .length,
-      shippedOrders: orders.filter((order) => order.orderStatus === "shipped")
-        .length,
-      deliveredOrders: orders.filter(
-        (order) => order.orderStatus === "delivered",
-      ).length,
-      totalRevenue: mappedOrders.reduce((sum, order) => sum + order.total, 0),
+      totalOrders: orderTotal,
+      pendingOrders: orders.filter((o: OrderWithItems) => o.orderStatus === "pending").length,
+      shippedOrders: orders.filter((o: OrderWithItems) => o.orderStatus === "out_for_delivery").length,
+      deliveredOrders: orders.filter((o: OrderWithItems) => o.orderStatus === "delivered").length,
+      totalRevenue: orders
+        .filter((o: OrderWithItems) => o.paymentStatus === "completed")
+        .reduce((sum: number, o: OrderWithItems) => sum + toNumber(o.total), 0),
     };
 
-    res.json({ stats, orders: mappedOrders });
+    res.json({
+      stats,
+      orders: mappedOrders,
+      pagination: { page, limit, total: orderTotal, pages: Math.ceil(orderTotal / limit) },
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Failed to fetch orders data" });
@@ -366,19 +399,6 @@ export const getAnalyticsOverview = async (_req: Request, res: Response) => {
       else bucket.returning += 1;
     });
 
-    monthlyBuckets.forEach((bucket) => {
-      const total = bucket.new + bucket.returning;
-
-      if (total > 1 && (bucket.new === 0 || bucket.returning === 0)) {
-        const normalizedReturning = Math.min(
-          total - 1,
-          Math.max(1, Math.round(total * 0.4)),
-        );
-        bucket.returning = normalizedReturning;
-        bucket.new = total - normalizedReturning;
-      }
-    });
-
     const retentionData = monthlyBuckets.map(
       ({ label, new: newCount, returning }) => ({
         month: label,
@@ -426,12 +446,9 @@ export const getAnalyticsOverview = async (_req: Request, res: Response) => {
       .map((product) => ({
         name: product.name,
         revenue: product.revenue,
-        percentage: Math.max(
-          25,
-          Math.min(
-            100,
-            Math.round((product.revenue / maxProductRevenue) * 100),
-          ),
+        percentage: Math.min(
+          100,
+          Math.round((product.revenue / maxProductRevenue) * 100),
         ),
       }));
 
@@ -448,15 +465,21 @@ export const getAnalyticsOverview = async (_req: Request, res: Response) => {
         fill: ["#16a34a", "#f97316", "#f59e0b", "#0ea5e9"][index % 4],
       }));
 
-    const totalRevenue = orders.reduce(
-      (sum, order) => sum + toNumber(order.total),
-      0,
-    );
-    const uniqueCustomers = new Set(
-      orders.map((order) => order.customer.trim().toLowerCase()),
-    ).size;
-    const repeatCustomerRate = orders.length
-      ? Math.round(((orders.length - uniqueCustomers) / orders.length) * 100)
+    const totalRevenue = orders
+      .filter((order) => order.paymentStatus === "completed")
+      .reduce((sum, order) => sum + toNumber(order.total), 0);
+
+    const orderCountByCustomer = new Map<string, number>();
+    orders.forEach((order) => {
+      const key = order.customer.trim().toLowerCase();
+      orderCountByCustomer.set(key, (orderCountByCustomer.get(key) ?? 0) + 1);
+    });
+    const uniqueCustomers = orderCountByCustomer.size;
+    const repeatCustomers = [...orderCountByCustomer.values()].filter(
+      (count) => count > 1,
+    ).length;
+    const repeatCustomerRate = uniqueCustomers
+      ? Math.round((repeatCustomers / uniqueCustomers) * 100)
       : 0;
 
     res.json({

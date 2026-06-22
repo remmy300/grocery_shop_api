@@ -191,7 +191,7 @@ const DashboardPage = () => {
       </header>
 
       <section className="grid grid-cols-1 gap-6 md:grid-cols-3">
-          <Card className="bg-surface-container-lowest shadow-sm">
+        <Card className="bg-surface-container-lowest shadow-sm">
           <CardContent className="p-5">
             <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center justify-center rounded-lg bg-primary/10 p-2 text-primary">
@@ -209,7 +209,7 @@ const DashboardPage = () => {
             </p>
           </CardContent>
         </Card>
-          <Card className="bg-surface-container-lowest shadow-sm">
+        <Card className="bg-surface-container-lowest shadow-sm">
           <CardContent className="p-5">
             <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center justify-center rounded-lg bg-green-500/10 p-2 text-green-600">
@@ -227,7 +227,7 @@ const DashboardPage = () => {
             </p>
           </CardContent>
         </Card>
-          <Card className="bg-surface-container-lowest shadow-sm">
+        <Card className="bg-surface-container-lowest shadow-sm">
           <CardContent className="p-5">
             <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center justify-center rounded-lg bg-blue-500/10 p-2 text-blue-600">
@@ -274,7 +274,7 @@ const DashboardPage = () => {
                 key={activity.id}
                 className="flex items-start gap-4 rounded-lg p-4 transition-colors hover:bg-surface-container-low"
               >
-                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-surface-container">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-surface-container">
                   <span className="text-sm font-bold text-on-surface">
                     {activity.initials}
                   </span>
@@ -342,7 +342,7 @@ const DashboardPage = () => {
             {recentActivity.map((activity) => (
               <Card key={activity.id} className="bg-surface-container-lowest">
                 <CardContent className="flex items-start gap-4 p-4">
-                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-surface-container">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-surface-container">
                     <span className="text-sm font-bold text-on-surface">
                       {activity.initials}
                     </span>
@@ -365,12 +365,6 @@ const DashboardPage = () => {
           </div>
         </SheetContent>
       </Sheet>
-
-      <footer className="mt-20 flex w-full flex-col items-center justify-between border-t border-outline-variant px-8 py-12 text-xs uppercase tracking-widest opacity-80 transition-opacity hover:opacity-100 md:flex-row">
-        <p className="mb-6 text-secondary-foreground md:mb-0">
-          © {new Date().getFullYear()} Corner Store. All rights reserved.
-        </p>
-      </footer>
     </div>
   );
 };

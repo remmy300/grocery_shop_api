@@ -118,12 +118,30 @@ const AnalyticsPage = () => {
     );
   }
 
+  const retryLoad = () => {
+    setError(null);
+    setLoading(true);
+    apiRequest<AnalyticsResponse>("/api/admin/analytics")
+      .then((response) => {
+        setData(response);
+        setError(null);
+      })
+      .catch((requestError) => {
+        setError(
+          requestError instanceof Error
+            ? requestError.message
+            : "Failed to load analytics",
+        );
+      })
+      .finally(() => setLoading(false));
+  };
+
   if (error || !data) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <div className="text-center">
           <p className="text-red-500">{error || "Unable to load analytics"}</p>
-          <Button onClick={() => window.location.reload()} className="mt-4">
+          <Button onClick={retryLoad} className="mt-4">
             Retry
           </Button>
         </div>
@@ -178,7 +196,7 @@ const AnalyticsPage = () => {
               Total Revenue
             </h3>
             <p className="text-3xl font-heading font-black text-foreground">
-              ${formatCurrency(data.summary.totalRevenue)}
+              KES {formatCurrency(data.summary.totalRevenue)}
             </p>
           </CardContent>
         </Card>

@@ -5,20 +5,15 @@ import {
   queryPaymentStatus,
   getPaymentDetails,
 } from "../controller/paymentController.js";
-import { auth } from "../middleware/auth.js";
+import { auth, optionalAuth } from "../middleware/auth.js";
+import { callbackLimiter, paymentInitLimiter } from "../middleware/rateLimiter.js";
 
 const router = express.Router();
 
-// Requires a valid JWT — prevents anonymous STK-push spam
-router.post("/initiate", auth, initiatePayment);
-
-// Safaricom posts here; no user auth (it's a server-to-server callback)
-router.post("/callback", handleMpesaCallback);
-
-// Frontend polls this; no auth needed (orderId is not guessable enough to need it,
-// and the response contains no sensitive data beyond status)
-router.get("/status", queryPaymentStatus);
-
+router.post("/initiate", auth, paymentInitLimiter, initiatePayment);
+router.post("/callback", callbackLimiter, handleMpesaCallback);
+// optionalAuth: if authenticated, ownership is verified inside the handler
+router.get("/status", optionalAuth, queryPaymentStatus);
 router.get("/:orderId", auth, getPaymentDetails);
 
 export default router;

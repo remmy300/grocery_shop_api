@@ -15,6 +15,9 @@ export type Props = {
 export function ProductCard({ product }: Props) {
   const { addToCart, isAdding } = useCart();
 
+  const isOutOfStock = product.stockStatus === "Out of Stock";
+  const isLowStock = product.stockStatus === "Low Stock";
+
   return (
     <article className="group relative rounded-3xl bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
       <Link
@@ -26,33 +29,53 @@ export function ProductCard({ product }: Props) {
             src={product.imageUrl || "/placeholder.webp"}
             alt={product.name}
             fill
-            className="object-cover transition duration-500 group-hover:scale-105"
+            className={`object-cover transition duration-500 group-hover:scale-105 ${isOutOfStock ? "opacity-50 grayscale" : ""}`}
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
           />
 
-          <button
-            type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              addToCart(product.id);
-            }}
-            disabled={isAdding}
-            className="absolute bottom-4 right-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-700 text-white shadow-lg transition hover:scale-105 hover:bg-green-800 disabled:opacity-60"
-          >
-            <Plus className="h-5 w-5" />
-          </button>
+          {/* Stock status badge */}
+          {isOutOfStock && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="rounded-full bg-zinc-900/80 px-4 py-1.5 text-sm font-semibold text-white">
+                Out of Stock
+              </span>
+            </div>
+          )}
+          {isLowStock && !isOutOfStock && (
+            <div className="absolute left-3 top-3">
+              <span className="rounded-full bg-amber-500 px-2.5 py-1 text-xs font-semibold text-white">
+                Only {product.stock} left
+              </span>
+            </div>
+          )}
+
+          {/* Add to cart button — hidden when out of stock */}
+          {!isOutOfStock && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                addToCart(product.id);
+              }}
+              disabled={isAdding}
+              aria-label={`Add ${product.name} to cart`}
+              className="absolute bottom-4 right-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-700 text-white shadow-lg transition hover:scale-105 hover:bg-green-800 disabled:opacity-60"
+            >
+              <Plus className="h-5 w-5" />
+            </button>
+          )}
         </div>
 
         <div className="mt-5 space-y-3">
           <div className="flex items-start justify-between gap-4">
             <div>
               <h3 className="font-semibold text-zinc-900">{product.name}</h3>
-
               <p className="text-sm text-zinc-500">{product.category}</p>
             </div>
 
-            <span className="font-bold text-green-700">
-              ${product.priceValue.toFixed(2)}
+            <span className={`font-bold ${isOutOfStock ? "text-zinc-400" : "text-green-700"}`}>
+              KES {product.priceValue.toFixed(2)}
             </span>
           </div>
 
@@ -63,8 +86,17 @@ export function ProductCard({ product }: Props) {
       </Link>
 
       <div className="mt-5">
-        <Button asChild variant="outline" className="w-full rounded-full">
-          <Link href={`/products/${product.id}`}>View Details</Link>
+        <Button
+          asChild={!isOutOfStock}
+          variant="outline"
+          disabled={isOutOfStock}
+          className="w-full rounded-full"
+        >
+          {isOutOfStock ? (
+            <span>Unavailable</span>
+          ) : (
+            <Link href={`/products/${product.id}`}>View Details</Link>
+          )}
         </Button>
       </div>
     </article>

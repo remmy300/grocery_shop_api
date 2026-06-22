@@ -1,7 +1,7 @@
 import React from "react";
 import { Card, CardContent } from "../ui/card";
 import Image from "next/image";
-import { Plus, Minus, Trash2 } from "lucide-react";
+import { Plus, Minus, Trash2, AlertTriangle } from "lucide-react";
 
 import QuantityButton from "./quantityButton";
 import type { CartItem } from "@/hooks/useCart";
@@ -21,8 +21,11 @@ export default function CartItemCard({
   onRemove,
   disabled = false,
 }: CartItemCardProps) {
+  const isOutOfStock = item.stock <= 0;
+  const exceedsStock = !isOutOfStock && item.quantity > item.stock;
+
   return (
-    <Card className="overflow-hidden rounded-[28px] border-none bg-card shadow-sm transition hover:-translate-y-0.5">
+    <Card className={`overflow-hidden rounded-[28px] border-none bg-card shadow-sm transition hover:-translate-y-0.5 ${isOutOfStock ? "opacity-60" : ""}`}>
       <CardContent className="p-6 md:p-8">
         <div className="flex flex-col md:flex-row">
           {/* IMAGE */}
@@ -61,18 +64,32 @@ export default function CartItemCard({
             {/* BOTTOM */}
             <div className="mt-8 flex flex-wrap items-end justify-between gap-6">
               {/* QUANTITY */}
-              <div className="flex items-center rounded-full bg-muted p-1">
-                <QuantityButton onClick={onDecrease} disabled={disabled}>
-                  <Minus className="h-4 w-4" />
-                </QuantityButton>
+              <div className="space-y-2">
+                {isOutOfStock && (
+                  <p className="flex items-center gap-1.5 text-xs font-medium text-red-600">
+                    <AlertTriangle className="h-3.5 w-3.5" />
+                    Out of stock — remove before checkout
+                  </p>
+                )}
+                {exceedsStock && (
+                  <p className="flex items-center gap-1.5 text-xs font-medium text-amber-600">
+                    <AlertTriangle className="h-3.5 w-3.5" />
+                    Only {item.stock} available
+                  </p>
+                )}
+                <div className="flex items-center rounded-full bg-muted p-1">
+                  <QuantityButton onClick={onDecrease} disabled={disabled || isOutOfStock}>
+                    <Minus className="h-4 w-4" />
+                  </QuantityButton>
 
-                <span className="w-12 text-center text-lg font-bold">
-                  {item.quantity.toString().padStart(2, "0")}
-                </span>
+                  <span className="w-12 text-center text-lg font-bold">
+                    {item.quantity.toString().padStart(2, "0")}
+                  </span>
 
-                <QuantityButton onClick={onIncrease} disabled={disabled}>
-                  <Plus className="h-4 w-4" />
-                </QuantityButton>
+                  <QuantityButton onClick={onIncrease} disabled={disabled || isOutOfStock || exceedsStock}>
+                    <Plus className="h-4 w-4" />
+                  </QuantityButton>
+                </div>
               </div>
 
               {/* PRICE */}

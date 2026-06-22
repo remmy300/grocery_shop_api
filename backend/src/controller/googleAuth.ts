@@ -73,7 +73,25 @@ export const googleLogin = async (req: Request, res: Response) => {
     const accessToken = generateAccessToken(jwtPayload);
     const refreshToken = generateRefreshToken(jwtPayload);
 
-    res.json({ accessToken, refreshToken });
+    const isProd = process.env.NODE_ENV === "production";
+    const cookieBase = {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? ("strict" as const) : ("lax" as const),
+    };
+
+    res.cookie("accessToken", accessToken, {
+      ...cookieBase,
+      maxAge: 15 * 60 * 1000, // 15 minutes
+    });
+    res.cookie("refreshToken", refreshToken, {
+      ...cookieBase,
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      path: "/api/auth/refresh",
+    });
+
+    // Still return tokens in body for clients that need them (mobile / Postman)
+    res.json({ accessToken, refreshToken, user: { id: user.id, email: user.email, role: user.role, picture: user.picture } });
   } catch (error) {
     return res.status(401).json({ message: "Invalid Google token" });
   }
@@ -105,6 +123,12 @@ export const refreshToken = (req: Request, res: Response) => {
   } catch (error) {
     return res.status(401).json({ message: "Invalid refresh token" });
   }
+};
+
+export const logout = (_req: Request, res: Response) => {
+  res.clearCookie("accessToken", { path: "/" });
+  res.clearCookie("refreshToken", { path: "/api/auth/refresh" });
+  return res.json({ message: "Logged out successfully" });
 };
 
 export const getCurrentUser = (req: Request, res: Response) => {

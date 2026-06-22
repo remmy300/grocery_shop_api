@@ -1,6 +1,8 @@
 import "./config/env.js";
 import express from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
+import helmet from "helmet";
 import prisma from "./lib/prisma.js";
 
 import productRoutes from "./routes/productRoutes.js";
@@ -9,6 +11,7 @@ import authRoutes from "./routes/authRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import cartRoutes from "./routes/cartRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
+import { generalLimiter } from "./middleware/rateLimiter.js";
 
 const app = express();
 
@@ -19,7 +22,6 @@ const allowedOrigins = rawCorsOrigins
   .map((origin) => origin.trim())
   .filter(Boolean);
 
-// In development, allow localhost origins to make local frontend dev convenient
 if (process.env.NODE_ENV !== "production") {
   const devAllow = ["http://localhost:3000", "http://127.0.0.1:3000"];
   devAllow.forEach((o) => {
@@ -27,40 +29,35 @@ if (process.env.NODE_ENV !== "production") {
   });
 }
 
+// Security headers
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    contentSecurityPolicy: process.env.NODE_ENV === "production",
+  }),
+);
+
 app.use(
   cors({
     origin: (requestOrigin, callback) => {
-      try {
-        console.log("[CORS] incoming Origin:", requestOrigin);
-        console.log("[CORS] configured origins:", allowedOrigins);
-      } catch (e) {}
-
-      if (!requestOrigin) {
-        // Allow non-browser requests like server-to-server or curl
-        console.log("[CORS] no Origin header present - allowing request");
+      if (!requestOrigin) return callback(null, true);
+      if (allowedOrigins.includes("*") || allowedOrigins.includes(requestOrigin)) {
         return callback(null, true);
       }
-
-      if (
-        allowedOrigins.includes("*") ||
-        allowedOrigins.includes(requestOrigin)
-      ) {
-        console.log("[CORS] allowed origin:", requestOrigin);
-        return callback(null, true);
-      }
-
       console.warn("[CORS] blocked origin:", requestOrigin);
-      return callback(
-        new Error(`CORS policy blocked origin: ${requestOrigin}`),
-        false,
-      );
+      return callback(new Error(`CORS policy blocked origin: ${requestOrigin}`), false);
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   }),
 );
 
-app.use(express.json());
+// Parse cookies for HttpOnly auth tokens
+app.use(cookieParser());
+app.use(express.json({ limit: "1mb" }));
+
+// Global rate limit — tighter per-route limits applied in route files
+app.use(generalLimiter);
 
 app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);

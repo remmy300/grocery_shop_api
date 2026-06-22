@@ -12,6 +12,7 @@ function OrderSuccessContent() {
   const orderId = params.get("orderId");
   const receipt = params.get("receipt");
   const amount = params.get("amount");
+  const isCod = params.get("payment") === "cod";
 
   return (
     <main className="min-h-screen bg-background flex items-center justify-center px-4">
@@ -25,9 +26,13 @@ function OrderSuccessContent() {
 
         {/* Heading */}
         <div className="space-y-2">
-          <h1 className="text-2xl font-bold text-foreground">Payment Successful!</h1>
+          <h1 className="text-2xl font-bold text-foreground">
+            {isCod ? "Order Confirmed!" : "Payment Successful!"}
+          </h1>
           <p className="text-muted-foreground text-sm">
-            Your order has been confirmed and is being processed.
+            {isCod
+              ? "Your order has been placed. Pay with cash when your order arrives."
+              : "Your order has been confirmed and is being processed."}
           </p>
         </div>
 
@@ -51,9 +56,22 @@ function OrderSuccessContent() {
               <span className="text-sm font-semibold font-mono">{receipt}</span>
             </div>
           )}
+          {isCod && (
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground flex items-center gap-2">
+                <Receipt className="h-4 w-4" />
+                Payment
+              </span>
+              <span className="text-sm font-semibold text-amber-700">
+                Cash on Delivery
+              </span>
+            </div>
+          )}
           {amount && (
             <div className="flex items-center justify-between border-t pt-4 mt-2">
-              <span className="text-sm text-muted-foreground">Amount Paid</span>
+              <span className="text-sm text-muted-foreground">
+                {isCod ? "Amount Due" : "Amount Paid"}
+              </span>
               <span className="text-base font-bold text-green-700">
                 KES {parseFloat(amount).toFixed(2)}
               </span>
@@ -62,7 +80,9 @@ function OrderSuccessContent() {
         </div>
 
         <p className="text-xs text-muted-foreground">
-          You will receive an SMS confirmation from M-Pesa. Keep your receipt number for reference.
+          {isCod
+            ? "Have the exact amount ready when the delivery arrives. The rider will confirm your order."
+            : "You will receive an SMS confirmation from M-Pesa. Keep your receipt number for reference."}
         </p>
 
         {/* Actions */}

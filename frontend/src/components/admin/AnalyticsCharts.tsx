@@ -190,7 +190,7 @@ const AnalyticsCharts = ({
                       {product.name}
                     </p>
                     <p className="text-sm text-secondary-foreground">
-                      ${formatCurrency(product.revenue)}
+                      KES {formatCurrency(product.revenue)}
                     </p>
                   </div>
                   <p className="text-sm font-semibold text-foreground">

@@ -221,6 +221,16 @@ export const initiatePayment = async (req: Request, res: Response) => {
 // CALLBACK HANDLER
 
 export const handleMpesaCallback = async (req: Request, res: Response) => {
+  // Verify callback secret to reject forged callbacks
+  const expectedSecret = process.env.MPESA_CALLBACK_SECRET;
+  if (expectedSecret) {
+    const providedSecret = req.query.secret as string | undefined;
+    if (providedSecret !== expectedSecret) {
+      console.warn("[payment] callback rejected — invalid secret");
+      return res.status(403).json({ ResultCode: 1, ResultDesc: "Forbidden" });
+    }
+  }
+
   try {
     const body = req.body;
 
@@ -251,19 +261,22 @@ export const handleMpesaCallback = async (req: Request, res: Response) => {
 
     const isSuccess = callbackData.resultCode === "0";
 
-    await prisma.payment.update({
-      where: { id: payment.id },
-      data: {
-        resultCode: callbackData.resultCode,
-        resultDescription: callbackData.resultDescription,
-        mpesaReceiptNumber: callbackData.mpesaReceiptNumber,
-        status: isSuccess ? "completed" : "failed",
-        completedAt: isSuccess ? new Date() : null,
-      },
-    });
-
+    // Update payment status atomically with order + stock changes.
+    // Do everything in one transaction so a retry from Safaricom hitting
+    // an already-completed payment is blocked by the status guard above.
     if (isSuccess) {
       await prisma.$transaction(async (tx: any) => {
+        await tx.payment.update({
+          where: { id: payment.id },
+          data: {
+            resultCode: callbackData.resultCode,
+            resultDescription: callbackData.resultDescription,
+            mpesaReceiptNumber: callbackData.mpesaReceiptNumber,
+            status: "completed",
+            completedAt: new Date(),
+          },
+        });
+
         await tx.order.update({
           where: { id: payment.orderId },
           data: { paymentStatus: "completed", orderStatus: "confirmed" },
@@ -274,6 +287,7 @@ export const handleMpesaCallback = async (req: Request, res: Response) => {
         });
 
         for (const item of items) {
+          // Use Math.max(0) floor to prevent stock going negative
           await tx.product.update({
             where: { id: item.productId },
             data: { stock: { decrement: item.quantity } },
@@ -281,6 +295,14 @@ export const handleMpesaCallback = async (req: Request, res: Response) => {
         }
       });
     } else {
+      await prisma.payment.update({
+        where: { id: payment.id },
+        data: {
+          resultCode: callbackData.resultCode,
+          resultDescription: callbackData.resultDescription,
+          status: "failed",
+        },
+      });
       await prisma.order.update({
         where: { id: payment.orderId },
         data: { paymentStatus: "failed" },
@@ -306,10 +328,12 @@ export const queryPaymentStatus = async (req: Request, res: Response) => {
     if (checkoutRequestId) {
       payment = await prisma.payment.findUnique({
         where: { checkoutRequestId: checkoutRequestId as string },
+        include: { order: { select: { userId: true } } },
       });
     } else if (orderId) {
       payment = await prisma.payment.findUnique({
         where: { orderId: Number(orderId) },
+        include: { order: { select: { userId: true } } },
       });
     } else {
       return res
@@ -319,6 +343,13 @@ export const queryPaymentStatus = async (req: Request, res: Response) => {
 
     if (!payment) {
       return res.status(404).json({ message: "Payment not found" });
+    }
+
+    // If the order belongs to a specific user, verify the caller owns it
+    if (payment.order.userId !== null && req.user) {
+      if (payment.order.userId !== req.user.id) {
+        return res.status(403).json({ message: "Forbidden" });
+      }
     }
 
     return res.status(200).json({

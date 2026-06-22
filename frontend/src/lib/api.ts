@@ -245,15 +245,17 @@ const saveStoredProfile = (profile: Partial<ProfileResponse>) => {
 };
 
 export const clearStoredSession = () => {
-  if (typeof window === "undefined") {
-    return;
-  }
+  if (typeof window === "undefined") return;
 
   ["accessToken", "token", "refreshToken", PROFILE_STORAGE_KEY].forEach(
-    (key) => {
-      localStorage.removeItem(key);
-    },
+    (key) => localStorage.removeItem(key),
   );
+
+  // Clear the HttpOnly cookie by calling the logout endpoint (fire-and-forget)
+  fetch(`${getApiBaseUrl()}/api/auth/logout`, {
+    method: "POST",
+    credentials: "include",
+  }).catch(() => {});
 };
 
 const DEMO_PROFILE: ProfileResponse = {

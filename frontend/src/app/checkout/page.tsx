@@ -5,7 +5,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useState, useEffect, useRef, useCallback } from "react";
 
 import { useRouter } from "next/navigation";
-import { CreditCard, Lock, Truck, Navigation } from "lucide-react";
+import { Lock, Truck, Store, Navigation, Banknote, Smartphone } from "lucide-react";
 import { getApiBaseUrl } from "@/lib/api";
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -29,7 +29,7 @@ const getAccessToken = () => {
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { items } = useCart();
+  const { items, clearCart } = useCart();
 
   const {
     state,
@@ -250,6 +250,16 @@ export default function CheckoutPage() {
       setCreatedOrderId(order.id);
       return order;
     },
+    onSuccess: async (order) => {
+      // Cash on delivery — order is confirmed without payment processing
+      if (state.paymentMethod === "cod") {
+        await clearCart();
+        sessionStorage.removeItem("checkout_state");
+        router.push(
+          `/order-success?orderId=${order.id}&amount=${total.toFixed(2)}&payment=cod`,
+        );
+      }
+    },
     onError: (error) => {
       setPaymentError(error.message || "Failed to create order");
     },
@@ -370,18 +380,39 @@ export default function CheckoutPage() {
             >
               <label className="cursor-pointer">
                 <RadioGroupItem value="standard" className="sr-only" />
-                <Card className="p-4 border">
-                  <Truck className="h-5 w-5" />
-                  <p className="font-bold">Standard</p>
-                  <p className="text-sm text-muted-foreground">3–5 days</p>
+                <Card
+                  className={`p-4 border-2 transition-colors ${state.deliveryMethod === "standard" ? "border-primary" : "border-border"}`}
+                >
+                  <Truck className="h-5 w-5 mb-2" />
+                  <p className="font-bold">Home Delivery</p>
+                  <p className="text-sm text-muted-foreground">
+                    We bring it to your door
+                  </p>
+                  {shipping > 0 ? (
+                    <p className="text-sm font-semibold text-primary mt-1">
+                      KES {shipping.toFixed(0)} delivery fee
+                    </p>
+                  ) : (
+                    <p className="text-sm font-semibold text-green-600 mt-1">
+                      Free delivery
+                    </p>
+                  )}
                 </Card>
               </label>
 
               <label className="cursor-pointer">
                 <RadioGroupItem value="express" className="sr-only" />
-                <Card className="p-4 border">
-                  <p className="font-bold">Express</p>
-                  <p className="text-sm text-muted-foreground">Next day</p>
+                <Card
+                  className={`p-4 border-2 transition-colors ${state.deliveryMethod === "express" ? "border-primary" : "border-border"}`}
+                >
+                  <Store className="h-5 w-5 mb-2" />
+                  <p className="font-bold">Self Pickup</p>
+                  <p className="text-sm text-muted-foreground">
+                    Collect from our store
+                  </p>
+                  <p className="text-sm font-semibold text-green-600 mt-1">
+                    No delivery fee
+                  </p>
                 </Card>
               </label>
             </RadioGroup>
@@ -394,27 +425,31 @@ export default function CheckoutPage() {
             <RadioGroup
               value={state.paymentMethod ?? "mpesa"}
               onValueChange={(v) => setPayment(v as any)}
-              className="grid gap-4"
+              className="grid md:grid-cols-2 gap-4"
             >
-              <label>
+              <label className="cursor-pointer">
                 <RadioGroupItem value="mpesa" className="sr-only" />
-                <Card className="p-4 border">
+                <Card
+                  className={`p-4 border-2 transition-colors ${state.paymentMethod === "mpesa" ? "border-primary" : "border-border"}`}
+                >
+                  <Smartphone className="h-5 w-5 mb-2 text-green-600" />
                   <p className="font-bold">M-Pesa</p>
+                  <p className="text-sm text-muted-foreground">
+                    Pay via M-Pesa STK push
+                  </p>
                 </Card>
               </label>
 
-              <label>
-                <RadioGroupItem value="card" className="sr-only" />
-                <Card className="p-4 border">
-                  <CreditCard />
-                  <p className="font-bold">Card</p>
-                </Card>
-              </label>
-
-              <label>
+              <label className="cursor-pointer">
                 <RadioGroupItem value="cod" className="sr-only" />
-                <Card className="p-4 border">
+                <Card
+                  className={`p-4 border-2 transition-colors ${state.paymentMethod === "cod" ? "border-primary" : "border-border"}`}
+                >
+                  <Banknote className="h-5 w-5 mb-2 text-amber-600" />
                   <p className="font-bold">Cash on Delivery</p>
+                  <p className="text-sm text-muted-foreground">
+                    Pay when your order arrives
+                  </p>
                 </Card>
               </label>
             </RadioGroup>
@@ -431,9 +466,11 @@ export default function CheckoutPage() {
                 amount={total}
                 phoneNumber={state.address?.phone || ""}
                 customerName={state.address?.fullName || ""}
-                onSuccess={(receipt) => {
+                onSuccess={async (receipt) => {
+                  await clearCart();
+                  sessionStorage.removeItem("checkout_state");
                   router.push(
-                    `/order-success?orderId=${createdOrderId}&receipt=${encodeURIComponent(receipt)}&amount=${total.toFixed(2)}`
+                    `/order-success?orderId=${createdOrderId}&receipt=${encodeURIComponent(receipt)}&amount=${total.toFixed(2)}`,
                   );
                 }}
                 onError={(error) => {
@@ -496,7 +533,7 @@ export default function CheckoutPage() {
                   </div>
 
                   <p className="text-sm font-bold">
-                    ${(item.price * item.quantity).toFixed(2)}
+                    KES {(item.price * item.quantity).toFixed(2)}
                   </p>
                 </div>
               ))}
@@ -506,22 +543,32 @@ export default function CheckoutPage() {
               <div className="text-sm space-y-2">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
-                  <span>${subtotal.toFixed(2)}</span>
+                  <span>KES {subtotal.toFixed(2)}</span>
                 </div>
 
                 <div className="flex justify-between">
-                  <span>Shipping</span>
-                  <span>${shipping.toFixed(2)}</span>
+                  <span>
+                    {state.deliveryMethod === "express"
+                      ? "Self Pickup"
+                      : "Delivery"}
+                  </span>
+                  <span>
+                    {shipping === 0 ? (
+                      <span className="text-green-600">Free</span>
+                    ) : (
+                      `KES ${shipping.toFixed(2)}`
+                    )}
+                  </span>
                 </div>
 
                 <div className="flex justify-between">
-                  <span>Taxes</span>
-                  <span>${taxes.toFixed(2)}</span>
+                  <span>Taxes (VAT)</span>
+                  <span>KES {taxes.toFixed(2)}</span>
                 </div>
 
                 <div className="flex justify-between font-bold text-lg">
                   <span>Total</span>
-                  <span>${total.toFixed(2)}</span>
+                  <span>KES {total.toFixed(2)}</span>
                 </div>
               </div>
             </CardContent>

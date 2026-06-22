@@ -111,6 +111,9 @@ const InventoryPage = () => {
 
   useEffect(() => {
     loadInventory();
+    // Re-fetch every 30s so stock numbers stay current as orders come in
+    const interval = setInterval(loadInventory, 30_000);
+    return () => clearInterval(interval);
   }, []);
 
   const filteredProducts = useMemo(
@@ -379,7 +382,7 @@ const handleUploadImage = () => {
               Inventory Value
             </h3>
             <p className="text-3xl font-heading font-black text-foreground">
-              ${formatCurrency(stats.inventoryValue)}
+              KES {formatCurrency(stats.inventoryValue)}
             </p>
           </CardContent>
         </Card>
@@ -457,7 +460,7 @@ const handleUploadImage = () => {
                           {product.category}
                         </TableCell>
                         <TableCell>{product.stock}</TableCell>
-                        <TableCell>${formatCurrency(product.price)}</TableCell>
+                        <TableCell>KES {formatCurrency(product.price)}</TableCell>
                         <TableCell>
                           <Badge variant={inferStockTone(product.stockStatus)}>
                             {product.stockStatus}
@@ -581,7 +584,7 @@ const handleUploadImage = () => {
                           Price
                         </span>
                         <span className="text-sm font-semibold text-foreground">
-                          ${formatCurrency(selectedProduct.price)}
+                          KES {formatCurrency(selectedProduct.price)}
                         </span>
                       </div>
                     </div>

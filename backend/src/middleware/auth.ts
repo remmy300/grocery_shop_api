@@ -2,6 +2,14 @@ import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { JwtPayload } from "../types/express.js";
 
+const extractToken = (req: Request): string | null => {
+  // HttpOnly cookie takes priority (XSS-safe); fall back to Authorization header
+  if (req.cookies?.accessToken) return req.cookies.accessToken as string;
+  const header = req.headers.authorization;
+  if (header?.startsWith("Bearer ")) return header.slice(7);
+  return null;
+};
+
 export const auth = async (req: Request, res: Response, next: NextFunction) => {
   const SECRET_KEY =
     process.env.JWT_ACCESS_SECRET || process.env.JWT_SECRET_KEY;
@@ -14,20 +22,11 @@ export const auth = async (req: Request, res: Response, next: NextFunction) => {
     });
   }
 
-  const authHeader = req.headers.authorization;
-
-  if (!authHeader) {
+  const token = extractToken(req);
+  if (!token) {
     return res.status(401).json({
       message: "No token provided",
       error: "NO_TOKEN",
-    });
-  }
-
-  const token = authHeader?.split(" ")[1];
-  if (!token) {
-    return res.status(401).json({
-      message: "Invalid auth format. Expected: Bearer <token>",
-      error: "INVALID_AUTH_FORMAT",
     });
   }
 
@@ -37,21 +36,12 @@ export const auth = async (req: Request, res: Response, next: NextFunction) => {
     next();
   } catch (error) {
     if (error instanceof jwt.TokenExpiredError) {
-      return res.status(401).json({
-        message: "Token expired",
-        error: "TOKEN_EXPIRED",
-      });
+      return res.status(401).json({ message: "Token expired", error: "TOKEN_EXPIRED" });
     }
     if (error instanceof jwt.JsonWebTokenError) {
-      return res.status(401).json({
-        message: "Invalid token",
-        error: "INVALID_TOKEN",
-      });
+      return res.status(401).json({ message: "Invalid token", error: "INVALID_TOKEN" });
     }
-    return res.status(401).json({
-      message: "Authentication failed",
-      error: "AUTH_ERROR",
-    });
+    return res.status(401).json({ message: "Authentication failed", error: "AUTH_ERROR" });
   }
 };
 
@@ -62,8 +52,7 @@ export const optionalAuth = async (
 ) => {
   const SECRET_KEY =
     process.env.JWT_ACCESS_SECRET || process.env.JWT_SECRET_KEY;
-
-  const token = req.headers.authorization?.split(" ")[1];
+  const token = extractToken(req);
 
   if (SECRET_KEY && token) {
     try {

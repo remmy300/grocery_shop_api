@@ -151,6 +151,48 @@ export const updateProduct = async (req: Request, res: Response) => {
   }
 };
 
+// SEARCH PRODUCTS
+export const searchProducts = async (req: Request, res: Response) => {
+  try {
+    const { q, category, maxPrice, page = "1", limit = "20" } = req.query;
+
+    const pageNum = Math.max(1, Number(page));
+    const limitNum = Math.min(100, Math.max(1, Number(limit)));
+    const skip = (pageNum - 1) * limitNum;
+
+    const where: any = { deletedAt: null };
+    if (q && typeof q === "string" && q.trim()) {
+      where.name = { contains: q.trim(), mode: "insensitive" };
+    }
+    if (category && typeof category === "string") {
+      where.category = category;
+    }
+    if (maxPrice && Number.isFinite(Number(maxPrice))) {
+      where.price = { lte: Number(maxPrice) };
+    }
+
+    const [products, total] = await Promise.all([
+      prisma.product.findMany({
+        where,
+        skip,
+        take: limitNum,
+        orderBy: { name: "asc" },
+      }),
+      prisma.product.count({ where }),
+    ]);
+
+    return res.status(200).json({
+      products,
+      total,
+      page: pageNum,
+      pages: Math.ceil(total / limitNum),
+    });
+  } catch (error) {
+    console.error("SEARCH PRODUCTS ERROR:", error);
+    return res.status(500).json({ message: "Failed to search products" });
+  }
+};
+
 // SOFT DELETE PRODUCT
 export const deleteProduct = async (req: Request, res: Response) => {
   try {

@@ -57,8 +57,8 @@ export const createOrder = async (req: Request, res: Response) => {
 
     const productIds = parsedItems.map((item) => item.productId);
     const existingProducts = await prisma.product.findMany({
-      where: { id: { in: productIds } },
-      select: { id: true, price: true },
+      where: { id: { in: productIds }, deletedAt: null },
+      select: { id: true, price: true, stock: true, name: true },
     });
 
     const existingIdSet = new Set(existingProducts.map((p: any) => p.id));
@@ -68,6 +68,29 @@ export const createOrder = async (req: Request, res: Response) => {
     if (missingIds.length > 0) {
       return res.status(400).json({
         message: `Invalid productId(s): ${missingIds.join(", ")}`,
+      });
+    }
+
+    // Stock validation — reject before payment if any item is unavailable
+    const stockById = new Map<number, { stock: number; name: string }>(
+      existingProducts.map((p: any) => [p.id, { stock: p.stock as number, name: p.name as string }]),
+    );
+    const stockErrors: string[] = [];
+    for (const item of parsedItems) {
+      const product = stockById.get(item.productId);
+      if (!product) continue;
+      if (product.stock <= 0) {
+        stockErrors.push(`"${product.name}" is out of stock`);
+      } else if (item.quantity > product.stock) {
+        stockErrors.push(
+          `"${product.name}" only has ${product.stock} unit(s) available (requested ${item.quantity})`,
+        );
+      }
+    }
+    if (stockErrors.length > 0) {
+      return res.status(409).json({
+        message: "Some items are unavailable",
+        errors: stockErrors,
       });
     }
 
@@ -123,7 +146,7 @@ export const createOrder = async (req: Request, res: Response) => {
   }
 };
 
-export const getOrders = async (req: Request, res: Response) => {
+export const getOrders = async (_req: Request, res: Response) => {
   try {
     const orders = await prisma.order.findMany({
       include: { items: true },
@@ -196,5 +219,31 @@ export const updateOrderStatus = async (req: Request, res: Response) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Failed to update order status" });
+  }
+};
+
+export const deleteOrder = async (req: Request, res: Response) => {
+  try {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(400).json({ message: "Invalid order ID" });
+    }
+
+    const order = await prisma.order.findUnique({ where: { id } });
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    if (order.paymentStatus === "completed") {
+      return res.status(409).json({
+        message: "Cannot delete a completed (paid) order",
+      });
+    }
+
+    await prisma.order.delete({ where: { id } });
+    res.json({ message: "Order deleted" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to delete order" });
   }
 };
