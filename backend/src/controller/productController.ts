@@ -25,11 +25,12 @@ const normalizeCategory = (value: unknown) => {
 // CREATE PRODUCT
 export const createProduct = async (req: Request, res: Response) => {
   try {
-    const { name, category, stock, price, imageUrl } = req.body;
+    const { name, category, unit, stock, price, imageUrl } = req.body;
 
     const normalizedName = typeof name === "string" ? name.trim() : "";
     const normalizedStock = parseInteger(stock);
     const normalizedPrice = parseInteger(price);
+    const normalizedUnit = typeof unit === "string" && unit.trim() ? unit.trim() : "per piece";
 
     if (
       !normalizedName ||
@@ -46,6 +47,7 @@ export const createProduct = async (req: Request, res: Response) => {
       data: {
         name: normalizedName,
         category: normalizeCategory(category),
+        unit: normalizedUnit,
         stock: normalizedStock,
         price: normalizedPrice,
         imageUrl: normalizeImageUrl(imageUrl),
@@ -109,11 +111,12 @@ export const updateProduct = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Invalid product id" });
     }
 
-    const { name, category, stock, price, imageUrl } = req.body;
+    const { name, category, unit, stock, price, imageUrl } = req.body;
 
     const normalizedName = typeof name === "string" ? name.trim() : "";
     const normalizedStock = parseInteger(stock);
     const normalizedPrice = parseInteger(price);
+    const normalizedUnit = typeof unit === "string" && unit.trim() ? unit.trim() : "per piece";
 
     if (
       !normalizedName ||
@@ -139,6 +142,7 @@ export const updateProduct = async (req: Request, res: Response) => {
       data: {
         name: normalizedName,
         category: normalizeCategory(category),
+        unit: normalizedUnit,
         stock: normalizedStock,
         price: normalizedPrice,
         imageUrl: normalizeImageUrl(imageUrl),

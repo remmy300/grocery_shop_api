@@ -10,6 +10,7 @@ export type BackendProduct = {
   category?: string | null;
   price: number | string;
   stock: number;
+  unit?: string | null;
   imageUrl?: string | null;
   deletedAt?: string | null;
 };
@@ -77,6 +78,7 @@ export type InventoryResponse = {
     sku: string;
     name: string;
     category: string;
+    unit: string;
     stock: number;
     stockStatus: string;
     price: number;

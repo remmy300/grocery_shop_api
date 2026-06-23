@@ -25,7 +25,9 @@ export default function CartItemCard({
   const exceedsStock = !isOutOfStock && item.quantity > item.stock;
 
   return (
-    <Card className={`overflow-hidden rounded-[28px] border-none bg-card shadow-sm transition hover:-translate-y-0.5 ${isOutOfStock ? "opacity-60" : ""}`}>
+    <Card
+      className={`overflow-hidden rounded-[28px] border-none bg-card shadow-sm transition hover:-translate-y-0.5 ${isOutOfStock ? "opacity-60" : ""}`}
+    >
       <CardContent className="p-6 md:p-8">
         <div className="flex flex-col md:flex-row">
           {/* IMAGE */}
@@ -78,7 +80,10 @@ export default function CartItemCard({
                   </p>
                 )}
                 <div className="flex items-center rounded-full bg-muted p-1">
-                  <QuantityButton onClick={onDecrease} disabled={disabled || isOutOfStock}>
+                  <QuantityButton
+                    onClick={onDecrease}
+                    disabled={disabled || isOutOfStock}
+                  >
                     <Minus className="h-4 w-4" />
                   </QuantityButton>
 
@@ -86,7 +91,10 @@ export default function CartItemCard({
                     {item.quantity.toString().padStart(2, "0")}
                   </span>
 
-                  <QuantityButton onClick={onIncrease} disabled={disabled || isOutOfStock || exceedsStock}>
+                  <QuantityButton
+                    onClick={onIncrease}
+                    disabled={disabled || isOutOfStock || exceedsStock}
+                  >
                     <Plus className="h-4 w-4" />
                   </QuantityButton>
                 </div>
@@ -94,9 +102,9 @@ export default function CartItemCard({
 
               {/* PRICE */}
               <div className="text-right">
-                {item.originalPrice && (
+                {item.price && (
                   <span className="block text-sm line-through text-muted-foreground">
-                    ${item.originalPrice.toFixed(2)}
+                    ${item.price.toFixed(2)}
                   </span>
                 )}
 

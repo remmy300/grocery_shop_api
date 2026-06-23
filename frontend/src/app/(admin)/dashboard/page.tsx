@@ -112,11 +112,11 @@ const DashboardPage = () => {
       {
         label: "Best revenue month",
         value: bestRevenueMonth.month,
-        detail: `$${formatCurrency(bestRevenueMonth.revenue)} generated`,
+        detail: `KES${formatCurrency(bestRevenueMonth.revenue)} generated`,
       },
       {
         label: "Average order value",
-        value: `$${formatCurrency(averageOrderValue)}`,
+        value: `KES${formatCurrency(averageOrderValue)}`,
         detail: "Revenue divided by total orders.",
       },
       {
@@ -205,7 +205,7 @@ const DashboardPage = () => {
               Total Revenue
             </h3>
             <p className="text-3xl font-heading font-black text-foreground">
-              ${formatCurrency(metrics.totalRevenue)}
+              KES {formatCurrency(metrics.totalRevenue)}
             </p>
           </CardContent>
         </Card>
@@ -269,7 +269,7 @@ const DashboardPage = () => {
             </Button>
           </div>
           <div className="space-y-4">
-            {recentActivity.map((activity) => (
+            {recentActivity.slice(0, 5).map((activity) => (
               <div
                 key={activity.id}
                 className="flex items-start gap-4 rounded-lg p-4 transition-colors hover:bg-surface-container-low"

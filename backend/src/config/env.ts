@@ -1,34 +1,14 @@
 import dotenv from "dotenv";
 import { resolve } from "node:path";
 
-// Load from project root, not relative to file location
-// This works for both dev (ts-node) and production (compiled js)
 const envPath = resolve(process.cwd(), ".env");
-const envLocalPath = resolve(process.cwd(), ".env.local");
+const result = dotenv.config({ path: envPath });
 
-console.log("[ENV] Loading from:", envPath);
-
-// Try .env.local first (production/specific overrides), then .env
-const result = dotenv.config({ path: envLocalPath });
-
-if (result.error && result.error.code === "ENOENT") {
-  console.log("[ENV] .env.local not found, trying .env");
-  const envResult = dotenv.config({ path: envPath });
-
-  if (envResult.error) {
-    console.warn(`[ENV] Warning: Could not load .env file at ${envPath}`);
-  } else {
-    console.log(
-      `[ENV] ✓ Loaded ${Object.keys(envResult.parsed || {}).length} variables from .env`,
-    );
-  }
-} else if (result.error) {
-  console.warn(
-    `[ENV] Warning: Could not load .env.local file at ${envLocalPath}`,
-  );
+if (result.error) {
+  console.warn(`[ENV] Warning: Could not load .env file at ${envPath}`);
 } else {
   console.log(
-    `[ENV] ✓ Loaded ${Object.keys(result.parsed || {}).length} variables from .env.local`,
+    `[ENV] ✓ Loaded ${Object.keys(result.parsed || {}).length} variables from .env`,
   );
 }
 

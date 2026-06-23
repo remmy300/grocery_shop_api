@@ -18,9 +18,7 @@ type DashboardRevenueChartProps = {
   revenueData: DashboardResponse["revenueData"];
 };
 
-const DashboardRevenueChart = ({
-  revenueData,
-}: DashboardRevenueChartProps) => {
+const DashboardRevenueChart = ({ revenueData }: DashboardRevenueChartProps) => {
   return (
     <Card className="bg-surface-container-lowest shadow-sm">
       <CardContent className="p-6">
@@ -76,7 +74,7 @@ const DashboardRevenueChart = ({
                   borderRadius: "8px",
                 }}
                 formatter={(value) => [
-                  `$${Number(value).toLocaleString()}`,
+                  `KES ${Number(value).toLocaleString()}`,
                   "Revenue",
                 ]}
               />

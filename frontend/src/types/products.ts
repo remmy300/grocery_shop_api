@@ -12,6 +12,7 @@ export interface ProductView {
 
   category: ProductCategory;
   origin: ProductOrigin;
+  unit: string;
 
   priceValue: number;
   price?: string;

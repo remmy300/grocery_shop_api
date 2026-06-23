@@ -93,7 +93,7 @@ const AnalyticsCharts = ({
                   Returning customers
                 </span>
               </div>
-              <div className="h-72 w-full min-h-[18rem]">
+              <div className="h-72 w-full min-h-72">
                 <ResponsiveContainer width="100%" height="100%" minHeight={288}>
                   <BarChart
                     data={retentionData}

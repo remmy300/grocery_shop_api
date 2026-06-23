@@ -556,6 +556,7 @@ const buildInventoryResponse = async (): Promise<InventoryResponse> => {
       sku: `#PRD-${String(product.id).padStart(4, "0")}`,
       name: product.name,
       category: product.category || productCategory(product.name),
+      unit: product.unit || "per piece",
       stock: product.stock,
       stockStatus: stockStatus(product.stock),
       price: toNumber(product.price),

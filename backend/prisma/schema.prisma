@@ -11,6 +11,7 @@ model Product {
   name       String
   stock      Int
   price      Decimal
+  unit       String      @default("per piece")
   imageUrl   String?
   deletedAt  DateTime?
   category   String      @default("General Grocery")
@@ -45,7 +46,7 @@ model OrderItem {
   productId Int
   quantity  Int
   price     Decimal
-  order     Order   @relation(fields: [orderId], references: [id])
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product   Product @relation(fields: [productId], references: [id])
 }
 

@@ -18,7 +18,7 @@ export default function CartPage() {
     items,
     subtotal,
     isLoading,
-    isClearPending,
+    isClearing: isClearPending,
     isItemPending,
 
     updateItem,

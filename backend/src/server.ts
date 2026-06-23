@@ -15,6 +15,10 @@ import { generalLimiter } from "./middleware/rateLimiter.js";
 
 const app = express();
 
+// Trust one proxy hop (ngrok in dev, nginx/load-balancer in prod).
+// This lets express-rate-limit read X-Forwarded-For for real client IPs.
+app.set("trust proxy", 1);
+
 const rawCorsOrigins =
   process.env.CORS_ORIGIN ?? process.env.FRONTEND_URL ?? "";
 const allowedOrigins = rawCorsOrigins

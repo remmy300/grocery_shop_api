@@ -176,7 +176,7 @@ export const getDashboardOverview = async (_req: Request, res: Response) => {
       revenue: revenueByMonth.get(month.key) ?? 0,
     }));
 
-    const recentActivity = orders.slice(0, 5).map((order) => ({
+    const recentActivity = orders.slice(0, 20).map((order) => ({
       id: order.id,
       user: order.customer,
       action: "placed an order",
@@ -226,6 +226,7 @@ export const getInventoryOverview = async (req: Request, res: Response) => {
       sku: `#ARC-${String(product.id).padStart(4, "0")}`,
       name: product.name,
       category: product.category || inferCategory(product.name),
+      unit: (product as any).unit ?? "per piece",
       stock: product.stock,
       stockStatus:
         product.stock <= 0

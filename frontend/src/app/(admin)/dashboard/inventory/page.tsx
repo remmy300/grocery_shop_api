@@ -32,6 +32,7 @@ import { InventoryResponse } from "@/types";
 type ProductFormState = {
   name: string;
   category: string;
+  unit: string;
   stock: string;
   price: string;
   imageUrl: string;
@@ -58,9 +59,25 @@ type UploadResult =
       info?: unknown;
     };
 
+const PRODUCT_UNITS = [
+  "per piece",
+  "per kg",
+  "per 500g",
+  "per 250g",
+  "per 2kg",
+  "per 5kg",
+  "per liter",
+  "per 500ml",
+  "per 250ml",
+  "per dozen",
+  "per packet",
+  "per bundle",
+];
+
 const EMPTY_FORM: ProductFormState = {
   name: "",
   category: "General Grocery",
+  unit: "per piece",
   stock: "",
   price: "",
   imageUrl: "",
@@ -71,6 +88,7 @@ const toFormState = (
 ): ProductFormState => ({
   name: product.name,
   category: product.category,
+  unit: product.unit || "per piece",
   stock: String(product.stock),
   price: String(product.price),
   imageUrl: product.imageUrl || "",
@@ -198,6 +216,7 @@ const InventoryPage = () => {
       payload: {
         name: trimmedName,
         category: trimmedCategory,
+        unit: form.unit || "per piece",
         stock,
         price,
         imageUrl: trimmedImageUrl,
@@ -460,7 +479,10 @@ const handleUploadImage = () => {
                           {product.category}
                         </TableCell>
                         <TableCell>{product.stock}</TableCell>
-                        <TableCell>KES {formatCurrency(product.price)}</TableCell>
+                        <TableCell>
+                          KES {formatCurrency(product.price)}
+                          <span className="ml-1 text-xs text-muted-foreground">{product.unit}</span>
+                        </TableCell>
                         <TableCell>
                           <Badge variant={inferStockTone(product.stockStatus)}>
                             {product.stockStatus}
@@ -584,7 +606,8 @@ const handleUploadImage = () => {
                           Price
                         </span>
                         <span className="text-sm font-semibold text-foreground">
-                          KES {formatCurrency(selectedProduct.price)}
+                          KES {formatCurrency(selectedProduct.price)}{" "}
+                          <span className="font-normal text-xs text-muted-foreground">{selectedProduct.unit}</span>
                         </span>
                       </div>
                     </div>
@@ -630,6 +653,28 @@ const handleUploadImage = () => {
                     </select>
                   </div>
 
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-foreground">
+                      Unit / Pricing Label
+                    </label>
+                    <select
+                      value={form.unit}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          unit: event.target.value,
+                        }))
+                      }
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    >
+                      {PRODUCT_UNITS.map((u) => (
+                        <option key={u} value={u}>
+                          {u}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="mb-2 block text-sm font-medium text-foreground">
@@ -650,7 +695,7 @@ const handleUploadImage = () => {
                     </div>
                     <div>
                       <label className="mb-2 block text-sm font-medium text-foreground">
-                        Price
+                        Price (KES)
                       </label>
                       <Input
                         type="number"

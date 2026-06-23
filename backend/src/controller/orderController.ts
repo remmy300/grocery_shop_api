@@ -211,10 +211,31 @@ export const updateOrderStatus = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { orderStatus } = req.body;
+
+    const existing = await prisma.order.findUnique({
+      where: { id: Number(id) },
+      select: { paymentMethod: true, paymentStatus: true },
+    });
+
+    if (!existing) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    // When a COD order is marked delivered, the cash has been collected —
+    // mark paymentStatus as completed so it counts toward revenue.
+    const isCodDelivered =
+      orderStatus === "delivered" &&
+      existing.paymentMethod === "cod" &&
+      existing.paymentStatus !== "completed";
+
     const order = await prisma.order.update({
       where: { id: Number(id) },
-      data: { orderStatus },
+      data: {
+        orderStatus,
+        ...(isCodDelivered && { paymentStatus: "completed" }),
+      },
     });
+
     res.status(200).json(order);
   } catch (error) {
     console.error(error);
@@ -240,7 +261,10 @@ export const deleteOrder = async (req: Request, res: Response) => {
       });
     }
 
-    await prisma.order.delete({ where: { id } });
+    await prisma.$transaction([
+      prisma.orderItem.deleteMany({ where: { orderId: id } }),
+      prisma.order.delete({ where: { id } }),
+    ]);
     res.json({ message: "Order deleted" });
   } catch (error) {
     console.error(error);

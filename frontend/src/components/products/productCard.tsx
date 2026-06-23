@@ -74,9 +74,15 @@ export function ProductCard({ product }: Props) {
               <p className="text-sm text-zinc-500">{product.category}</p>
             </div>
 
-            <span className={`font-bold ${isOutOfStock ? "text-zinc-400" : "text-green-700"}`}>
-              KES {product.priceValue.toFixed(2)}
-            </span>
+            <div className={`text-right ${isOutOfStock ? "text-zinc-400" : "text-green-700"}`}>
+              <span className="font-bold">KES {product.priceValue.toFixed(2)}</span>
+              {product.unit && product.unit !== "per piece" && (
+                <p className="text-xs font-normal text-zinc-500">{product.unit}</p>
+              )}
+              {product.unit === "per piece" && (
+                <p className="text-xs font-normal text-zinc-500">per piece</p>
+              )}
+            </div>
           </div>
 
           <p className="line-clamp-2 text-sm text-zinc-600">

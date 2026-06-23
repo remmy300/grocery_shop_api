@@ -26,7 +26,8 @@ pool.on("error", (err) => {
   console.error("[db] idle client error:", err.message);
 });
 
-const adapter = new PrismaPg(pool);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const adapter = new PrismaPg(pool as any);
 const prisma = new PrismaClient({ adapter });
 
 prisma.$connect().catch((err: any) => {
