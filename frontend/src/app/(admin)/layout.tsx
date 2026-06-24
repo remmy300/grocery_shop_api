@@ -236,7 +236,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
           </SidebarFooter>
         </Sidebar>
 
-        <main className="flex-1 p-8">
+        <main className="flex-1 min-w-0 overflow-x-hidden p-8">
           <Breadcrumb className="mb-6">
             <BreadcrumbList>
               {breadcrumbs.map((crumb, index) => (

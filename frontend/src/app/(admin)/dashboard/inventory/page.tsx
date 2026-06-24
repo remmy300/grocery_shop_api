@@ -60,18 +60,17 @@ type UploadResult =
     };
 
 const PRODUCT_UNITS = [
-  "per piece",
-  "per kg",
-  "per 500g",
-  "per 250g",
-  "per 2kg",
-  "per 5kg",
-  "per liter",
-  "per 500ml",
-  "per 250ml",
-  "per dozen",
-  "per packet",
-  "per bundle",
+  "1 kg",
+  " 200g",
+  " 500g",
+  " 250g",
+  " 2kg",
+  " 5kg",
+  "1 liter",
+  " 500ml",
+  " 250ml",
+  " dozen",
+  "1 packet",
 ];
 
 const EMPTY_FORM: ProductFormState = {
@@ -154,16 +153,6 @@ const InventoryPage = () => {
   );
 
   useEffect(() => {
-    if (!selectedProduct) {
-      return;
-    }
-
-    if (!isCreating) {
-      setForm(toFormState(selectedProduct));
-    }
-  }, [isCreating, selectedProduct]);
-
-  useEffect(() => {
     if (activeProductId !== null && data) {
       const stillExists = data.products.some(
         (product) => product.id === activeProductId,
@@ -204,11 +193,17 @@ const InventoryPage = () => {
     }
 
     if (!Number.isInteger(stock) || stock < 0) {
-      return { success: false, error: "Stock must be a whole number zero or greater." };
+      return {
+        success: false,
+        error: "Stock must be a whole number zero or greater.",
+      };
     }
 
-    if (!Number.isInteger(price) || price < 0) {
-      return { success: false, error: "Price must be a whole number zero or greater." };
+    if (isNaN(price) || price < 0) {
+      return {
+        success: false,
+        error: "Price must be a valid number zero or greater.",
+      };
     }
 
     return {
@@ -224,49 +219,45 @@ const InventoryPage = () => {
     };
   };
 
+  const handleSaveProduct = async () => {
+    const validated = validateForm();
 
+    if (!validated.success) {
+      toast.error(validated.error);
+      return;
+    }
 
+    try {
+      setSaving(true);
 
-  
-const handleSaveProduct = async () => {
-  const validated = validateForm();
+      const endpoint = isCreating
+        ? "/api/products"
+        : `/api/products/${activeProductId}`;
 
-  if (!validated.success) {
-    toast.error(validated.error);
-    return;
-  }
+      const method = isCreating ? "POST" : "PUT";
 
-  try {
-    setSaving(true);
+      const savedProduct = await apiRequest<
+        InventoryResponse["products"][number]
+      >(endpoint, {
+        method,
+        json: validated.payload,
+      });
 
-    const endpoint = isCreating
-      ? "/api/products"
-      : `/api/products/${activeProductId}`;
+      toast.success(isCreating ? "Product created." : "Product updated.");
 
-    const method = isCreating ? "POST" : "PUT";
+      setIsCreating(false);
+      setActiveProductId(savedProduct.id);
+      setForm(toFormState(savedProduct));
 
-    const savedProduct = await apiRequest<
-      InventoryResponse["products"][number]
-    >(endpoint, {
-      method,
-      json: validated.payload,
-    });
-
-    toast.success(isCreating ? "Product created." : "Product updated.");
-
-    setIsCreating(false);
-    setActiveProductId(savedProduct.id);
-    setForm(toFormState(savedProduct));
-
-    await loadInventory();
-  } catch (err) {
-    toast.error(
-      err instanceof Error ? err.message : "Failed to save product",
-    );
-  } finally {
-    setSaving(false);
-  }
-};
+      await loadInventory();
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Failed to save product",
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
   const handleDeleteProduct = async (
     productToDelete?: InventoryResponse["products"][number] | null,
   ) => {
@@ -303,20 +294,19 @@ const handleSaveProduct = async () => {
     }
   };
 
+  const handleUploadImage = () => {
+    openUpload((result: unknown) => {
+      const res = result as UploadResult;
 
-const handleUploadImage = () => {
-  openUpload((result: unknown) => {
-    const res = result as UploadResult;
-
-    if (res.event === "success" && res.info) {
-      const info = res.info as { secure_url: string; public_id: string };
-      setForm((current) => ({
-        ...current,
-        imageUrl: info.secure_url,
-      }));
-    }
-  });
-};
+      if (res.event === "success" && res.info) {
+        const info = res.info as { secure_url: string; public_id: string };
+        setForm((current) => ({
+          ...current,
+          imageUrl: info.secure_url,
+        }));
+      }
+    });
+  };
 
   if (loading) {
     return (
@@ -481,7 +471,9 @@ const handleUploadImage = () => {
                         <TableCell>{product.stock}</TableCell>
                         <TableCell>
                           KES {formatCurrency(product.price)}
-                          <span className="ml-1 text-xs text-muted-foreground">{product.unit}</span>
+                          <span className="ml-1 text-xs text-muted-foreground">
+                            {product.unit}
+                          </span>
                         </TableCell>
                         <TableCell>
                           <Badge variant={inferStockTone(product.stockStatus)}>
@@ -607,7 +599,9 @@ const handleUploadImage = () => {
                         </span>
                         <span className="text-sm font-semibold text-foreground">
                           KES {formatCurrency(selectedProduct.price)}{" "}
-                          <span className="font-normal text-xs text-muted-foreground">{selectedProduct.unit}</span>
+                          <span className="font-normal text-xs text-muted-foreground">
+                            {selectedProduct.unit}
+                          </span>
                         </span>
                       </div>
                     </div>

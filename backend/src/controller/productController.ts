@@ -5,6 +5,11 @@ import { Router } from "express";
 
 const router = express.Router();
 
+const parsePrice = (value: unknown) => {
+  const parsed = Number(value);
+  return !isNaN(parsed) && parsed >= 0 ? Math.round(parsed * 100) / 100 : null;
+};
+
 const parseInteger = (value: unknown) => {
   const parsed = Number(value);
   return Number.isInteger(parsed) ? parsed : null;
@@ -29,7 +34,7 @@ export const createProduct = async (req: Request, res: Response) => {
 
     const normalizedName = typeof name === "string" ? name.trim() : "";
     const normalizedStock = parseInteger(stock);
-    const normalizedPrice = parseInteger(price);
+    const normalizedPrice = parsePrice(price);
     const normalizedUnit = typeof unit === "string" && unit.trim() ? unit.trim() : "per piece";
 
     if (
@@ -115,7 +120,7 @@ export const updateProduct = async (req: Request, res: Response) => {
 
     const normalizedName = typeof name === "string" ? name.trim() : "";
     const normalizedStock = parseInteger(stock);
-    const normalizedPrice = parseInteger(price);
+    const normalizedPrice = parsePrice(price);
     const normalizedUnit = typeof unit === "string" && unit.trim() ? unit.trim() : "per piece";
 
     if (
@@ -151,6 +156,7 @@ export const updateProduct = async (req: Request, res: Response) => {
 
     return res.status(200).json(updated);
   } catch (error) {
+    console.error("UPDATE PRODUCT ERROR:", error);
     return res.status(500).json({ message: "Failed to update product" });
   }
 };
