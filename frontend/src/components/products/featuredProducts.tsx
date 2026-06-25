@@ -50,7 +50,7 @@ export function FeaturedProduct({ product }: { product: ProductView | null }) {
 
         <div className="mt-6 flex items-center justify-between">
           <span className="text-2xl font-bold">
-            ${product.priceValue.toFixed(2)}
+            KES {product.priceValue.toFixed(2)}
           </span>
         </div>
       </div>

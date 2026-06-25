@@ -111,25 +111,28 @@ const InventoryPage = () => {
 
   const { openUpload, uploading, ready } = useCloudinaryUpload();
 
-  const loadInventory = async () => {
+  const fetchInventory = async (): Promise<InventoryResponse | null> => {
     try {
-      setLoading(true);
-      const response = await apiRequest<InventoryResponse>(
-        "/api/admin/inventory",
-      );
+      const response = await apiRequest<InventoryResponse>("/api/admin/inventory");
       setData(response);
       setError(null);
+      return response;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load inventory");
-    } finally {
-      setLoading(false);
+      return null;
     }
+  };
+
+  const loadInventory = async () => {
+    setLoading(true);
+    await fetchInventory();
+    setLoading(false);
   };
 
   useEffect(() => {
     loadInventory();
-    // Re-fetch every 30s so stock numbers stay current as orders come in
-    const interval = setInterval(loadInventory, 30_000);
+    // Silent background refresh — no loading spinner so the edit panel stays stable
+    const interval = setInterval(fetchInventory, 30_000);
     return () => clearInterval(interval);
   }, []);
 
@@ -236,9 +239,7 @@ const InventoryPage = () => {
 
       const method = isCreating ? "POST" : "PUT";
 
-      const savedProduct = await apiRequest<
-        InventoryResponse["products"][number]
-      >(endpoint, {
+      const savedProduct = await apiRequest<{ id: number }>(endpoint, {
         method,
         json: validated.payload,
       });
@@ -247,9 +248,11 @@ const InventoryPage = () => {
 
       setIsCreating(false);
       setActiveProductId(savedProduct.id);
-      setForm(toFormState(savedProduct));
 
-      await loadInventory();
+      // Re-fetch inventory so the panel reads the canonical server values
+      const refreshed = await fetchInventory();
+      const updated = refreshed?.products.find((p) => p.id === savedProduct.id);
+      if (updated) setForm(toFormState(updated));
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : "Failed to save product",
