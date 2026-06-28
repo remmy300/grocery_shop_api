@@ -11,7 +11,7 @@ export const generalLimiter = rateLimit({
   max: 100,
   standardHeaders: true,
   legacyHeaders: false,
-  message: json429("Too many requests. Please slow down."),
+  message: json429("Too many requests."),
 });
 
 /** Auth endpoints — 20 attempts / 15 min (brute-force guard) */

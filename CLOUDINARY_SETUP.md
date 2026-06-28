@@ -2,7 +2,7 @@
 
 This guide explains how to configure Cloudinary for image uploads in the Grocery Shop admin dashboard.
 
-## 1. Backend Setup (Already Configured ✅)
+## 1. Backend Setup (Already Configured )
 
 The backend is already configured with:
 
@@ -197,14 +197,14 @@ echo "CLOUDINARY_API_SECRET=$CLOUDINARY_API_SECRET"
 
 ## 7. Security Best Practices
 
-✅ **Currently Implemented:**
+**Currently Implemented:**
 
 - Signatures generated server-side with SHA1 hash
 - API secret never exposed to frontend
 - Timestamps prevent replay attacks
 - Folder restriction to `grocery_shop/products`
 
-✅ **Additional Recommendations:**
+  **Additional Recommendations:**
 
 - Set upload limits in Cloudinary dashboard (max file size, formats)
 - Use transformation eager delivery for automatic resizing
@@ -213,12 +213,12 @@ echo "CLOUDINARY_API_SECRET=$CLOUDINARY_API_SECRET"
 
 ## 8. Next Steps
 
-1. ✅ Backend configured with signature generation
-2. ✅ Frontend component created and ready to use
-3. ⏳ **TODO:** Create unsigned upload preset in Cloudinary
-4. ⏳ **TODO:** Integrate ImageUpload into product creation form
-5. ⏳ **TODO:** Integrate ImageUpload into product edit form
-6. ⏳ **TODO:** Test end-to-end image upload flow
+1. Backend configured with signature generation
+2. Frontend component created and ready to use
+3. **TODO:** Create unsigned upload preset in Cloudinary
+4. **TODO:** Integrate ImageUpload into product creation form
+5. **TODO:** Integrate ImageUpload into product edit form
+6. **TODO:** Test end-to-end image upload flow
 
 ## 9. API Reference
 
