@@ -1,5 +1,4 @@
 services:
-
   backend:
     build:
       context: ./backend
@@ -17,6 +16,7 @@ services:
       dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_API_BASE_URL: http://localhost:4000
+        NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${NEXT_PUBLIC_GOOGLE_CLIENT_ID} # ← add
     container_name: cornershop_frontend
     ports:
       - "3000:3000"

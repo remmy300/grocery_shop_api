@@ -1,0 +1,729 @@
+ Image grocery_shop-backend Building 
+ Image grocery_shop-frontend Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 1.13kB done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 1.36kB 0.1s done
+#2 DONE 0.1s
+
+#3 [internal] load metadata for docker.io/library/node:20-alpine
+#3 ...
+
+#4 [auth] library/node:pull token for registry-1.docker.io
+#4 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/node:20-alpine
+#3 DONE 3.0s
+
+#5 [internal] load .dockerignore
+#5 transferring context: 77B 0.0s done
+#5 DONE 0.1s
+
+#6 [internal] load build context
+#6 DONE 0.0s
+
+#7 [builder 1/6] FROM docker.io/library/node:20-alpine@sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb8363f609372293
+#7 resolve docker.io/library/node:20-alpine@sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb8363f609372293 0.1s done
+#7 DONE 0.2s
+
+#6 [internal] load build context
+#6 transferring context: 7.00kB 0.1s done
+#6 DONE 0.2s
+
+#8 [builder 4/6] RUN npm ci
+#8 CACHED
+
+#9 [builder 2/6] WORKDIR /app
+#9 CACHED
+
+#10 [builder 3/6] COPY package*.json ./
+#10 CACHED
+
+#11 [builder 5/6] COPY . .
+#11 CACHED
+
+#12 [builder 6/6] RUN npm run build
+#12 3.463 
+#12 3.463 > frontend@0.0.0 build
+#12 3.463 > next build
+#12 3.463 
+#12 5.957 Attention: Next.js now collects completely anonymous telemetry regarding usage.
+#12 5.958 This information is used to shape Next.js' roadmap and prioritize features.
+#12 5.958 You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+#12 5.959 https://nextjs.org/telemetry
+#12 5.959 
+#12 6.149   ▲ Next.js 14.2.35
+#12 6.150 
+#12 6.395    Creating an optimized production build ...
+#12 14.80 request to https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa0ZL7W0Q5n-wU.woff2 failed, reason: 
+#12 14.80 
+#12 14.80 Retrying 1/3...
+#12 43.50 request to https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap failed, reason: 
+#12 43.50 
+#12 43.50 Retrying 1/3...
+#12 44.63 request to https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap failed, reason: 
+#12 44.63 
+#12 44.63 Retrying 2/3...
+#12 45.40 request to https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap failed, reason: 
+#12 45.40 
+#12 45.40 Retrying 3/3...
+#12 63.75  ✓ Compiled successfully
+#12 63.75    Linting and checking validity of types ...
+#12 82.90    Collecting page data ...
+#12 87.75    Generating static pages (0/26) ...
+#12 88.60 Error: NEXT_PUBLIC_GOOGLE_CLIENT_ID is missing. Add it to frontend/.env and restart the app.
+#12 88.60     at 86161 (/app/.next/server/chunks/289.js:1:2310)
+#12 88.60     at Object.t [as require] (/app/.next/server/webpack-runtime.js:1:127)
+#12 88.60     at require (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:17:18811)
+#12 88.60     at A (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94398)
+#12 88.60     at R (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92949)
+#12 88.60     at rR (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+#12 88.60     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+#12 88.60     at nB (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+#12 88.60     at nM (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:58561)
+#12 88.60     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64547) {
+#12 88.60   digest: '549002120'
+#12 88.60 }
+#12 88.60 
+#12 88.60 Error occurred prerendering page "/_not-found". Read more: https://nextjs.org/docs/messages/prerender-error
+#12 88.60 
+#12 88.60 Error: NEXT_PUBLIC_GOOGLE_CLIENT_ID is missing. Add it to frontend/.env and restart the app.
+#12 88.60     at 86161 (/app/.next/server/chunks/289.js:1:2310)
+#12 88.60     at Object.t [as require] (/app/.next/server/webpack-runtime.js:1:127)
+#12 88.60     at require (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:17:18811)
+#12 88.60     at A (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94398)
+#12 88.60     at R (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92949)
+#12 88.60     at rR (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+#12 88.60     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+#12 88.60     at nB (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+#12 88.60     at nM (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:58561)
+#12 88.60     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64547)
+#12 88.60 Error: NEXT_PUBLIC_GOOGLE_CLIENT_ID is missing. Add it to frontend/.env and restart the app.
+#12 88.60     at 86161 (/app/.next/server/chunks/289.js:1:2310)
+#12 88.60     at Object.t [as require] (/app/.next/server/webpack-runtime.js:1:127)
+#12 88.60     at require (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:17:18811)
+#12 88.60     at A (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94398)
+#12 88.60     at R (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92949)
+#12 88.60     at rR (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+#12 88.60     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+#12 88.60     at nB (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+#12 88.60     at nM (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:58561)
+#12 88.60     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64547) {
+#12 88.60   digest: '549002120'
+#12 88.60 }
+#12 88.60 
+#12 88.60 Error occurred prerendering page "/dashboard". Read more: https://nextjs.org/docs/messages/prerender-error
+#12 88.60 
+#12 88.60 Error: NEXT_PUBLIC_GOOGLE_CLIENT_ID is missing. Add it to frontend/.env and restart the app.
+#12 88.60     at 86161 (/app/.next/server/chunks/289.js:1:2310)
+#12 88.60     at Object.t [as require] (/app/.next/server/webpack-runtime.js:1:127)
+#12 88.60     at require (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:17:18811)
+#12 88.60     at A (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94398)
+#12 88.60     at R (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92949)
+#12 88.60     at rR (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+#12 88.60     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+#12 88.60     at nB (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+#12 88.60     at nM (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:58561)
+#12 88.60     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64547)
+#12 88.60 Error: NEXT_PUBLIC_GOOGLE_CLIENT_ID is missing. Add it to frontend/.env and restart the app.
+#12 88.60     at 86161 (/app/.next/server/chunks/289.js:1:2310)
+#12 88.60     at Object.t [as require] (/app/.next/server/webpack-runtime.js:1:127)
+#12 88.60     at require (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:17:18811)
+#12 88.60     at A (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94398)
+#12 88.60     at R (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92949)
+#12 88.60     at rR (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+#12 88.60     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+#12 88.60     at nB (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+#12 88.60     at nM (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:58561)
+#12 88.60     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64547) {
+#12 88.60   digest: '549002120'
+#12 88.60 }
+#12 88.60 
+#12 88.60 Error occurred prerendering page "/dashboard/orders". Read more: https://nextjs.org/docs/messages/prerender-error
+#12 88.60 
+#12 88.60 Error: NEXT_PUBLIC_GOOGLE_CLIENT_ID is missing. Add it to frontend/.env and restart the app.
+#12 88.60     at 86161 (/app/.next/server/chunks/289.js:1:2310)
+#12 88.60     at Object.t [as require] (/app/.next/server/webpack-runtime.js:1:127)
+#12 88.60     at require (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:17:18811)
+#12 88.60     at A (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94398)
+#12 88.60     at R (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92949)
+#12 88.60     at rR (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+#12 88.60     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+#12 88.60     at nB (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+#12 88.60     at nM (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:58561)
+#12 88.60     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64547)
+#12 88.99 Error: NEXT_PUBLIC_GOOGLE_CLIENT_ID is missing. Add it to frontend/.env and restart the app.
+#12 88.99     at 86161 (/app/.next/server/chunks/289.js:1:2310)
+#12 88.99     at Object.t [as require] (/app/.next/server/webpack-runtime.js:1:127)
+#12 88.99     at require (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:17:18811)
+#12 88.99     at A (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94398)
+#12 88.99     at R (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92949)
+#12 88.99     at rR (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+#12 88.99     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+#12 88.99     at nB (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+#12 88.99     at nM (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:58561)
+#12 88.99     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64547) {
+#12 88.99   digest: '549002120'
+#12 88.99 }
+#12 88.99 
+#12 88.99 Error occurred prerendering page "/dashboard/users". Read more: https://nextjs.org/docs/messages/prerender-error
+#12 88.99 
+#12 88.99 Error: NEXT_PUBLIC_GOOGLE_CLIENT_ID is missing. Add it to frontend/.env and restart the app.
+#12 88.99     at 86161 (/app/.next/server/chunks/289.js:1:2310)
+#12 88.99     at Object.t [as require] (/app/.next/server/webpack-runtime.js:1:127)
+#12 88.99     at require (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:17:18811)
+#12 88.99     at A (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94398)
+#12 88.99     at R (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92949)
+#12 88.99     at rR (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+#12 88.99     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+#12 88.99     at nB (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+#12 88.99     at nM (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:58561)
+#12 88.99     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64547)
+#12 88.99 Error: NEXT_PUBLIC_GOOGLE_CLIENT_ID is missing. Add it to frontend/.env and restart the app.
+#12 88.99     at 86161 (/app/.next/server/chunks/289.js:1:2310)
+#12 88.99     at Object.t [as require] (/app/.next/server/webpack-runtime.js:1:127)
+#12 88.99     at require (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:17:18811)
+#12 88.99     at A (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94398)
+#12 88.99     at R (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92949)
+#12 88.99     at rR (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+#12 88.99     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+#12 88.99     at nB (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+#12 88.99     at nM (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:58561)
+#12 88.99     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64547) {
+#12 88.99   digest: '549002120'
+#12 88.99 }
+#12 88.99 
+#12 88.99 Error occurred prerendering page "/dashboard/profile". Read more: https://nextjs.org/docs/messages/prerender-error
+#12 88.99 
+#12 88.99 Error: NEXT_PUBLIC_GOOGLE_CLIENT_ID is missing. Add it to frontend/.env and restart the app.
+#12 88.99     at 86161 (/app/.next/server/chunks/289.js:1:2310)
+#12 88.99     at Object.t [as require] (/app/.next/server/webpack-runtime.js:1:127)
+#12 88.99     at require (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:17:18811)
+#12 88.99     at A (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94398)
+#12 88.99     at R (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92949)
+#12 88.99     at rR (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+#12 88.99     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+#12 88.99     at nB (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+#12 88.99     at nM (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:58561)
+#12 88.99     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64547)
+#12 88.99 Error: NEXT_PUBLIC_GOOGLE_CLIENT_ID is missing. Add it to frontend/.env and restart the app.
+#12 88.99     at 86161 (/app/.next/server/chunks/289.js:1:2310)
+#12 88.99     at Object.t [as require] (/app/.next/server/webpack-runtime.js:1:127)
+#12 88.99     at require (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:17:18811)
+#12 88.99     at A (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94398)
+#12 88.99     at R (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92949)
+#12 88.99     at rR (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+#12 88.99     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+#12 88.99     at nB (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+#12 88.99     at nM (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:58561)
+#12 88.99     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64547) {
+#12 88.99   digest: '549002120'
+#12 88.99 }
+#12 88.99 
+#12 88.99 Error occurred prerendering page "/dashboard/analytics". Read more: https://nextjs.org/docs/messages/prerender-error
+#12 88.99 
+#12 88.99 Error: NEXT_PUBLIC_GOOGLE_CLIENT_ID is missing. Add it to frontend/.env and restart the app.
+#12 88.99     at 86161 (/app/.next/server/chunks/289.js:1:2310)
+#12 88.99     at Object.t [as require] (/app/.next/server/webpack-runtime.js:1:127)
+#12 88.99     at require (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:17:18811)
+#12 88.99     at A (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94398)
+#12 88.99     at R (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92949)
+#12 88.99     at rR (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+#12 88.99     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+#12 88.99     at nB (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+#12 88.99     at nM (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:58561)
+#12 88.99     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64547)
+#12 88.99    Generating static pages (6/26) 
+#12 89.14 Error: NEXT_PUBLIC_GOOGLE_CLIENT_ID is missing. Add it to frontend/.env and restart the app.
+#12 89.14     at 86161 (/app/.next/server/chunks/289.js:1:2310)
+#12 89.14     at Object.t [as require] (/app/.next/server/webpack-runtime.js:1:127)
+#12 89.14     at require (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:17:18811)
+#12 89.14     at A (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94398)
+#12 89.14     at R (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92949)
+#12 89.14     at rR (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+#12 89.14     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+#12 89.14     at nB (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+#12 89.14     at nM (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:58561)
+#12 89.14     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64547) {
+#12 89.14   digest: '549002120'
+#12 89.14 }
+#12 89.14 
+#12 89.14 Error occurred prerendering page "/dashboard/settings". Read more: https://nextjs.org/docs/messages/prerender-error
+#12 89.14 
+#12 89.14 Error: NEXT_PUBLIC_GOOGLE_CLIENT_ID is missing. Add it to frontend/.env and restart the app.
+#12 89.14     at 86161 (/app/.next/server/chunks/289.js:1:2310)
+#12 89.14     at Object.t [as require] (/app/.next/server/webpack-runtime.js:1:127)
+#12 89.14     at require (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:17:18811)
+#12 89.14     at A (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94398)
+#12 89.14     at R (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92949)
+#12 89.14     at rR (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+#12 89.14     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+#12 89.14     at nB (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+#12 89.14     at nM (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:58561)
+#12 89.14     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64547)
+#12 89.18 Error: NEXT_PUBLIC_GOOGLE_CLIENT_ID is missing. Add it to frontend/.env and restart the app.
+#12 89.18     at 86161 (/app/.next/server/chunks/289.js:1:2310)
+#12 89.18     at Object.t [as require] (/app/.next/server/webpack-runtime.js:1:127)
+#12 89.18     at require (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:17:18811)
+#12 89.18     at A (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94398)
+#12 89.18     at R (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92949)
+#12 89.18     at rR (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+#12 89.18     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+#12 89.18     at nB (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+#12 89.18     at nM (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:58561)
+#12 89.18     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64547) {
+#12 89.18   digest: '549002120'
+#12 89.18 }
+#12 89.18 
+#12 89.18 Error occurred prerendering page "/dashboard/inventory". Read more: https://nextjs.org/docs/messages/prerender-error
+#12 89.18 
+#12 89.18 Error: NEXT_PUBLIC_GOOGLE_CLIENT_ID is missing. Add it to frontend/.env and restart the app.
+#12 89.18     at 86161 (/app/.next/server/chunks/289.js:1:2310)
+#12 89.18     at Object.t [as require] (/app/.next/server/webpack-runtime.js:1:127)
+#12 89.18     at require (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:17:18811)
+#12 89.18     at A (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94398)
+#12 89.18     at R (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92949)
+#12 89.18     at rR (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+#12 89.18     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+#12 89.18     at nB (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+#12 89.18     at nM (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:58561)
+#12 89.18     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64547)
+#12 89.18 Error: NEXT_PUBLIC_GOOGLE_CLIENT_ID is missing. Add it to frontend/.env and restart the app.
+#12 89.18     at 86161 (/app/.next/server/chunks/289.js:1:2310)
+#12 89.18     at Object.t [as require] (/app/.next/server/webpack-runtime.js:1:127)
+#12 89.18     at require (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:17:18811)
+#12 89.18     at A (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94398)
+#12 89.18     at R (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92949)
+#12 89.18     at rR (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+#12 89.18     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+#12 89.18     at nB (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+#12 89.18     at nM (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:58561)
+#12 89.18     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64547) {
+#12 89.18   digest: '549002120'
+#12 89.18 }
+#12 89.18 
+#12 89.18 Error occurred prerendering page "/admin/dashboard". Read more: https://nextjs.org/docs/messages/prerender-error
+#12 89.18 
+#12 89.18 Error: NEXT_PUBLIC_GOOGLE_CLIENT_ID is missing. Add it to frontend/.env and restart the app.
+#12 89.18     at 86161 (/app/.next/server/chunks/289.js:1:2310)
+#12 89.18     at Object.t [as require] (/app/.next/server/webpack-runtime.js:1:127)
+#12 89.18     at require (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:17:18811)
+#12 89.18     at A (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94398)
+#12 89.18     at R (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92949)
+#12 89.18     at rR (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+#12 89.18     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+#12 89.18     at nB (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+#12 89.18     at nM (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:58561)
+#12 89.18     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64547)
+#12 89.26 Error: NEXT_PUBLIC_GOOGLE_CLIENT_ID is missing. Add it to frontend/.env and restart the app.
+#12 89.26     at 86161 (/app/.next/server/chunks/289.js:1:2310)
+#12 89.26     at Object.t [as require] (/app/.next/server/webpack-runtime.js:1:127)
+#12 89.26     at require (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:17:18811)
+#12 89.26     at A (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94398)
+#12 89.26     at R (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92949)
+#12 89.26     at rR (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+#12 89.26     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+#12 89.26     at nB (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+#12 89.26     at nM (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:58561)
+#12 89.26     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64547) {
+#12 89.26   digest: '549002120'
+#12 89.26 }
+#12 89.26 
+#12 89.26 Error occurred prerendering page "/account/orders". Read more: https://nextjs.org/docs/messages/prerender-error
+#12 89.26 
+#12 89.26 Error: NEXT_PUBLIC_GOOGLE_CLIENT_ID is missing. Add it to frontend/.env and restart the app.
+#12 89.26     at 86161 (/app/.next/server/chunks/289.js:1:2310)
+#12 89.26     at Object.t [as require] (/app/.next/server/webpack-runtime.js:1:127)
+#12 89.26     at require (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:17:18811)
+#12 89.26     at A (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94398)
+#12 89.26     at R (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92949)
+#12 89.26     at rR (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+#12 89.26     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+#12 89.26     at nB (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+#12 89.26     at nM (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:58561)
+#12 89.26     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64547)
+#12 89.28 Error: NEXT_PUBLIC_GOOGLE_CLIENT_ID is missing. Add it to frontend/.env and restart the app.
+#12 89.28     at 86161 (/app/.next/server/chunks/289.js:1:2310)
+#12 89.28     at Object.t [as require] (/app/.next/server/webpack-runtime.js:1:127)
+#12 89.28     at require (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:17:18811)
+#12 89.28     at A (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94398)
+#12 89.28     at R (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92949)
+#12 89.28     at rR (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+#12 89.28     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+#12 89.28     at nB (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+#12 89.28     at nM (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:58561)
+#12 89.28     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64547) {
+#12 89.28   digest: '549002120'
+#12 89.28 }
+#12 89.28 
+#12 89.28 Error occurred prerendering page "/cart". Read more: https://nextjs.org/docs/messages/prerender-error
+#12 89.28 
+#12 89.28 Error: NEXT_PUBLIC_GOOGLE_CLIENT_ID is missing. Add it to frontend/.env and restart the app.
+#12 89.28     at 86161 (/app/.next/server/chunks/289.js:1:2310)
+#12 89.28     at Object.t [as require] (/app/.next/server/webpack-runtime.js:1:127)
+#12 89.28     at require (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:17:18811)
+#12 89.28     at A (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94398)
+#12 89.28     at R (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92949)
+#12 89.28     at rR (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+#12 89.28     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+#12 89.28     at nB (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+#12 89.28     at nM (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:58561)
+#12 89.28     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64547)
+#12 89.28    Generating static pages (12/26) 
+#12 89.36 Error: NEXT_PUBLIC_GOOGLE_CLIENT_ID is missing. Add it to frontend/.env and restart the app.
+#12 89.36     at 86161 (/app/.next/server/chunks/289.js:1:2310)
+#12 89.36     at Object.t [as require] (/app/.next/server/webpack-runtime.js:1:127)
+#12 89.36     at require (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:17:18811)
+#12 89.36     at A (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94398)
+#12 89.36     at R (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92949)
+#12 89.36     at rR (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+#12 89.36     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+#12 89.36     at nB (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+#12 89.36     at nM (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:58561)
+#12 89.36     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64547) {
+#12 89.36   digest: '549002120'
+#12 89.36 }
+#12 89.36 
+#12 89.36 Error occurred prerendering page "/contact". Read more: https://nextjs.org/docs/messages/prerender-error
+#12 89.36 
+#12 89.36 Error: NEXT_PUBLIC_GOOGLE_CLIENT_ID is missing. Add it to frontend/.env and restart the app.
+#12 89.36     at 86161 (/app/.next/server/chunks/289.js:1:2310)
+#12 89.36     at Object.t [as require] (/app/.next/server/webpack-runtime.js:1:127)
+#12 89.36     at require (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:17:18811)
+#12 89.36     at A (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94398)
+#12 89.36     at R (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92949)
+#12 89.36     at rR (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+#12 89.36     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+#12 89.36     at nB (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+#12 89.36     at nM (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:58561)
+#12 89.36     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64547)
+#12 89.36 Error: NEXT_PUBLIC_GOOGLE_CLIENT_ID is missing. Add it to frontend/.env and restart the app.
+#12 89.36     at 86161 (/app/.next/server/chunks/289.js:1:2310)
+#12 89.36     at Object.t [as require] (/app/.next/server/webpack-runtime.js:1:127)
+#12 89.36     at require (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:17:18811)
+#12 89.36     at A (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94398)
+#12 89.36     at R (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92949)
+#12 89.36     at rR (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+#12 89.36     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+#12 89.36     at nB (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+#12 89.36     at nM (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:58561)
+#12 89.36     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64547) {
+#12 89.36   digest: '549002120'
+#12 89.36 }
+#12 89.36 
+#12 89.36 Error occurred prerendering page "/login". Read more: https://nextjs.org/docs/messages/prerender-error
+#12 89.36 
+#12 89.36 Error: NEXT_PUBLIC_GOOGLE_CLIENT_ID is missing. Add it to frontend/.env and restart the app.
+#12 89.36     at 86161 (/app/.next/server/chunks/289.js:1:2310)
+#12 89.36     at Object.t [as require] (/app/.next/server/webpack-runtime.js:1:127)
+#12 89.36     at require (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:17:18811)
+#12 89.36     at A (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94398)
+#12 89.36     at R (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92949)
+#12 89.36     at rR (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+#12 89.36     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+#12 89.36     at nB (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+#12 89.36     at nM (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:58561)
+#12 89.36     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64547)
+#12 89.51 Error: NEXT_PUBLIC_GOOGLE_CLIENT_ID is missing. Add it to frontend/.env and restart the app.
+#12 89.51     at 86161 (/app/.next/server/chunks/289.js:1:2310)
+#12 89.51     at Object.t [as require] (/app/.next/server/webpack-runtime.js:1:127)
+#12 89.51     at require (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:17:18811)
+#12 89.51     at A (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94398)
+#12 89.51     at R (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92949)
+#12 89.51     at rR (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+#12 89.51     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+#12 89.51     at nB (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+#12 89.51     at nM (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:58561)
+#12 89.51     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64547) {
+#12 89.51   digest: '549002120'
+#12 89.51 }
+#12 89.51 
+#12 89.51 Error occurred prerendering page "/checkout". Read more: https://nextjs.org/docs/messages/prerender-error
+#12 89.51 
+#12 89.51 Error: NEXT_PUBLIC_GOOGLE_CLIENT_ID is missing. Add it to frontend/.env and restart the app.
+#12 89.51     at 86161 (/app/.next/server/chunks/289.js:1:2310)
+#12 89.51     at Object.t [as require] (/app/.next/server/webpack-runtime.js:1:127)
+#12 89.51     at require (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:17:18811)
+#12 89.51     at A (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94398)
+#12 89.51     at R (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92949)
+#12 89.51     at rR (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+#12 89.51     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+#12 89.51     at nB (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+#12 89.51     at nM (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:58561)
+#12 89.51     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64547)
+#12 89.51 Error: NEXT_PUBLIC_GOOGLE_CLIENT_ID is missing. Add it to frontend/.env and restart the app.
+#12 89.51     at 86161 (/app/.next/server/chunks/289.js:1:2310)
+#12 89.51     at Object.t [as require] (/app/.next/server/webpack-runtime.js:1:127)
+#12 89.51     at require (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:17:18811)
+#12 89.51     at A (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94398)
+#12 89.51     at R (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92949)
+#12 89.51     at rR (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+#12 89.51     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+#12 89.51     at nB (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+#12 89.51     at nM (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:58561)
+#12 89.51     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64547) {
+#12 89.51   digest: '549002120'
+#12 89.51 }
+#12 89.51 
+#12 89.51 Error occurred prerendering page "/order-success". Read more: https://nextjs.org/docs/messages/prerender-error
+#12 89.51 
+#12 89.51 Error: NEXT_PUBLIC_GOOGLE_CLIENT_ID is missing. Add it to frontend/.env and restart the app.
+#12 89.51     at 86161 (/app/.next/server/chunks/289.js:1:2310)
+#12 89.51     at Object.t [as require] (/app/.next/server/webpack-runtime.js:1:127)
+#12 89.51     at require (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:17:18811)
+#12 89.51     at A (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94398)
+#12 89.51     at R (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92949)
+#12 89.51     at rR (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+#12 89.51     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+#12 89.51     at nB (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+#12 89.51     at nM (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:58561)
+#12 89.51     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64547)
+#12 89.57 Error: NEXT_PUBLIC_GOOGLE_CLIENT_ID is missing. Add it to frontend/.env and restart the app.
+#12 89.57     at 86161 (/app/.next/server/chunks/289.js:1:2310)
+#12 89.57     at Object.t [as require] (/app/.next/server/webpack-runtime.js:1:127)
+#12 89.57     at require (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:17:18811)
+#12 89.57     at A (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94398)
+#12 89.57     at R (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92949)
+#12 89.57     at rR (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+#12 89.57     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+#12 89.57     at nB (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+#12 89.57     at nM (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:58561)
+#12 89.57     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64547) {
+#12 89.57   digest: '549002120'
+#12 89.57 }
+#12 89.58 Error: NEXT_PUBLIC_GOOGLE_CLIENT_ID is missing. Add it to frontend/.env and restart the app.
+#12 89.58     at 86161 (/app/.next/server/chunks/289.js:1:2310)
+#12 89.58     at Object.t [as require] (/app/.next/server/webpack-runtime.js:1:127)
+#12 89.58     at require (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:17:18811)
+#12 89.58     at A (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94398)
+#12 89.58     at R (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92949)
+#12 89.58     at rR (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+#12 89.58     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+#12 89.58     at nB (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+#12 89.58     at nM (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:58561)
+#12 89.58     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64547) {
+#12 89.58   digest: '549002120'
+#12 89.58 }
+#12 89.63 Error: NEXT_PUBLIC_GOOGLE_CLIENT_ID is missing. Add it to frontend/.env and restart the app.
+#12 89.63     at 86161 (/app/.next/server/chunks/289.js:1:2310)
+#12 89.63     at Object.t [as require] (/app/.next/server/webpack-runtime.js:1:127)
+#12 89.63     at require (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:17:18811)
+#12 89.63     at A (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94398)
+#12 89.63     at R (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92949)
+#12 89.63     at rR (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+#12 89.63     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+#12 89.63     at nB (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+#12 89.63     at nM (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:58561)
+#12 89.63     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64547) {
+#12 89.63   digest: '549002120'
+#12 89.63 }
+#12 89.63 
+#12 89.63 Error occurred prerendering page "/faqs". Read more: https://nextjs.org/docs/messages/prerender-error
+#12 89.63 
+#12 89.63 Error: NEXT_PUBLIC_GOOGLE_CLIENT_ID is missing. Add it to frontend/.env and restart the app.
+#12 89.63     at 86161 (/app/.next/server/chunks/289.js:1:2310)
+#12 89.63     at Object.t [as require] (/app/.next/server/webpack-runtime.js:1:127)
+#12 89.63     at require (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:17:18811)
+#12 89.63     at A (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94398)
+#12 89.63     at R (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92949)
+#12 89.63     at rR (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+#12 89.63     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+#12 89.63     at nB (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+#12 89.63     at nM (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:58561)
+#12 89.63     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64547)
+#12 89.67 
+#12 89.67 Error occurred prerendering page "/delivery". Read more: https://nextjs.org/docs/messages/prerender-error
+#12 89.67 
+#12 89.67 Error: NEXT_PUBLIC_GOOGLE_CLIENT_ID is missing. Add it to frontend/.env and restart the app.
+#12 89.67     at 86161 (/app/.next/server/chunks/289.js:1:2310)
+#12 89.67     at Object.t [as require] (/app/.next/server/webpack-runtime.js:1:127)
+#12 89.67     at require (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:17:18811)
+#12 89.67     at A (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94398)
+#12 89.67     at R (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92949)
+#12 89.67     at rR (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+#12 89.67     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+#12 89.67     at nB (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+#12 89.67     at nM (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:58561)
+#12 89.67     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64547)
+#12 89.67 
+#12 89.67 Error occurred prerendering page "/cookies". Read more: https://nextjs.org/docs/messages/prerender-error
+#12 89.67 
+#12 89.67 Error: NEXT_PUBLIC_GOOGLE_CLIENT_ID is missing. Add it to frontend/.env and restart the app.
+#12 89.67     at 86161 (/app/.next/server/chunks/289.js:1:2310)
+#12 89.67     at Object.t [as require] (/app/.next/server/webpack-runtime.js:1:127)
+#12 89.67     at require (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:17:18811)
+#12 89.67     at A (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94398)
+#12 89.67     at R (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92949)
+#12 89.67     at rR (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+#12 89.67     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+#12 89.67     at nB (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+#12 89.67     at nM (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:58561)
+#12 89.67     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64547)
+#12 89.67    Generating static pages (19/26) 
+#12 89.77 Error: NEXT_PUBLIC_GOOGLE_CLIENT_ID is missing. Add it to frontend/.env and restart the app.
+#12 89.77     at 86161 (/app/.next/server/chunks/289.js:1:2310)
+#12 89.77     at Object.t [as require] (/app/.next/server/webpack-runtime.js:1:127)
+#12 89.77     at require (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:17:18811)
+#12 89.77     at A (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94398)
+#12 89.77     at R (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92949)
+#12 89.77     at rR (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+#12 89.77     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+#12 89.77     at nB (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+#12 89.77     at nM (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:58561)
+#12 89.77     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64547) {
+#12 89.77   digest: '549002120'
+#12 89.77 }
+#12 89.77 
+#12 89.77 Error occurred prerendering page "/terms". Read more: https://nextjs.org/docs/messages/prerender-error
+#12 89.77 
+#12 89.77 Error: NEXT_PUBLIC_GOOGLE_CLIENT_ID is missing. Add it to frontend/.env and restart the app.
+#12 89.77     at 86161 (/app/.next/server/chunks/289.js:1:2310)
+#12 89.77     at Object.t [as require] (/app/.next/server/webpack-runtime.js:1:127)
+#12 89.77     at require (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:17:18811)
+#12 89.77     at A (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94398)
+#12 89.77     at R (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92949)
+#12 89.77     at rR (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+#12 89.77     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+#12 89.77     at nB (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+#12 89.77     at nM (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:58561)
+#12 89.77     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64547)
+#12 89.77 Error: NEXT_PUBLIC_GOOGLE_CLIENT_ID is missing. Add it to frontend/.env and restart the app.
+#12 89.77     at 86161 (/app/.next/server/chunks/289.js:1:2310)
+#12 89.77     at Object.t [as require] (/app/.next/server/webpack-runtime.js:1:127)
+#12 89.77     at require (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:17:18811)
+#12 89.77     at A (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94398)
+#12 89.77     at R (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92949)
+#12 89.77     at rR (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+#12 89.77     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+#12 89.77     at nB (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+#12 89.77     at nM (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:58561)
+#12 89.77     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64547) {
+#12 89.77   digest: '549002120'
+#12 89.77 }
+#12 89.77 
+#12 89.77 Error occurred prerendering page "/returns". Read more: https://nextjs.org/docs/messages/prerender-error
+#12 89.77 
+#12 89.77 Error: NEXT_PUBLIC_GOOGLE_CLIENT_ID is missing. Add it to frontend/.env and restart the app.
+#12 89.77     at 86161 (/app/.next/server/chunks/289.js:1:2310)
+#12 89.77     at Object.t [as require] (/app/.next/server/webpack-runtime.js:1:127)
+#12 89.77     at require (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:17:18811)
+#12 89.77     at A (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94398)
+#12 89.77     at R (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92949)
+#12 89.77     at rR (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+#12 89.77     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+#12 89.77     at nB (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+#12 89.77     at nM (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:58561)
+#12 89.77     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64547)
+#12 89.79 Error: NEXT_PUBLIC_GOOGLE_CLIENT_ID is missing. Add it to frontend/.env and restart the app.
+#12 89.79     at 86161 (/app/.next/server/chunks/289.js:1:2310)
+#12 89.79     at Object.t [as require] (/app/.next/server/webpack-runtime.js:1:127)
+#12 89.79     at require (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:17:18811)
+#12 89.79     at A (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94398)
+#12 89.79     at R (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92949)
+#12 89.79     at rR (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+#12 89.79     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+#12 89.79     at nB (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+#12 89.79     at nM (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:58561)
+#12 89.79     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64547) {
+#12 89.79   digest: '549002120'
+#12 89.79 }
+#12 89.79 
+#12 89.79 Error occurred prerendering page "/privacy". Read more: https://nextjs.org/docs/messages/prerender-error
+#12 89.79 
+#12 89.79 Error: NEXT_PUBLIC_GOOGLE_CLIENT_ID is missing. Add it to frontend/.env and restart the app.
+#12 89.79     at 86161 (/app/.next/server/chunks/289.js:1:2310)
+#12 89.79     at Object.t [as require] (/app/.next/server/webpack-runtime.js:1:127)
+#12 89.79     at require (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:17:18811)
+#12 89.79     at A (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94398)
+#12 89.79     at R (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92949)
+#12 89.79     at rR (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+#12 89.79     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+#12 89.79     at nB (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+#12 89.79     at nM (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:58561)
+#12 89.79     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64547)
+#12 89.89 Error: NEXT_PUBLIC_GOOGLE_CLIENT_ID is missing. Add it to frontend/.env and restart the app.
+#12 89.89     at 86161 (/app/.next/server/chunks/289.js:1:2310)
+#12 89.89     at Object.t [as require] (/app/.next/server/webpack-runtime.js:1:127)
+#12 89.89     at require (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:17:18811)
+#12 89.89     at A (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94398)
+#12 89.89     at R (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92949)
+#12 89.89     at rR (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+#12 89.89     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+#12 89.89     at nB (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+#12 89.89     at nM (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:58561)
+#12 89.89     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64547) {
+#12 89.89   digest: '549002120'
+#12 89.89 }
+#12 89.94 
+#12 89.94 Error occurred prerendering page "/about". Read more: https://nextjs.org/docs/messages/prerender-error
+#12 89.94 
+#12 89.94 Error: NEXT_PUBLIC_GOOGLE_CLIENT_ID is missing. Add it to frontend/.env and restart the app.
+#12 89.94     at 86161 (/app/.next/server/chunks/289.js:1:2310)
+#12 89.94     at Object.t [as require] (/app/.next/server/webpack-runtime.js:1:127)
+#12 89.94     at require (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:17:18811)
+#12 89.94     at A (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94398)
+#12 89.94     at R (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92949)
+#12 89.94     at rR (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+#12 89.94     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+#12 89.94     at nB (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+#12 89.94     at nM (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:58561)
+#12 89.94     at nL (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64547)
+#12 89.94  ✓ Generating static pages (26/26)
+#12 90.07 
+#12 90.08 > Export encountered errors on following paths:
+#12 90.08 	/(admin)/dashboard/analytics/page: /dashboard/analytics
+#12 90.08 	/(admin)/dashboard/inventory/page: /dashboard/inventory
+#12 90.08 	/(admin)/dashboard/orders/page: /dashboard/orders
+#12 90.08 	/(admin)/dashboard/page: /dashboard
+#12 90.08 	/(admin)/dashboard/profile/page: /dashboard/profile
+#12 90.08 	/(admin)/dashboard/settings/page: /dashboard/settings
+#12 90.08 	/(admin)/dashboard/users/page: /dashboard/users
+#12 90.08 	/_not-found/page: /_not-found
+#12 90.08 	/about/page: /about
+#12 90.08 	/account/orders/page: /account/orders
+#12 90.08 	/admin/dashboard/page: /admin/dashboard
+#12 90.08 	/cart/page: /cart
+#12 90.08 	/checkout/page: /checkout
+#12 90.08 	/contact/page: /contact
+#12 90.08 	/cookies/page: /cookies
+#12 90.08 	/delivery/page: /delivery
+#12 90.08 	/faqs/page: /faqs
+#12 90.08 	/login/page: /login
+#12 90.08 	/order-success/page: /order-success
+#12 90.08 	/privacy/page: /privacy
+#12 90.08 	/returns/page: /returns
+#12 90.08 	/terms/page: /terms
+#12 ERROR: process "/bin/sh -c npm run build" did not complete successfully: exit code: 1
+------
+ > [builder 6/6] RUN npm run build:
+90.08 	/checkout/page: /checkout
+90.08 	/contact/page: /contact
+90.08 	/cookies/page: /cookies
+90.08 	/delivery/page: /delivery
+90.08 	/faqs/page: /faqs
+90.08 	/login/page: /login
+90.08 	/order-success/page: /order-success
+90.08 	/privacy/page: /privacy
+90.08 	/returns/page: /returns
+90.08 	/terms/page: /terms
+------
+Dockerfile:22
+
+--------------------
+
+  20 |     
+
+  21 |     # Build Next.js application
+
+  22 | >>> RUN npm run build
+
+  23 |     
+
+  24 |     
+
+--------------------
+
+failed to solve: process "/bin/sh -c npm run build" did not complete successfully: exit code: 1
+
