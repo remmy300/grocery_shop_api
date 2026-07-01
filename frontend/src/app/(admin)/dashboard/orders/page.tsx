@@ -674,83 +674,100 @@ const OrdersPage = () => {
         </Select>
       </div>
 
-      <div className="overflow-hidden rounded-xl bg-surface-container-lowest shadow-sm">
+      {/* ── Mobile cards ────────────────────────────────────────────── */}
+      <div className="space-y-3 md:hidden">
+        {pagedOrders.length ? (
+          pagedOrders.map((order) => (
+            <Card key={order.orderId} className="rounded-2xl bg-surface-container-lowest shadow-sm">
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-secondary-fixed text-xs font-bold text-on-secondary-fixed">
+                      {order.initials}
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-foreground">{order.customer}</p>
+                      <p className="text-xs text-muted-foreground">{order.id}</p>
+                    </div>
+                  </div>
+                  <Badge className={`${order.statusColor} shrink-0 rounded-full px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide`}>
+                    {order.orderStatus}
+                  </Badge>
+                </div>
+                <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
+                  <div>
+                    <p className="text-xs text-muted-foreground">{order.date}</p>
+                    <p className="text-sm font-bold text-foreground">KES {formatCurrency(order.total)}</p>
+                  </div>
+                  <div className="flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0 text-outline hover:text-primary"
+                      onClick={() => dispatchForm({ type: "openEdit", order })}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0 text-outline hover:text-destructive"
+                      onClick={() => dispatchForm({ type: "openDelete", order })}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        ) : (
+          <div className="rounded-2xl border border-dashed border-border p-10 text-center">
+            <p className="font-medium text-foreground">No orders match the current filters.</p>
+            <p className="mt-1 text-sm text-muted-foreground">Try another search or change the filter selections.</p>
+          </div>
+        )}
+      </div>
+
+      {/* ── Desktop table ────────────────────────────────────────────── */}
+      <div className="hidden overflow-hidden rounded-xl bg-surface-container-lowest shadow-sm md:block">
         <Table>
           <TableHeader>
             <TableRow className="border-none bg-surface-container-low">
-              <TableHead className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-secondary-foreground font-label">
-                Order ID
-              </TableHead>
-              <TableHead className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-secondary-foreground font-label">
-                Customer Name
-              </TableHead>
-              <TableHead className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-secondary-foreground font-label">
-                Date
-              </TableHead>
-              <TableHead className="px-6 py-4 text-right text-xs font-bold uppercase tracking-widest text-secondary-foreground font-label">
-                Total Amount
-              </TableHead>
-              <TableHead className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-secondary-foreground font-label">
-                Status
-              </TableHead>
-              <TableHead className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-secondary-foreground font-label">
-                Actions
-              </TableHead>
+              <TableHead className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-secondary-foreground font-label">Order ID</TableHead>
+              <TableHead className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-secondary-foreground font-label">Customer Name</TableHead>
+              <TableHead className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-secondary-foreground font-label">Date</TableHead>
+              <TableHead className="px-6 py-4 text-right text-xs font-bold uppercase tracking-widest text-secondary-foreground font-label">Total Amount</TableHead>
+              <TableHead className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-secondary-foreground font-label">Status</TableHead>
+              <TableHead className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-secondary-foreground font-label">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {pagedOrders.length ? (
               pagedOrders.map((order) => (
-                <TableRow
-                  key={order.orderId}
-                  className="transition-colors hover:bg-surface-container-lowest"
-                >
-                  <TableCell className="px-6 py-5 font-heading text-sm font-bold">
-                    {order.id}
-                  </TableCell>
+                <TableRow key={order.orderId} className="transition-colors hover:bg-surface-container-lowest">
+                  <TableCell className="px-6 py-5 font-heading text-sm font-bold">{order.id}</TableCell>
                   <TableCell className="px-6 py-5">
                     <div className="flex items-center gap-3">
                       <div className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary-fixed text-xs font-bold text-on-secondary-fixed">
                         {order.initials}
                       </div>
-                      <span className="text-sm font-medium text-foreground">
-                        {order.customer}
-                      </span>
+                      <span className="text-sm font-medium text-foreground">{order.customer}</span>
                     </div>
                   </TableCell>
-                  <TableCell className="px-6 py-5 text-sm text-secondary-foreground">
-                    {order.date}
-                  </TableCell>
-                  <TableCell className="px-6 py-5 text-right text-sm font-bold text-foreground">
-                    KES {formatCurrency(order.total)}
-                  </TableCell>
+                  <TableCell className="px-6 py-5 text-sm text-secondary-foreground">{order.date}</TableCell>
+                  <TableCell className="px-6 py-5 text-right text-sm font-bold text-foreground">KES {formatCurrency(order.total)}</TableCell>
                   <TableCell className="px-6 py-5">
-                    <Badge
-                      className={`${order.statusColor} rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide`}
-                    >
+                    <Badge className={`${order.statusColor} rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide`}>
                       {order.orderStatus}
                     </Badge>
                   </TableCell>
                   <TableCell className="px-6 py-5">
                     <div className="flex items-center gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-outline transition-colors hover:text-primary"
-                        onClick={() => dispatchForm({ type: "openEdit", order })}
-                        title="Edit status"
-                      >
+                      <Button variant="ghost" size="sm" className="text-outline transition-colors hover:text-primary" onClick={() => dispatchForm({ type: "openEdit", order })} title="Edit status">
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-outline transition-colors hover:text-destructive"
-                        onClick={() =>
-                          dispatchForm({ type: "openDelete", order })
-                        }
-                        title="Delete order"
-                      >
+                      <Button variant="ghost" size="sm" className="text-outline transition-colors hover:text-destructive" onClick={() => dispatchForm({ type: "openDelete", order })} title="Delete order">
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
@@ -760,53 +777,43 @@ const OrdersPage = () => {
             ) : (
               <TableRow>
                 <TableCell colSpan={6} className="px-6 py-12 text-center">
-                  <p className="font-medium text-foreground">
-                    No orders match the current filters.
-                  </p>
-                  <p className="mt-2 text-sm text-secondary-foreground">
-                    Try another search or change the filter selections.
-                  </p>
+                  <p className="font-medium text-foreground">No orders match the current filters.</p>
+                  <p className="mt-2 text-sm text-secondary-foreground">Try another search or change the filter selections.</p>
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
+      </div>
 
-        <div className="flex items-center justify-between bg-surface/50 px-6 py-4">
-          <p className="text-xs font-medium text-secondary-foreground">
-            Showing <span className="font-bold">{pagedOrders.length}</span> of{" "}
-            <span className="font-bold">{filteredOrders.length}</span> orders
-          </p>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              className="h-8 w-8"
-              onClick={() =>
-                setFilters((prev) => ({ ...prev, page: Math.max(1, prev.page - 1) }))
-              }
-              disabled={safePage <= 1}
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </Button>
-            <Button className="h-8 w-8 bg-primary text-xs font-bold text-primary-foreground">
-              {safePage}
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              className="h-8 w-8"
-              onClick={() =>
-                setFilters((prev) => ({
-                  ...prev,
-                  page: Math.min(totalPages, prev.page + 1),
-                }))
-              }
-              disabled={safePage >= totalPages}
-            >
-              <ChevronRight className="h-5 w-5" />
-            </Button>
-          </div>
+      {/* ── Pagination (shared) ──────────────────────────────────────── */}
+      <div className="flex items-center justify-between rounded-xl bg-surface-container-lowest px-4 py-3 shadow-sm md:px-6 md:py-4">
+        <p className="text-xs font-medium text-secondary-foreground">
+          Showing <span className="font-bold">{pagedOrders.length}</span> of{" "}
+          <span className="font-bold">{filteredOrders.length}</span> orders
+        </p>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            className="h-8 w-8"
+            onClick={() => setFilters((prev) => ({ ...prev, page: Math.max(1, prev.page - 1) }))}
+            disabled={safePage <= 1}
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </Button>
+          <Button className="h-8 w-8 bg-primary text-xs font-bold text-primary-foreground">
+            {safePage}
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            className="h-8 w-8"
+            onClick={() => setFilters((prev) => ({ ...prev, page: Math.min(totalPages, prev.page + 1) }))}
+            disabled={safePage >= totalPages}
+          >
+            <ChevronRight className="h-5 w-5" />
+          </Button>
         </div>
       </div>
 
