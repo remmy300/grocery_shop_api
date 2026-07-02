@@ -376,7 +376,7 @@ export const getPaymentDetails = async (req: Request, res: Response) => {
 
     const payment = await prisma.payment.findUnique({
       where: { orderId },
-      include: { order: true },
+      include: { order: { select: { userId: true } } },
     });
 
     if (!payment) {
@@ -391,7 +391,8 @@ export const getPaymentDetails = async (req: Request, res: Response) => {
       return res.status(403).json({ message: "Forbidden" });
     }
 
-    return res.status(200).json(payment);
+    const { order: _order, ...safePayment } = payment;
+    return res.status(200).json(safePayment);
   } catch (error: any) {
     console.error("[payment] getPaymentDetails error:", error.message);
     return res.status(500).json(errorPayload(error));
