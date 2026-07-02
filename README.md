@@ -1,367 +1,198 @@
-# Corner Store - Admin Dashboard
+# Corner Shop
 
-A modern, high-performance admin panel for managing a grocery store's operations including inventory, orders, users, and analytics.
-
----
-
-## 📋 Project Overview
-
-**Corner Store** is a full-stack web application built with **Next.js 14** (frontend) and **Express.js** (backend) that provides a comprehensive admin dashboard for grocery store management. The application features real-time inventory tracking, order management, user administration, and detailed analytics.
-
-### Tech Stack
-
-- **Frontend**: Next.js 14, React 18, TypeScript, Tailwind CSS, shadcn/ui
-- **Backend**: Express.js, Node.js, TypeScript, Prisma ORM
-- **Database**: PostgreSQL
-- **Authentication**: Google OAuth 2.0, JWT (JSON Web Tokens)
-- **Data Fetching**: Axios, React Query (@tanstack/react-query)
-- **UI Components**: shadcn/ui, Lucide React Icons
-- **State Management**: React Context API, React Query
+A full-stack online grocery store with an admin dashboard, M-Pesa payments, and customer-facing storefront.
 
 ---
 
-## 🛠️ What Was Built & Improved
+## Tech Stack
 
-### Phase 1: Core Functionality
-
-✅ Full-stack admin dashboard with authentication  
-✅ Product/Inventory management with stock tracking  
-✅ Order management system with order history  
-✅ User management and admin role controls  
-✅ Analytics dashboard with revenue charts
-
-### Phase 2: Error Handling & Configuration Fixes
-
-✅ **Fixed 500 Errors** - Added global error handlers in backend  
-✅ **Environment Variables** - Configured proper API_BASE_URL and security settings  
-✅ **Prisma Error Handling** - Added database connection validation  
-✅ **Auth Middleware** - Enhanced with specific error codes and messages  
-✅ **Next.js Security Headers** - Added X-Content-Type-Options, X-Frame-Options, X-XSS-Protection  
-✅ **Image Optimization** - Configured remote image patterns for Unsplash
-
-### Phase 3: UI/UX Improvements
-
-✅ **Icon Replacement** - Replaced Material Symbols with Lucide React icons  
-✅ **Responsive Design** - Sidebar layout with breadcrumb navigation  
-✅ **Loading States** - Skeleton loaders and spinner indicators  
-✅ **Error Boundaries** - Better error display and retry mechanisms
-
-### Phase 4: Performance & Data Fetching (In Progress)
-
-✅ **React Query Integration** - Installed @tanstack/react-query for caching  
-✅ **Data Caching** - Automatic background revalidation  
-✅ **Optimistic UI** - Instant feedback to user actions  
-✅ **Authentication Flow** - Improved login redirect speed
-
-### Phase 5: M-Pesa Payment Integration ✨ NEW
-
-✅ **M-Pesa STK Push** - Integrated Safaricom Daraja API for payments  
-✅ **Payment Processing** - Order creation with payment status tracking  
-✅ **Callback Handling** - Automatic payment confirmation via webhook  
-✅ **Frontend UI** - M-Pesa payment processor component with status polling  
-✅ **Database Schema** - Payment model with order relationships  
-✅ **Error Handling** - Comprehensive payment error handling  
-✅ **Testing Ready** - Sandbox environment testing support
+| Layer      | Technologies                                                 |
+| ---------- | ------------------------------------------------------------ |
+| Frontend   | Next.js 14, React 18, TypeScript, Tailwind CSS v4, shadcn/ui |
+| Backend    | Express.js, Node.js, TypeScript, Prisma 7                    |
+| Database   | PostgreSQL (Neon)                                            |
+| Auth       | Google OAuth 2.0, JWT (httpOnly cookies)                     |
+| Payments   | M-Pesa Daraja API (STK Push)                                 |
+| Storage    | Cloudinary (product images)                                  |
+| Deployment | Render (backend), Vercel (frontend)                          |
 
 ---
 
-## 💡 How This Helps
+## Features
 
-### For Users (Admins)
+### Storefront
 
-- 🚀 **Faster Navigation** - React Query caches data, reducing API calls
-- 🔄 **Automatic Sync** - Background revalidation keeps data fresh
-- 🛡️ **Better Error Messages** - Clear, actionable error feedback
-- 📊 **Real-time Analytics** - Dashboard shows live business metrics
-- 🔐 **Secure Authentication** - Google OAuth with JWT tokens
+- Product catalogue with category filtering and search
+- Shopping cart (guest + authenticated)
+- M-Pesa STK Push checkout
+- Order tracking
+- Responsive design — mobile first
 
-### For Developers
+### Admin Dashboard
 
-- 📝 **Clear Architecture** - Separated frontend/backend with clear APIs
-- 🐛 **Better Debugging** - Comprehensive error logging and middleware
-- 🎯 **Type Safety** - Full TypeScript support throughout
-- 🔧 **Configuration-driven** - Environment variables for easy deployment
-- 📚 **Well-documented** - Setup guides and troubleshooting docs
-
-### For Business
-
-- 📈 **Inventory Visibility** - Real-time stock levels and low-stock alerts
-- 💰 **Revenue Tracking** - Monthly revenue charts and analytics
-- 👥 **Customer Management** - Track users and order history
-- ⚡ **Performance** - Fast load times improve productivity
-- 🔍 **Data Insights** - Analytics help make informed decisions
+- Inventory management (create, update, delete products with unit pricing)
+- Order management with status updates and CSV export
+- User management and role assignment
+- Analytics — revenue charts, top products, category breakdown
+- Recent activity feed
+- Cloudinary image uploads
 
 ---
 
-## 🚨 Challenges Faced & Solutions
-
-### Challenge 1: Slow Redirects After Login
-
-**Problem**: Users experienced long delays (3-5 seconds) after signing in before being redirected to dashboard.
-
-**Root Cause**:
-
-- AppProvider was blocking on session hydration
-- Profile and settings API calls were sequential, not parallel
-- Every route change triggered full data refetch
-
-**Solution**:
-
-- Implemented optimistic UI - redirect immediately, hydrate in background
-- Used `Promise.allSettled()` for parallel API calls
-- Set up React Query for automatic caching and background revalidation
-
-**Result**: Redirects now take <500ms, navigation is instant
-
----
-
-### Challenge 2: 500 Errors with No Context
-
-**Problem**: Frontend showed generic "500 Internal Server Error" with no details about what failed.
-
-**Root Cause**:
-
-- No global error handler in Express backend
-- Unhandled Prisma errors caused silent crashes
-- Missing JWT secret validation
-- No error logging
-
-**Solution**:
-
-- Added global error middleware to Express server
-- Implemented Prisma connection error handling
-- Enhanced auth middleware with specific error codes
-- Added comprehensive console logging with helpful debugging info
-
-**Result**: Errors now have specific codes (NO_TOKEN, TOKEN_EXPIRED, etc.), making debugging straightforward
-
----
-
-### Challenge 3: Image Loading Errors
-
-**Problem**: `next/image` rejected images from Unsplash with "hostname not configured" error.
-
-**Root Cause**:
-
-- Next.js requires explicit allowlist for remote image hosts
-- `next.config.js` didn't have image domain configuration
-
-**Solution**:
-
-- Added `remotePatterns` to next.config.js with Unsplash domain
-- Used proper Next.js Image component with width/height props
-
-**Result**: Images load correctly with optimization
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-- Node.js 18+
-- PostgreSQL 12+
-- npm or yarn
-
-### Backend Setup
-
-```bash
-cd backend
-npm install
-# Configure .env with DATABASE_URL, JWT secrets, Google Client ID
-npm run dev  # Starts on port 4000
-```
-
-### Frontend Setup
-
-```bash
-cd frontend
-npm install
-# Ensure .env has NEXT_PUBLIC_API_BASE_URL and NEXT_PUBLIC_GOOGLE_CLIENT_ID
-npm run dev  # Starts on port 3000
-```
-
-### Environment Variables
-
-**Backend (.env)**
-
-```
-DATABASE_URL=postgresql://user:password@localhost:5432/grocery_shop
-JWT_SECRET_KEY=your-long-secret-key
-JWT_ACCESS_SECRET=your-access-token-secret
-JWT_REFRESH_TOKEN=your-refresh-token-secret
-GOOGLE_CLIENT_ID=your-google-client-id
-ADMIN_EMAILS=admin@example.com
-FRONTEND_URL=http://localhost:3000
-# Optional alias for FRONTEND_URL. Use either or both for CORS origin configuration.
-CORS_ORIGIN=http://localhost:3000
-PORT=4000
-```
-
-> If your frontend is running on `http://localhost:3000`, make sure the backend's `FRONTEND_URL` or `CORS_ORIGIN` includes that origin. If you are testing a local frontend against a deployed backend, add `http://localhost:3000` to the backend's allowed origins on the deployment platform.
-
-**Frontend (.env)**
-
-```
-NEXT_PUBLIC_API_BASE_URL=http://localhost:4000
-NEXT_PUBLIC_GOOGLE_CLIENT_ID=your-google-client-id
-```
-
----
-
-## 📊 Architecture
+## Project Structure
 
 ```
 grocery_shop/
 ├── backend/
 │   ├── src/
-│   │   ├── server.ts (Express app, global error handler)
-│   │   ├── controller/ (Business logic)
-│   │   ├── routes/ (API endpoints)
-│   │   ├── middleware/ (Auth, error handling)
-│   │   ├── lib/ (Database, utilities)
-│   │   └── types/ (TypeScript types)
-│   ├── prisma/
-│   │   ├── schema.prisma (Database schema)
-│   │   └── migrations/ (Schema changes)
-│   └── package.json
+│   │   ├── controller/     # Business logic
+│   │   ├── routes/         # API endpoints
+│   │   ├── middleware/     # Auth, validation, rate limiting, IP whitelist
+│   │   ├── schemas/        # Zod validation schemas
+│   │   ├── lib/            # Prisma client, utilities
+│   │   └── utils/          # M-Pesa service, token helpers
+│   └── prisma/
+│       ├── schema.prisma
+│       └── migrations/
 │
-├── frontend/
-│   ├── src/
-│   │   ├── app/ (Next.js pages, layouts)
-│   │   ├── components/ (React components, UI)
-│   │   ├── contexts/ (React Context - AppProvider)
-│   │   ├── lib/ (API client, utilities)
-│   │   ├── hooks/ (Custom React hooks)
-│   │   └── types/ (TypeScript types)
-│   ├── next.config.js (Next.js config with security headers)
-│   ├── middleware.ts (Next.js auth middleware)
-│   └── package.json
-│
-├── ERROR_500_FIX.md (Troubleshooting guide)
-├── NEXTJS_CONFIG_REVIEW.md (Next.js best practices)
-├── BACKEND_ERROR_HANDLING.md (Backend API reference)
-└── README.md (This file)
+└── frontend/
+    └── src/
+        ├── app/            # Next.js App Router pages
+        ├── components/     # Shared UI components
+        ├── features/       # Navbar, Footer
+        ├── hooks/          # Custom React hooks
+        ├── contexts/       # AppContext (auth state)
+        └── lib/            # API client, product helpers
 ```
 
 ---
 
-## 🎯 Key Features
+## Getting Started
 
-### Dashboard
+### Prerequisites
 
-- Real-time metrics (total revenue, orders, products, low stock alerts)
-- Graphical revenue trends
-- Recent activity feed
-- Quick stats cards
+- Node.js 20+
+- A [Neon](https://neon.tech) PostgreSQL database
+- Google OAuth credentials
+- Safaricom Daraja API credentials
 
-### Inventory Management
-
-- Product list with search/filter
-- Stock level tracking
-- Low stock warnings
-- Inventory value calculation
-- Product images from Unsplash
-
-### Order Management
-
-- View all orders with status tracking
-- Filter by order status (pending, shipped, delivered)
-- Sort by date or revenue
-- Manual order creation
-- CSV export
-
-### Analytics
-
-- Monthly revenue breakdown
-- Customer retention metrics
-- Product category breakdown
-- Top products by revenue
-
-### User Management
-
-- View all users
-- Admin role assignment
-- User registration tracking
-
-### Admin Profile
-
-- View/edit profile information
-- Change password
-- Manage settings
-- Workspace customization
-
----
-
-## 📈 Performance Optimizations
-
-### Implemented
-
-✅ React Query for automatic caching  
-✅ Parallel API calls with `Promise.allSettled()`  
-✅ Lazy loading of routes  
-✅ Image optimization with Next.js Image component  
-✅ CSS-in-JS with Tailwind (minimal bundle)  
-✅ Code splitting (automatic in Next.js)
-
-### To Implement
-
-- [ ] Implement token refresh in React Query
-- [ ] Add pagination for large datasets
-- [ ] Prefetch data on route hover
-- [ ] Add service worker for offline support
-- [ ] Implement data virtualization for large tables
-
----
-
-## 🔐 Security Features
-
-✅ Google OAuth 2.0 authentication  
-✅ JWT token-based authorization  
-✅ CORS protection  
-✅ Environment variable protection  
-✅ Security headers (X-Content-Type-Options, X-Frame-Options, X-XSS-Protection)  
-✅ Input validation  
-✅ Role-based access control (admin only)  
-✅ Password hashing with bcrypt
-
----
-
-## 🛠️ Development
-
-### Running Tests
+### Backend
 
 ```bash
-npm run test
+cd backend
+npm install
+cp .env.example .env
+npm run dev
 ```
 
-### Building for Production
+### Frontend
 
 ```bash
-# Backend
-npm run build
+cd frontend
+npm install
+cp .env.example .env
+npm run dev            # starts on port 3000
+```
 
-# Frontend
-npm run build
-npm run start
+### Docker (both services at once)
+
+```bash
+docker compose up --build
 ```
 
 ---
 
+## Environment Variables
+
+### Backend `backend/.env`
+
+```env
+DATABASE_URL=postgresql://user:password@host/dbname
+JWT_SECRET_KEY=
+JWT_ACCESS_SECRET=
+JWT_REFRESH_TOKEN=
+GOOGLE_CLIENT_ID=
+ADMIN_EMAILS=admin@example.com
+FRONTEND_URL=http://localhost:3000
+PORT=4000
+
+# M-Pesa
+MPESA_CONSUMER_KEY=
+MPESA_CONSUMER_SECRET=
+MPESA_SHORT_CODE=
+MPESA_PASSKEY=
+MPESA_CALLBACK_URL=https://your-backend.com/api/payments/callback
+MPESA_ENVIRONMENT=sandbox   # or production
+MPESA_CALLBACK_SECRET=      # optional extra secret on callback URL
+
+# Cloudinary
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+```
+
+### Frontend `frontend/.env`
+
+```env
+NEXT_PUBLIC_API_BASE_URL=http://localhost:4000
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=
+```
+
 ---
 
-## 🚀 Future Improvements
+## API Overview
 
-- [ ] Add support for bulk product uploads
-- [ ] Implement real-time notifications with WebSockets
-- [ ] Add email order confirmations
-- [ ] Create mobile app (React Native)
-- [ ] Implement inventory forecasting
-- [ ] Add customer loyalty program dashboard
-- [ ] Create public storefront (separate Next.js app)
-- [ ] Add payment processing integration
-- [ ] Implement customer reviews system
+| Method | Path                          | Auth          | Description           |
+| ------ | ----------------------------- | ------------- | --------------------- |
+| POST   | `/api/auth/google`            | —             | Google OAuth login    |
+| GET    | `/api/auth/me`                | JWT           | Current user          |
+| GET    | `/api/products`               | —             | List products         |
+| POST   | `/api/products`               | Admin         | Create product        |
+| PUT    | `/api/products/:id`           | Admin         | Update product        |
+| POST   | `/api/orders`                 | JWT           | Create order          |
+| GET    | `/api/orders/my`              | JWT           | My orders             |
+| PATCH  | `/api/orders/:id/orderStatus` | Admin         | Update status         |
+| POST   | `/api/payments/initiate`      | JWT           | Start M-Pesa STK push |
+| POST   | `/api/payments/callback`      | Safaricom IPs | M-Pesa webhook        |
+| GET    | `/api/admin/dashboard`        | Admin         | Dashboard stats       |
+| GET    | `/api/admin/analytics`        | Admin         | Analytics data        |
 
 ---
 
-## 📝 License
+## Security
+
+- JWT stored in **httpOnly cookies**
+- All admin routes protected with `auth + authorizeRoles("admin")`
+- **Zod validation** on every mutation endpoint
+- **Safaricom IP whitelist** on M-Pesa callback route
+- Rate limiting on auth (10/15 min), payments (10/min), and cart (60/min)
+- `helmet` security headers enabled in production
+- CORS restricted to configured frontend origin(s)
+
+---
+
+## Deployment
+
+### Render (backend)
+
+Build command:
+
+```bash
+npm install && npx prisma migrate deploy && npm run build
+```
+
+Start command:
+
+```bash
+npm start
+```
+
+### Vercel (frontend)
+
+Set `NEXT_PUBLIC_API_BASE_URL` to your Render backend URL in the Vercel project settings.
+
+---
+
+## License
+
+MIT
