@@ -4,10 +4,13 @@ import Link from "next/link";
 import {
   ArrowRight,
   Beef,
+  Coffee,
   Croissant,
   Droplets,
   Leaf,
+  Package,
   ShoppingBasket,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,34 +27,52 @@ export const dynamic = "force-dynamic";
 
 const CATEGORIES = [
   {
-    label: "Produce",
+    label: "Fruits & Vegetables",
     icon: Leaf,
-    href: "/products?category=Produce",
+    href: "/products?category=Fruits+%26+Vegetables",
     color: "bg-green-50 text-green-700 border-green-200",
   },
   {
-    label: "Dairy",
+    label: "Dairy & Eggs",
     icon: Droplets,
-    href: "/products?category=Dairy",
+    href: "/products?category=Dairy+%26+Eggs",
     color: "bg-blue-50 text-blue-700 border-blue-200",
   },
   {
-    label: "Bakery & Deli",
-    icon: Croissant,
-    href: "/products?category=Bakery+%26+Deli",
-    color: "bg-amber-50 text-amber-700 border-amber-200",
-  },
-  {
-    label: "Organic Meat",
+    label: "Meat & Poultry",
     icon: Beef,
-    href: "/products?category=Organic+Meat",
+    href: "/products?category=Meat+%26+Poultry",
     color: "bg-red-50 text-red-700 border-red-200",
   },
   {
-    label: "General Grocery",
-    icon: ShoppingBasket,
-    href: "/products?category=General+Grocery",
+    label: "Bakery & Bread",
+    icon: Croissant,
+    href: "/products?category=Bakery+%26+Bread",
+    color: "bg-amber-50 text-amber-700 border-amber-200",
+  },
+  {
+    label: "Pantry & Dry Goods",
+    icon: Package,
+    href: "/products?category=Pantry+%26+Dry+Goods",
     color: "bg-purple-50 text-purple-700 border-purple-200",
+  },
+  {
+    label: "Beverages",
+    icon: Coffee,
+    href: "/products?category=Beverages",
+    color: "bg-cyan-50 text-cyan-700 border-cyan-200",
+  },
+  {
+    label: "Snacks & Confectionery",
+    icon: Sparkles,
+    href: "/products?category=Snacks+%26+Confectionery",
+    color: "bg-orange-50 text-orange-700 border-orange-200",
+  },
+  {
+    label: "Household & Cleaning",
+    icon: ShoppingBasket,
+    href: "/products?category=Household+%26+Cleaning",
+    color: "bg-teal-50 text-teal-700 border-teal-200",
   },
 ];
 

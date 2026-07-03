@@ -91,7 +91,7 @@ npm run dev
 cd frontend
 npm install
 cp .env.example .env
-npm run dev            # starts on port 3000
+npm run dev
 ```
 
 ### Docker (both services at once)
@@ -122,8 +122,8 @@ MPESA_CONSUMER_SECRET=
 MPESA_SHORT_CODE=
 MPESA_PASSKEY=
 MPESA_CALLBACK_URL=https://your-backend.com/api/payments/callback
-MPESA_ENVIRONMENT=sandbox   # or production
-MPESA_CALLBACK_SECRET=      # optional extra secret on callback URL
+MPESA_ENVIRONMENT=sandbox
+MPESA_CALLBACK_SECRET=
 
 # Cloudinary
 CLOUDINARY_CLOUD_NAME=

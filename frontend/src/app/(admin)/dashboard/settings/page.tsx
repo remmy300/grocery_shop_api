@@ -128,7 +128,7 @@ const SettingsPage = () => {
               <Input
                 value={defaultCurrency}
                 onChange={(e) => setDefaultCurrency(e.target.value)}
-                placeholder="USD, EUR, etc."
+                placeholder="KES"
                 className="w-full"
               />
             </div>

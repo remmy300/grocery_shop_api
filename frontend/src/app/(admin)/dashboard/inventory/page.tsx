@@ -39,11 +39,14 @@ type ProductFormState = {
 };
 
 const PRODUCT_CATEGORIES = [
-  "Produce",
-  "Bakery & Deli",
-  "Dairy",
-  "Organic Meat",
-  "General Grocery",
+  "Fruits & Vegetables",
+  "Dairy & Eggs",
+  "Meat & Poultry",
+  "Bakery & Bread",
+  "Pantry & Dry Goods",
+  "Beverages",
+  "Snacks & Confectionery",
+  "Household & Cleaning",
 ];
 
 type UploadResult =

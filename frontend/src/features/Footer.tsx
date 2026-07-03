@@ -11,10 +11,11 @@ const FOOTER_LINKS = [
     heading: "Shop",
     links: [
       { label: "All Products", href: "/products" },
-      { label: "Fresh Produce", href: "/products?category=Produce" },
-      { label: "Dairy", href: "/products?category=Dairy" },
-      { label: "Bakery & Deli", href: "/products?category=Bakery+%26+Deli" },
-      { label: "Organic Meat", href: "/products?category=Organic+Meat" },
+      { label: "Fruits & Vegetables", href: "/products?category=Fruits+%26+Vegetables" },
+      { label: "Dairy & Eggs", href: "/products?category=Dairy+%26+Eggs" },
+      { label: "Meat & Poultry", href: "/products?category=Meat+%26+Poultry" },
+      { label: "Beverages", href: "/products?category=Beverages" },
+      { label: "Pantry & Dry Goods", href: "/products?category=Pantry+%26+Dry+Goods" },
     ],
   },
   {
