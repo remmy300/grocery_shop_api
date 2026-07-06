@@ -39,28 +39,19 @@ type ProductFormState = {
 };
 
 const PRODUCT_CATEGORIES = [
-  "Fruits & Vegetables",
-  "Dairy & Eggs",
-  "Meat & Poultry",
-  "Bakery & Bread",
+  "Fruits  ",
+  "Vegetables",
+  " Eggs",
+  "Meat ",
+  " Bread",
   "Pantry & Dry Goods",
   "Beverages",
-  "Snacks & Confectionery",
-  "Household & Cleaning",
 ];
 
-type UploadResult =
-  | {
-      event: "success";
-      info?: {
-        secure_url: string;
-        public_id: string;
-      };
-    }
-  | {
-      event: string;
-      info?: unknown;
-    };
+type UploadResult = {
+  secure_url: string;
+  public_id: string;
+};
 
 const PRODUCT_UNITS = [
   "1 kg",
@@ -78,8 +69,8 @@ const PRODUCT_UNITS = [
 
 const EMPTY_FORM: ProductFormState = {
   name: "",
-  category: "General Grocery",
-  unit: "per piece",
+  category: "",
+  unit: "",
   stock: "",
   price: "",
   imageUrl: "",
@@ -90,7 +81,7 @@ const toFormState = (
 ): ProductFormState => ({
   name: product.name,
   category: product.category,
-  unit: product.unit || "per piece",
+  unit: product.unit,
   stock: String(product.stock),
   price: String(product.price),
   imageUrl: product.imageUrl || "",
@@ -116,7 +107,9 @@ const InventoryPage = () => {
 
   const fetchInventory = async (): Promise<InventoryResponse | null> => {
     try {
-      const response = await apiRequest<InventoryResponse>("/api/admin/inventory");
+      const response = await apiRequest<InventoryResponse>(
+        "/api/admin/inventory",
+      );
       setData(response);
       setError(null);
       return response;
@@ -217,7 +210,7 @@ const InventoryPage = () => {
       payload: {
         name: trimmedName,
         category: trimmedCategory,
-        unit: form.unit || "per piece",
+        unit: form.unit,
         stock,
         price,
         imageUrl: trimmedImageUrl,
@@ -301,16 +294,11 @@ const InventoryPage = () => {
   };
 
   const handleUploadImage = () => {
-    openUpload((result: unknown) => {
-      const res = result as UploadResult;
-
-      if (res.event === "success" && res.info) {
-        const info = res.info as { secure_url: string; public_id: string };
-        setForm((current) => ({
-          ...current,
-          imageUrl: info.secure_url,
-        }));
-      }
+    openUpload((result: UploadResult) => {
+      setForm((current) => ({
+        ...current,
+        imageUrl: result.secure_url,
+      }));
     });
   };
 

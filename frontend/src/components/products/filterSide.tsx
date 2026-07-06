@@ -2,7 +2,7 @@ import { SearchInput } from "./SearchInput";
 import { ProductFiltersState } from "@/types/products";
 
 const categories = [
-  "Produce",
+  "Fruits ang Vegetable",
   "Bakery & Deli",
   "Dairy",
   "Organic Meat",

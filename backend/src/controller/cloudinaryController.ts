@@ -1,41 +1,35 @@
 import { Request, Response } from "express";
-import crypto from "crypto";
+import { v2 as cloudinary } from "cloudinary";
+
+const getCloudinary = () => {
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+    secure: true,
+  });
+  return cloudinary;
+};
 
 export const generateCloudinarySignature = (req: Request, res: Response) => {
   try {
-    const { paramsToSign } = req.body;
-    const apiSecret = process.env.CLOUDINARY_API_SECRET!;
+    const { paramsToSign } = req.body as { paramsToSign: Record<string, string | number> };
 
-    // Only allow 'timestamp' and 'folder' to be signed
-    const allowedParams: Record<string, any> = {};
-    if (paramsToSign.timestamp)
-      allowedParams.timestamp = paramsToSign.timestamp;
-    if (paramsToSign.folder) allowedParams.folder = paramsToSign.folder;
+    if (!paramsToSign || typeof paramsToSign !== "object") {
+      return res.status(400).json({ error: "paramsToSign is required" });
+    }
 
-    const filtered = Object.entries(allowedParams).filter(
-      ([_, value]) => value !== undefined && value !== null,
-    );
+    const cl = getCloudinary();
+    const signature = cl.utils.api_sign_request(paramsToSign, process.env.CLOUDINARY_API_SECRET!);
 
-    const stringToSign = filtered
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([key, value]) => `${key}=${value}`)
-      .join("&");
-
-    console.log("STRING TO SIGN:", stringToSign);
-
-    // Append secret
-    const signature = crypto
-      .createHash("sha1")
-      .update(stringToSign + apiSecret)
-      .digest("hex");
-
-    res.json({ signature });
+    return res.json({ signature });
   } catch (error) {
-    res.status(500).json({ error: "Failed to generate signature" });
+    console.error("Cloudinary signature error:", error);
+    return res.status(500).json({ error: "Failed to generate signature" });
   }
 };
 
-export const getCloudinaryConfig = (req: Request, res: Response) => {
+export const getCloudinaryConfig = (_req: Request, res: Response) => {
   res.json({
     cloudName: process.env.CLOUDINARY_CLOUD_NAME,
     apiKey: process.env.CLOUDINARY_API_KEY,
