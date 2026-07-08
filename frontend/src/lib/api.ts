@@ -514,7 +514,7 @@ const buildDashboardResponse = async (): Promise<DashboardResponse> => {
       user: order.customer,
       action: "placed an order",
       item: `Order #${order.id}`,
-      time: formatRelativeTime(order.createdAt),
+      createdAt: new Date(order.createdAt).toISOString(),
       initials: initialsFrom(order.customer),
     }));
 
