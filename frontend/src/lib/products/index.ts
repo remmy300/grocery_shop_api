@@ -95,7 +95,7 @@ export const normalizeProduct = (product: BackendProduct): ProductView => {
     sku: `#PRD-${String(product.id).padStart(4, "0")}`,
     category,
     origin: productOrigin(category),
-    unit: product.unit || "per piece",
+    unit: product.unit || "",
     priceValue,
     price: priceValue.toFixed(2),
     stock,

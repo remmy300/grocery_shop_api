@@ -102,14 +102,8 @@ export default function CartItemCard({
 
               {/* PRICE */}
               <div className="text-right">
-                {item.price && (
-                  <span className="block text-sm line-through text-muted-foreground">
-                    ${item.price.toFixed(2)}
-                  </span>
-                )}
-
                 <span className="text-2xl font-extrabold tracking-tight">
-                  ${(item.price * item.quantity).toFixed(2)}
+                  KES{(item.price * item.quantity).toFixed(2)}
                 </span>
               </div>
             </div>

@@ -44,42 +44,14 @@ const CATEGORIES = [
     href: "/products?category=Meat+%26+Poultry",
     color: "bg-red-50 text-red-700 border-red-200",
   },
-  {
-    label: "Bakery & Bread",
-    icon: Croissant,
-    href: "/products?category=Bakery+%26+Bread",
-    color: "bg-amber-50 text-amber-700 border-amber-200",
-  },
-  {
-    label: "Pantry & Dry Goods",
-    icon: Package,
-    href: "/products?category=Pantry+%26+Dry+Goods",
-    color: "bg-purple-50 text-purple-700 border-purple-200",
-  },
-  {
-    label: "Beverages",
-    icon: Coffee,
-    href: "/products?category=Beverages",
-    color: "bg-cyan-50 text-cyan-700 border-cyan-200",
-  },
-  {
-    label: "Snacks & Confectionery",
-    icon: Sparkles,
-    href: "/products?category=Snacks+%26+Confectionery",
-    color: "bg-orange-50 text-orange-700 border-orange-200",
-  },
-  {
-    label: "Household & Cleaning",
-    icon: ShoppingBasket,
-    href: "/products?category=Household+%26+Cleaning",
-    color: "bg-teal-50 text-teal-700 border-teal-200",
-  },
 ];
 
+const HOMEPAGE_PRODUCT_LIMIT = 8;
 
 async function getProducts() {
   try {
-    return await fetchProducts();
+    const products = await fetchProducts();
+    return products.slice(0, HOMEPAGE_PRODUCT_LIMIT);
   } catch {
     return [];
   }
@@ -136,7 +108,7 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* ── CATEGORY QUICKLINKS ───────────────────────────────── */}
+        {/* ── CATEGORY QUICKLINKS  */}
         <section className="my-8">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-bold tracking-tight text-foreground">
@@ -167,7 +139,7 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* ── PRODUCTS GRID ─────────────────────────────────────── */}
+        {/* ── PRODUCTS GRID  */}
         <section className="my-10">
           <div className="mb-6 flex items-center justify-between">
             <div>
@@ -204,7 +176,7 @@ export default async function HomePage() {
           )}
         </section>
 
-        {/* ── NEWSLETTER STRIP ──────────────────────────────────── */}
+        {/* ── NEWSLETTER STRIP  */}
         <section className="my-10 rounded-3xl bg-primary px-6 py-10 text-center text-primary-foreground md:px-12">
           <h2 className="text-2xl font-extrabold tracking-tight">
             Get weekly deals in your inbox

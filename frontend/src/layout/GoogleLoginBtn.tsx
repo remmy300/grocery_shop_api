@@ -1,20 +1,20 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { GoogleLogin, type CredentialResponse } from "@react-oauth/google";
 import { useApp } from "@/contexts/AppContext";
 import { apiRequest } from "@/lib/api";
 import { useCartSyncOnLogin } from "@/hooks/useCart";
 
 const GoogleLoginButton = () => {
+  const router = useRouter();
   const { applySessionTokens } = useApp();
   const { run: syncCart } = useCartSyncOnLogin();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const handleSuccess = async (
-    credentialResponse: CredentialResponse,
-  ) => {
+  const handleSuccess = async (credentialResponse: CredentialResponse) => {
     try {
       const { credential } = credentialResponse;
 
@@ -34,12 +34,19 @@ const GoogleLoginButton = () => {
         json: { token: credential },
       });
 
-      await applySessionTokens({
+      const profile = await applySessionTokens({
         accessToken: response.accessToken,
         refreshToken: response.refreshToken,
       });
 
       await syncCart();
+
+      // Navigate immediately — don't wait for useEffect in the login page
+      if (profile?.role?.toLowerCase() === "admin") {
+        router.replace("/dashboard");
+      } else {
+        router.replace("/");
+      }
     } catch (requestError) {
       setError(
         requestError instanceof Error

@@ -376,8 +376,28 @@ export function useCart() {
       quantity: number;
     }) => updateItemApi(productId, quantity),
 
+    onMutate: async ({ productId, quantity }) => {
+      await queryClient.cancelQueries({ queryKey: CART_QUERY_KEY });
+
+      const previous = queryClient.getQueryData<ApiCart>(CART_QUERY_KEY) ?? { items: [] };
+
+      const updatedItems = previous.items.map((item) =>
+        item.productId === productId ? { ...item, quantity } : item,
+      );
+
+      queryClient.setQueryData(CART_QUERY_KEY, { items: updatedItems });
+
+      return { previous };
+    },
+
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(CART_QUERY_KEY, context.previous);
+      }
+    },
+
     onSuccess: (data) => {
-      queryClient.setQueryData(CART_QUERY_KEY, data);
+      if (data) queryClient.setQueryData(CART_QUERY_KEY, data);
     },
 
     onSettled: () => {
@@ -388,8 +408,28 @@ export function useCart() {
   const removeItem = useMutation({
     mutationFn: removeItemApi,
 
+    onMutate: async (productId: number) => {
+      await queryClient.cancelQueries({ queryKey: CART_QUERY_KEY });
+
+      const previous = queryClient.getQueryData<ApiCart>(CART_QUERY_KEY) ?? { items: [] };
+
+      const filteredItems = previous.items.filter(
+        (item) => item.productId !== productId,
+      );
+
+      queryClient.setQueryData(CART_QUERY_KEY, { items: filteredItems });
+
+      return { previous };
+    },
+
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(CART_QUERY_KEY, context.previous);
+      }
+    },
+
     onSuccess: (data) => {
-      queryClient.setQueryData(CART_QUERY_KEY, data);
+      if (data) queryClient.setQueryData(CART_QUERY_KEY, data);
     },
 
     onSettled: () => {
@@ -413,11 +453,22 @@ export function useCart() {
 
   const isItemPending = useCallback(
     (productId: number) => {
-      return (
-        addToCart.isPending || updateItem.isPending || removeItem.isPending
-      );
+      const addingThis =
+        addToCart.isPending && addToCart.variables === productId;
+      const updatingThis =
+        updateItem.isPending && updateItem.variables?.productId === productId;
+      const removingThis =
+        removeItem.isPending && removeItem.variables === productId;
+      return addingThis || updatingThis || removingThis;
     },
-    [addToCart.isPending, updateItem.isPending, removeItem.isPending],
+    [
+      addToCart.isPending,
+      addToCart.variables,
+      updateItem.isPending,
+      updateItem.variables,
+      removeItem.isPending,
+      removeItem.variables,
+    ],
   );
 
   return {

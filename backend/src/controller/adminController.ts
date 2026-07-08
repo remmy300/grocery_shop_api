@@ -176,12 +176,12 @@ export const getDashboardOverview = async (_req: Request, res: Response) => {
       revenue: revenueByMonth.get(month.key) ?? 0,
     }));
 
-    const recentActivity = orders.slice(0, 20).map((order) => ({
+    const recentActivity = orders.map((order) => ({
       id: order.id,
       user: order.customer,
       action: "placed an order",
       item: `Order #${order.id}`,
-      time: relativeTime(new Date(order.createdAt)),
+      createdAt: new Date(order.createdAt).toISOString(),
       initials: getInitials(order.customer),
     }));
 

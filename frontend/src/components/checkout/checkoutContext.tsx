@@ -86,7 +86,13 @@ function loadPersistedState(): CheckoutState {
 export function CheckoutProvider({ children }: { children: ReactNode }) {
   const { items, subtotal } = useCart();
 
-  const [state, setState] = useState<CheckoutState>(loadPersistedState);
+  // Always start with defaultState so server and client initial renders match.
+  // Load from sessionStorage after mount to avoid hydration mismatch.
+  const [state, setState] = useState<CheckoutState>(defaultState);
+
+  useEffect(() => {
+    setState(loadPersistedState());
+  }, []);
 
   // Persist address/delivery/payment to sessionStorage on every change.
   // location (lat/lng) is not persisted — it's derived from the address via Maps.

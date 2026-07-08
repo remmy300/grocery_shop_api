@@ -61,7 +61,7 @@ export type DashboardResponse = {
     user: string;
     action: string;
     item: string;
-    time: string;
+    createdAt: string;
     initials: string;
   }>;
   revenueData: Array<{ month: string; revenue: number }>;

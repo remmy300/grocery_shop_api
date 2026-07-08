@@ -20,6 +20,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { apiRequest, formatCurrency } from "@/lib/api";
+import { relativeTime } from "@/lib/relativeTime";
 import { CsvExportButton } from "@/components/CsvExportButton";
 import { DashboardResponse } from "@/types";
 
@@ -288,7 +289,7 @@ const DashboardPage = () => {
                     </span>
                   </p>
                   <p className="mt-1 text-xs text-secondary-foreground">
-                    {activity.time}
+                    {relativeTime(activity.createdAt)}
                   </p>
                 </div>
                 <Button variant="ghost" size="sm">
@@ -356,7 +357,7 @@ const DashboardPage = () => {
                       </span>
                     </p>
                     <p className="mt-1 text-xs text-secondary-foreground">
-                      {activity.time}
+                      {relativeTime(activity.createdAt)}
                     </p>
                   </div>
                 </CardContent>

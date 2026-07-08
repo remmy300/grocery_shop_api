@@ -1,15 +1,12 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 
 import Providers from "@/components/Providers";
 import PublicShell from "@/components/PublicShell";
 
-const inter = Inter({ subsets: ["latin"] });
-
 export const metadata: Metadata = {
-  title: "Corner Store Admin",
-  description: "Admin panel for Corner Store",
+  title: "Corner Store",
+  description: "Fresh groceries delivered to your door",
 };
 
 export default function RootLayout({
@@ -19,7 +16,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
+      <body>
         <Providers>
           <PublicShell>{children}</PublicShell>
         </Providers>

@@ -114,6 +114,11 @@ export function useMpesaPayment() {
   const startPolling = () => setPolling(true);
   const stopPolling = () => setPolling(false);
 
+  const reset = () => {
+    setPolling(false);
+    initiateMutation.reset();
+  };
+
   return {
     initiate: initiateMutation,
     status: statusQuery,
@@ -122,7 +127,38 @@ export function useMpesaPayment() {
     isPaymentFailed: statusQuery.data?.payment.status === "failed",
     startPolling,
     stopPolling,
+    reset,
   };
+}
+
+/** Maps raw Safaricom result descriptions to user-friendly messages */
+export function friendlyMpesaError(raw: string | null | undefined): string {
+  if (!raw) return "Payment failed. Please try again.";
+
+  const lower = raw.toLowerCase();
+
+  if (lower.includes("ds timeout") || lower.includes("cannot be reached"))
+    return "Your phone couldn't be reached. Make sure it's on and has M-Pesa enabled, then try again.";
+
+  if (lower.includes("cancelled") || lower.includes("cancel"))
+    return "You cancelled the payment. Tap \"Try Again\" when you're ready.";
+
+  if (lower.includes("insufficient") || lower.includes("balance"))
+    return "Insufficient M-Pesa balance. Please top up and try again.";
+
+  if (lower.includes("wrong pin") || lower.includes("invalid pin") || lower.includes("pin"))
+    return "Incorrect M-Pesa PIN entered. Please try again.";
+
+  if (lower.includes("limit") || lower.includes("exceed"))
+    return "Transaction limit exceeded. Try a smaller amount or use a different payment method.";
+
+  if (lower.includes("expired") || lower.includes("timeout"))
+    return "The payment request expired. Please try again.";
+
+  if (lower.includes("busy") || lower.includes("unavailable"))
+    return "M-Pesa is currently busy. Please wait a moment and try again.";
+
+  return `Payment failed: ${raw}`;
 }
 
 export function usePaymentDetails(orderId: number | null) {

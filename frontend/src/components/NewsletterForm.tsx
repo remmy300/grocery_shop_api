@@ -28,7 +28,7 @@ export default function NewsletterForm({
       toast.error("Enter a valid email address");
       return;
     }
-    toast.success("Subscribed! We'll be in touch.");
+    toast.success("Subscribed! ");
     setEmail("");
   };
 

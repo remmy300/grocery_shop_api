@@ -70,13 +70,18 @@ export function ProductCard({ product }: Props) {
 
         {/* Info */}
         <div className="mt-4 space-y-1">
-          <p className="text-xs font-medium text-muted-foreground">{product.category}</p>
-          <h3 className="line-clamp-1 font-semibold text-zinc-900">{product.name}</h3>
-          <div className={`flex items-baseline gap-1 ${isOutOfStock ? "text-zinc-400" : "text-green-700"}`}>
-            <span className="font-bold">KES {product.priceValue.toFixed(2)}</span>
-            {product.unit && product.unit !== "per piece" && (
-              <span className="text-xs font-normal text-zinc-500">{product.unit}</span>
-            )}
+          <h3 className="line-clamp-1 font-semibold text-zinc-900">
+            {product.name}
+          </h3>
+          <span className="text-xs font-normal text-zinc-500">
+            {product.unit}
+          </span>
+          <div
+            className={`flex items-baseline gap-1 ${isOutOfStock ? "text-zinc-400" : "text-green-700"}`}
+          >
+            <span className="font-semibold text-sm">
+              KES {product.priceValue.toFixed(2)}
+            </span>
           </div>
         </div>
       </article>

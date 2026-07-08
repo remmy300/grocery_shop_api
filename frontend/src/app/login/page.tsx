@@ -25,12 +25,14 @@ const Login = () => {
     }
   }, [isAdmin, router, state.isAuthenticated, state.loading]);
 
-  if (state.loading) {
+  if (state.loading || state.isAuthenticated) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background text-foreground">
         <div className="text-center">
           <div className="mx-auto h-10 w-10 animate-spin rounded-full border-b-2 border-primary" />
-          <p className="mt-4 text-secondary-foreground">Preparing sign-in...</p>
+          <p className="mt-4 text-secondary-foreground">
+            {state.isAuthenticated ? "Redirecting..." : "Preparing sign-in..."}
+          </p>
         </div>
       </div>
     );

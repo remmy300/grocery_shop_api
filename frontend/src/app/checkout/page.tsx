@@ -5,7 +5,14 @@ import { useMutation } from "@tanstack/react-query";
 import { useState, useEffect, useRef, useCallback } from "react";
 
 import { useRouter } from "next/navigation";
-import { Lock, Truck, Store, Navigation, Banknote, Smartphone } from "lucide-react";
+import {
+  Lock,
+  Truck,
+  Store,
+  Navigation,
+  Banknote,
+  Smartphone,
+} from "lucide-react";
 import { getApiBaseUrl } from "@/lib/api";
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -44,7 +51,6 @@ export default function CheckoutPage() {
     canCheckout,
   } = useCheckout();
 
-  const [paymentTab, setPaymentTab] = useState<"card" | "wallet">("card");
   const [geoStatus, setGeoStatus] = useState<string | null>(null);
   const [mapsLoaded, setMapsLoaded] = useState(false);
   const [createdOrderId, setCreatedOrderId] = useState<number | null>(null);
@@ -110,6 +116,7 @@ export default function CheckoutPage() {
   /*  GOOGLE MAPS + PLACES */
   const mapRef = useRef<HTMLDivElement | null>(null);
   const markerRef = useRef<any>(null);
+  const autocompleteContainerRef = useRef<HTMLDivElement | null>(null);
 
   const loadGoogleMaps = useCallback(() => {
     const key = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
@@ -127,7 +134,8 @@ export default function CheckoutPage() {
 
     const s = document.createElement("script");
     s.id = "google-maps-script";
-    s.src = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=places`;
+    // v=weekly enables PlaceAutocompleteElement (GA in weekly channel)
+    s.src = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=places&v=weekly`;
     s.async = true;
     s.defer = true;
     s.onload = () => {
@@ -186,25 +194,37 @@ export default function CheckoutPage() {
       });
     });
 
-    // init autocomplete for street input
-    const input = document.getElementById(
-      "street-input",
-    ) as HTMLInputElement | null;
-    if (input) {
-      const ac = new google.maps.places.Autocomplete(input, {
-        fields: ["formatted_address", "address_components", "geometry"],
+    // PlaceAutocompleteElement (replaces deprecated Autocomplete)
+    if (autocompleteContainerRef.current) {
+      // Clear any previous instance
+      autocompleteContainerRef.current.innerHTML = "";
+
+      const ac = new google.maps.places.PlaceAutocompleteElement({
+        types: ["address"],
+        componentRestrictions: { country: "ke" },
       });
-      ac.addListener("place_changed", () => {
-        const place = ac.getPlace();
-        if (place.formatted_address) {
-          setAddress({ ...state.address!, street: place.formatted_address });
+
+      // Match shadcn Input height/border styling
+      ac.style.cssText = "width:100%;--gmp-mat-combobox-input-shape:8px;";
+
+      autocompleteContainerRef.current.appendChild(ac);
+
+      ac.addEventListener("gmp-select", async (event: any) => {
+        const place = event.placePrediction.toPlace();
+        await place.fetchFields({ fields: ["formattedAddress", "location"] });
+
+        if (place.formattedAddress) {
+          setAddress({ ...state.address!, street: place.formattedAddress });
         }
-        if (place.geometry?.location) {
-          const lat = place.geometry.location.lat();
-          const lng = place.geometry.location.lng();
+
+        if (place.location) {
+          const lat = place.location.lat();
+          const lng = place.location.lng();
           setLocation({ lat, lng });
-          if (markerRef.current)
-            markerRef.current.setPosition(place.geometry.location);
+          map.setCenter({ lat, lng });
+          map.setZoom(15);
+          if (markerRef.current) markerRef.current.setPosition(place.location);
+          else markerRef.current = new google.maps.Marker({ position: place.location, map });
         }
       });
     }
@@ -292,16 +312,11 @@ export default function CheckoutPage() {
                   }
                 />
 
-                <Input
-                  id="street-input"
-                  placeholder="Street Address"
-                  onChange={(e) =>
-                    setAddress({
-                      ...state.address!,
-                      street: e.target.value,
-                    })
-                  }
-                />
+                {/* PlaceAutocompleteElement is injected here after maps load */}
+                <div ref={autocompleteContainerRef} className="w-full min-h-10" />
+                {!mapsLoaded && (
+                  <Input placeholder="Street Address (loading maps…)" disabled />
+                )}
 
                 <div className="grid grid-cols-2 gap-4">
                   <Input

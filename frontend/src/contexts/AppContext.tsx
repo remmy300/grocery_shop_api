@@ -31,7 +31,7 @@ type AppContextValue = {
   applySessionTokens: (tokens: {
     accessToken: string;
     refreshToken?: string;
-  }) => Promise<void>;
+  }) => Promise<ProfileResponse | null>;
   updateProfile: (profile: ProfileResponse) => void;
   updateSettings: (settings: SettingsResponse) => void;
   logout: () => void;
@@ -66,10 +66,10 @@ const AppContext = createContext<AppContextValue | null>(null);
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(appReducer, initialState);
 
-  const hydrateSession = useCallback(async () => {
+  const hydrateSession = useCallback(async (): Promise<ProfileResponse | null> => {
     if (!hasStoredAccessToken()) {
       dispatch({ type: "RESET" });
-      return;
+      return null;
     }
 
     dispatch({ type: "SET_LOADING", payload: true });
@@ -83,7 +83,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       if (profileResult.status !== "fulfilled") {
         clearStoredSession();
         dispatch({ type: "RESET" });
-        return;
+        return null;
       }
 
       dispatch({ type: "SET_PROFILE", payload: profileResult.value });
@@ -92,18 +92,21 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         type: "SET_SETTINGS",
         payload: settingsResult.status === "fulfilled" ? settingsResult.value : null,
       });
+
+      return profileResult.value;
     } catch {
       clearStoredSession();
       dispatch({ type: "RESET" });
+      return null;
     } finally {
       dispatch({ type: "SET_LOADING", payload: false });
     }
   }, []);
 
   const applySessionTokens = useCallback(
-    async (tokens: { accessToken: string; refreshToken?: string }) => {
+    async (tokens: { accessToken: string; refreshToken?: string }): Promise<ProfileResponse | null> => {
       saveSessionTokens(tokens);
-      await hydrateSession();
+      return await hydrateSession();
     },
     [hydrateSession],
   );

@@ -27,14 +27,6 @@ const stockTone = (status: ProductView["stockStatus"]) => {
 export default function ProductDetails({ product, related }: Props) {
   const { addToCart, isAdding } = useCart();
 
-  const shortlistHref = `mailto:hello@botanicalarchivist.com?subject=${encodeURIComponent(
-    `Shortlist request: ${product.name}`,
-  )}&body=${encodeURIComponent(
-    `I would like to know more about ${product.name} (${product.sku}).\n\nCategory: ${product.category}\nPrice: $${product.priceValue.toFixed(
-      2,
-    )}\nAvailability: ${product.stockStatus}`,
-  )}`;
-
   return (
     <main className="min-h-screen bg-background text-foreground">
       <div className="mx-auto max-w-screen-2xl px-6 py-10">

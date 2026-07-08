@@ -39,13 +39,17 @@ type ProductFormState = {
 };
 
 const PRODUCT_CATEGORIES = [
-  "Fruits  ",
+  "Fruits & Vegetables",
+  "Fruits",
   "Vegetables",
-  " Eggs",
-  "Meat ",
-  " Bread",
+  "Herbs",
+  "Dairy & Eggs",
+  "Meat & Poultry",
+  "Bakery & Bread",
   "Pantry & Dry Goods",
   "Beverages",
+  "Snacks & Confectionery",
+  "Household & Cleaning",
 ];
 
 type UploadResult = {
@@ -54,10 +58,10 @@ type UploadResult = {
 };
 
 const PRODUCT_UNITS = [
-  "1 kg",
   " 200g",
   " 500g",
   " 250g",
+  "1kg",
   " 2kg",
   " 5kg",
   "1 liter",

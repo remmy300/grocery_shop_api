@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { useMpesaPayment, MpesaPaymentError } from "@/hooks/useMpesaPayment";
+import { useMpesaPayment, MpesaPaymentError, friendlyMpesaError } from "@/hooks/useMpesaPayment";
 import { AlertCircle, CheckCircle2, Loader } from "lucide-react";
 
 interface MpesaPaymentProcessorProps {
@@ -33,6 +33,7 @@ export default function MpesaPaymentProcessor({
     isPaymentFailed,
     startPolling,
     stopPolling,
+    reset,
   } = useMpesaPayment();
 
   useEffect(() => {
@@ -149,7 +150,7 @@ export default function MpesaPaymentProcessor({
             <div>
               <p className="text-sm font-medium text-red-900">Payment Failed</p>
               <p className="text-xs text-red-700">
-                {status.data?.payment.resultDescription}
+                {friendlyMpesaError(status.data?.payment.resultDescription)}
               </p>
             </div>
           </CardContent>
@@ -198,10 +199,10 @@ export default function MpesaPaymentProcessor({
         </Button>
       )}
 
-      {/* Retry on failure */}
+      {/* Retry on failure — reset state so user can send a new STK push */}
       {isPaymentFailed && (
         <Button
-          onClick={() => window.location.reload()}
+          onClick={reset}
           variant="outline"
           className="w-full h-11 font-semibold"
         >

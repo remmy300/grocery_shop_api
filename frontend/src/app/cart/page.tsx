@@ -99,17 +99,15 @@ export default function CartPage() {
                 <div className="mt-6 space-y-4">
                   <SummaryRow
                     label="Subtotal"
-                    value={`$${subtotal.toFixed(2)}`}
+                    value={`KES${subtotal.toFixed(2)}`}
                   />
-
-                  <SummaryRow label="Carbon Offset" value="$1.50" />
                 </div>
 
                 <Separator className="my-6" />
 
                 <div className="flex items-center justify-between text-lg font-bold">
                   <span>Total</span>
-                  <span>${(subtotal + 1.5).toFixed(2)}</span>
+                  <span>KES{subtotal.toFixed(2)}</span>
                 </div>
 
                 <Button
@@ -121,12 +119,6 @@ export default function CartPage() {
                 </Button>
               </CardContent>
             </Card>
-
-            {/* SECURITY */}
-            <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
-              <Lock className="h-4 w-4" />
-              <span>Secure checkout</span>
-            </div>
           </aside>
         </section>
       </div>
