@@ -27,7 +27,7 @@ type AppAction =
 
 type AppContextValue = {
   state: AppState;
-  hydrateSession: () => Promise<void>;
+  hydrateSession: () => Promise<ProfileResponse | null>;
   applySessionTokens: (tokens: {
     accessToken: string;
     refreshToken?: string;
