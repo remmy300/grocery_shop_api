@@ -116,7 +116,6 @@ export default function CheckoutPage() {
   /*  GOOGLE MAPS + PLACES */
   const mapRef = useRef<HTMLDivElement | null>(null);
   const markerRef = useRef<any>(null);
-  const autocompleteContainerRef = useRef<HTMLDivElement | null>(null);
 
   const loadGoogleMaps = useCallback(() => {
     const key = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
@@ -135,15 +134,20 @@ export default function CheckoutPage() {
     const s = document.createElement("script");
     s.id = "google-maps-script";
     // v=weekly enables PlaceAutocompleteElement (GA in weekly channel)
-    s.src = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=places&v=weekly`;
+    s.src = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=places`;
     s.async = true;
     s.defer = true;
     s.onload = () => {
-      setMapsLoaded(true);
-      setGeoStatus(null);
+      // Verify Maps actually initialised — RefererNotAllowedMapError still fires onload
+      if ((window as any).google?.maps) {
+        setMapsLoaded(true);
+        setGeoStatus(null);
+      } else {
+        setGeoStatus("Google Maps failed to initialise. Check your API key referrer settings.");
+      }
     };
     s.onerror = () => {
-      setGeoStatus("Failed to load Google Maps.");
+      setGeoStatus("Failed to load Google Maps. Check your internet connection.");
     };
     document.head.appendChild(s);
   }, []);
@@ -194,37 +198,26 @@ export default function CheckoutPage() {
       });
     });
 
-    // PlaceAutocompleteElement (replaces deprecated Autocomplete)
-    if (autocompleteContainerRef.current) {
-      // Clear any previous instance
-      autocompleteContainerRef.current.innerHTML = "";
-
-      const ac = new google.maps.places.PlaceAutocompleteElement({
-        types: ["address"],
+    // Attach autocomplete to the street input
+    const input = document.getElementById("street-input") as HTMLInputElement | null;
+    if (input) {
+      const ac = new google.maps.places.Autocomplete(input, {
+        fields: ["formatted_address", "geometry"],
         componentRestrictions: { country: "ke" },
       });
-
-      // Match shadcn Input height/border styling
-      ac.style.cssText = "width:100%;--gmp-mat-combobox-input-shape:8px;";
-
-      autocompleteContainerRef.current.appendChild(ac);
-
-      ac.addEventListener("gmp-select", async (event: any) => {
-        const place = event.placePrediction.toPlace();
-        await place.fetchFields({ fields: ["formattedAddress", "location"] });
-
-        if (place.formattedAddress) {
-          setAddress({ ...state.address!, street: place.formattedAddress });
+      ac.addListener("place_changed", () => {
+        const place = ac.getPlace();
+        if (place.formatted_address) {
+          setAddress({ ...state.address!, street: place.formatted_address });
         }
-
-        if (place.location) {
-          const lat = place.location.lat();
-          const lng = place.location.lng();
+        if (place.geometry?.location) {
+          const lat = place.geometry.location.lat();
+          const lng = place.geometry.location.lng();
           setLocation({ lat, lng });
           map.setCenter({ lat, lng });
           map.setZoom(15);
-          if (markerRef.current) markerRef.current.setPosition(place.location);
-          else markerRef.current = new google.maps.Marker({ position: place.location, map });
+          if (markerRef.current) markerRef.current.setPosition(place.geometry.location);
+          else markerRef.current = new google.maps.Marker({ position: place.geometry.location, map });
         }
       });
     }
@@ -312,11 +305,14 @@ export default function CheckoutPage() {
                   }
                 />
 
-                {/* PlaceAutocompleteElement is injected here after maps load */}
-                <div ref={autocompleteContainerRef} className="w-full min-h-10" />
-                {!mapsLoaded && (
-                  <Input placeholder="Street Address (loading maps…)" disabled />
-                )}
+                <Input
+                  id="street-input"
+                  placeholder="Street Address"
+                  value={state.address?.street ?? ""}
+                  onChange={(e) =>
+                    setAddress({ ...state.address!, street: e.target.value })
+                  }
+                />
 
                 <div className="grid grid-cols-2 gap-4">
                   <Input
