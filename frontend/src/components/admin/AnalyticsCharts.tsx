@@ -4,6 +4,7 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  Cell,
   Legend,
   LabelList,
   Pie,
@@ -57,9 +58,15 @@ const AnalyticsCharts = ({
                     cx="50%"
                     cy="50%"
                     outerRadius={100}
-                  />
+                    label={({ name, value }) => `${name} ${value}%`}
+                    labelLine={false}
+                  >
+                    {categoryData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.fill} />
+                    ))}
+                  </Pie>
                   <Legend />
-                  <Tooltip />
+                  <Tooltip formatter={(value) => [`${value}%`, "Revenue Share"]} />
                 </PieChart>
               </ResponsiveContainer>
             </div>

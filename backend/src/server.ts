@@ -3,8 +3,6 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
-import prisma from "./lib/prisma.js";
-
 import productRoutes from "./routes/productRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
@@ -45,11 +43,17 @@ app.use(
   cors({
     origin: (requestOrigin, callback) => {
       if (!requestOrigin) return callback(null, true);
-      if (allowedOrigins.includes("*") || allowedOrigins.includes(requestOrigin)) {
+      if (
+        allowedOrigins.includes("*") ||
+        allowedOrigins.includes(requestOrigin)
+      ) {
         return callback(null, true);
       }
       console.warn("[CORS] blocked origin:", requestOrigin);
-      return callback(new Error(`CORS policy blocked origin: ${requestOrigin}`), false);
+      return callback(
+        new Error(`CORS policy blocked origin: ${requestOrigin}`),
+        false,
+      );
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],

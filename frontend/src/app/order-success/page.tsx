@@ -2,7 +2,7 @@
 
 import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense } from "react";
-import { CheckCircle2, ShoppingBag, Home, Receipt } from "lucide-react";
+import { CheckCircle2, ShoppingBag, Package, Receipt } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 function OrderSuccessContent() {
@@ -87,20 +87,22 @@ function OrderSuccessContent() {
 
         {/* Actions */}
         <div className="flex flex-col sm:flex-row gap-3">
+          {orderId && (
+            <Button
+              className="flex-1 h-11"
+              onClick={() => router.push(`/account/orders/${orderId}`)}
+            >
+              <Package className="h-4 w-4 mr-2" />
+              Track Order
+            </Button>
+          )}
           <Button
+            variant="outline"
             className="flex-1 h-11"
             onClick={() => router.push("/products")}
           >
             <ShoppingBag className="h-4 w-4 mr-2" />
             Continue Shopping
-          </Button>
-          <Button
-            variant="outline"
-            className="flex-1 h-11"
-            onClick={() => router.push("/")}
-          >
-            <Home className="h-4 w-4 mr-2" />
-            Go Home
           </Button>
         </div>
       </div>

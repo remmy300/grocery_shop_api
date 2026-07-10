@@ -138,7 +138,7 @@ export const getDashboardOverview = async (_req: Request, res: Response) => {
       .reduce((sum, order) => sum + toNumber(order.total), 0);
     const totalProducts = products.length;
     const lowStockItems = products.filter(
-      (product) => product.stock <= 10,
+      (product) => product.stock > 0 && product.stock <= ((product as any).lowStockThreshold ?? 10),
     ).length;
     const activeAdmins = users.filter(
       (user) => normalizeRole(user.role) === "admin",
@@ -185,6 +185,36 @@ export const getDashboardOverview = async (_req: Request, res: Response) => {
       initials: getInitials(order.customer),
     }));
 
+    // Low-stock product details for dashboard alerts
+    const lowStockProducts = products
+      .filter((p) => p.stock > 0 && p.stock <= ((p as any).lowStockThreshold ?? 10))
+      .sort((a, b) => a.stock - b.stock)
+      .slice(0, 10)
+      .map((p) => ({ id: p.id, name: p.name, stock: p.stock, unit: (p as any).unit ?? "units", category: p.category }));
+
+    const outOfStockProducts = products
+      .filter((p) => p.stock <= 0)
+      .map((p) => ({ id: p.id, name: p.name, stock: 0, category: p.category }));
+
+    // Best-selling products (by units sold across all orders)
+    const salesMap = new Map<number, { name: string; category: string; unitsSold: number; revenue: number }>();
+    orders.forEach((order) => {
+      order.items.forEach((item: any) => {
+        const existing = salesMap.get(item.product.id) ?? {
+          name: item.product.name,
+          category: item.product.category || inferCategory(item.product.name),
+          unitsSold: 0,
+          revenue: 0,
+        };
+        existing.unitsSold += item.quantity;
+        existing.revenue += toNumber(item.price) * item.quantity;
+        salesMap.set(item.product.id, existing);
+      });
+    });
+    const topSellingProducts = [...salesMap.values()]
+      .sort((a, b) => b.unitsSold - a.unitsSold)
+      .slice(0, 5);
+
     res.json({
       metrics: {
         totalRevenue,
@@ -197,6 +227,9 @@ export const getDashboardOverview = async (_req: Request, res: Response) => {
       },
       recentActivity,
       revenueData,
+      lowStockProducts,
+      outOfStockProducts,
+      topSellingProducts,
     });
   } catch (error) {
     console.error(error);
@@ -221,25 +254,29 @@ export const getInventoryOverview = async (req: Request, res: Response) => {
       prisma.product.count({ where: { deletedAt: null } }),
     ]);
 
-    const mappedProducts = pagedProducts.map((product: ProductType) => ({
-      id: product.id,
-      sku: `#ARC-${String(product.id).padStart(4, "0")}`,
-      name: product.name,
-      category: product.category || inferCategory(product.name),
-      unit: (product as any).unit ?? "per piece",
-      stock: product.stock,
-      stockStatus:
-        product.stock <= 0
-          ? "Out of Stock"
-          : product.stock <= 10
-            ? "Low Stock"
-            : "In Stock",
-      price: toNumber(product.price),
-      imageUrl: product.imageUrl,
-    }));
+    const mappedProducts = pagedProducts.map((product: ProductType) => {
+      const threshold = (product as any).lowStockThreshold ?? 10;
+      return {
+        id: product.id,
+        sku: `#ARC-${String(product.id).padStart(4, "0")}`,
+        name: product.name,
+        category: product.category || inferCategory(product.name),
+        unit: (product as any).unit ?? "per piece",
+        stock: product.stock,
+        lowStockThreshold: threshold,
+        stockStatus:
+          product.stock <= 0
+            ? "Out of Stock"
+            : product.stock <= threshold
+              ? "Low Stock"
+              : "In Stock",
+        price: toNumber(product.price),
+        imageUrl: product.imageUrl,
+      };
+    });
 
     const totalProducts = allProducts.length;
-    const lowStockItems = allProducts.filter((p: ProductType) => p.stock > 0 && p.stock <= 10).length;
+    const lowStockItems = allProducts.filter((p: ProductType) => p.stock > 0 && p.stock <= ((p as any).lowStockThreshold ?? 10)).length;
     const outOfStockItems = allProducts.filter((p: ProductType) => p.stock <= 0).length;
     const inventoryValue = allProducts.reduce(
       (sum: number, p: ProductType) => sum + p.stock * toNumber(p.price),
@@ -427,7 +464,8 @@ export const getAnalyticsOverview = async (_req: Request, res: Response) => {
           currentProduct.quantity += item.quantity;
           productRevenue.set(item.product.id, currentProduct);
 
-          const category = inferCategory(item.product.name);
+          // Use the stored category directly; fall back to inferCategory only if missing
+          const category = item.product.category || inferCategory(item.product.name);
           categoryRevenue.set(
             category,
             (categoryRevenue.get(category) ?? 0) + revenue,
@@ -457,13 +495,17 @@ export const getAnalyticsOverview = async (_req: Request, res: Response) => {
       (sum, value) => sum + value,
       0,
     );
+    const PIE_COLORS = [
+      "#16a34a", "#f97316", "#f59e0b", "#0ea5e9",
+      "#8b5cf6", "#ec4899", "#14b8a6", "#ef4444",
+      "#84cc16", "#f43f5e", "#06b6d4", "#a855f7",
+    ];
     const categoryData = [...categoryRevenue.entries()]
       .sort((a, b) => b[1] - a[1])
-      .slice(0, 4)
       .map(([name, value], index) => ({
         name,
         value: Math.round((value / Math.max(1, totalCategoryRevenue)) * 100),
-        fill: ["#16a34a", "#f97316", "#f59e0b", "#0ea5e9"][index % 4],
+        fill: PIE_COLORS[index % PIE_COLORS.length],
       }));
 
     const totalRevenue = orders

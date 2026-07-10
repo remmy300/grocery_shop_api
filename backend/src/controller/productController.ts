@@ -30,12 +30,13 @@ const normalizeCategory = (value: unknown) => {
 // CREATE PRODUCT
 export const createProduct = async (req: Request, res: Response) => {
   try {
-    const { name, category, unit, stock, price, imageUrl } = req.body;
+    const { name, category, unit, stock, price, imageUrl, lowStockThreshold } = req.body;
 
     const normalizedName = typeof name === "string" ? name.trim() : "";
     const normalizedStock = parseInteger(stock);
     const normalizedPrice = parsePrice(price);
     const normalizedUnit = typeof unit === "string" && unit.trim() ? unit.trim() : "per piece";
+    const normalizedThreshold = parseInteger(lowStockThreshold) ?? 10;
 
     if (
       !normalizedName ||
@@ -56,6 +57,7 @@ export const createProduct = async (req: Request, res: Response) => {
         stock: normalizedStock,
         price: normalizedPrice,
         imageUrl: normalizeImageUrl(imageUrl),
+        lowStockThreshold: normalizedThreshold,
       },
     });
 
@@ -116,12 +118,13 @@ export const updateProduct = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Invalid product id" });
     }
 
-    const { name, category, unit, stock, price, imageUrl } = req.body;
+    const { name, category, unit, stock, price, imageUrl, lowStockThreshold } = req.body;
 
     const normalizedName = typeof name === "string" ? name.trim() : "";
     const normalizedStock = parseInteger(stock);
     const normalizedPrice = parsePrice(price);
     const normalizedUnit = typeof unit === "string" && unit.trim() ? unit.trim() : "per piece";
+    const normalizedThreshold = parseInteger(lowStockThreshold) ?? 10;
 
     if (
       !normalizedName ||
@@ -151,6 +154,7 @@ export const updateProduct = async (req: Request, res: Response) => {
         stock: normalizedStock,
         price: normalizedPrice,
         imageUrl: normalizeImageUrl(imageUrl),
+        lowStockThreshold: normalizedThreshold,
       },
     });
 

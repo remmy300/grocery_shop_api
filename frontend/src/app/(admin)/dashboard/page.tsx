@@ -3,10 +3,12 @@
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 import {
+  AlertTriangle,
   DollarSign,
   MoreHorizontal,
   Package,
   ShoppingCart,
+  TrendingUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -157,7 +159,7 @@ const DashboardPage = () => {
     );
   }
 
-  const { metrics, recentActivity, revenueData } = data;
+  const { metrics, recentActivity, revenueData, lowStockProducts, outOfStockProducts, topSellingProducts } = data;
 
   return (
     <div className="space-y-8">
@@ -249,6 +251,106 @@ const DashboardPage = () => {
       </section>
 
       <RevenueChartCard revenueData={revenueData} />
+
+      {/* ── Low-stock & out-of-stock alerts ── */}
+      {(outOfStockProducts?.length > 0 || lowStockProducts?.length > 0) && (
+        <div className="space-y-3">
+          {outOfStockProducts?.length > 0 && (
+            <Card className="border-red-200 bg-red-50 shadow-sm">
+              <CardContent className="p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <AlertTriangle className="h-4 w-4 text-red-600" />
+                  <h3 className="font-semibold text-red-800">
+                    {outOfStockProducts.length} product{outOfStockProducts.length !== 1 ? "s" : ""} out of stock
+                  </h3>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {outOfStockProducts.map((p) => (
+                    <span
+                      key={p.id}
+                      className="inline-flex items-center gap-1 rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-800"
+                    >
+                      {p.name}
+                    </span>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {lowStockProducts?.length > 0 && (
+            <Card className="border-amber-200 bg-amber-50 shadow-sm">
+              <CardContent className="p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <AlertTriangle className="h-4 w-4 text-amber-600" />
+                  <h3 className="font-semibold text-amber-800">
+                    {lowStockProducts.length} product{lowStockProducts.length !== 1 ? "s" : ""} running low
+                  </h3>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {lowStockProducts.map((p) => (
+                    <span
+                      key={p.id}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-800"
+                    >
+                      {p.name}
+                      <span className="font-bold">{p.stock} {p.unit} left</span>
+                    </span>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
+
+      {/* ── Best-selling products ── */}
+      {topSellingProducts?.length > 0 && (
+        <Card className="bg-surface-container-lowest shadow-sm">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-2 mb-5">
+              <TrendingUp className="h-5 w-5 text-green-600" />
+              <div>
+                <h3 className="text-lg font-heading font-bold text-foreground">Best-Selling Products</h3>
+                <p className="text-secondary-foreground text-sm">Ranked by units sold across all orders</p>
+              </div>
+            </div>
+            <div className="space-y-4">
+              {topSellingProducts.map((product, idx) => {
+                const maxUnits = topSellingProducts[0].unitsSold;
+                const pct = Math.round((product.unitsSold / maxUnits) * 100);
+                return (
+                  <div key={product.name} className="space-y-1.5">
+                    <div className="flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-xs font-bold text-muted-foreground w-5 shrink-0">
+                          #{idx + 1}
+                        </span>
+                        <span className="font-medium truncate">{product.name}</span>
+                        <span className="text-xs text-muted-foreground hidden sm:block shrink-0">
+                          {product.category}
+                        </span>
+                      </div>
+                      <div className="text-right shrink-0 ml-2">
+                        <span className="font-semibold">{product.unitsSold} sold</span>
+                        <span className="text-xs text-muted-foreground ml-2">
+                          KES {product.revenue.toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-green-500 transition-all duration-500"
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card className="bg-surface-container-lowest shadow-sm">
         <CardContent className="p-6">

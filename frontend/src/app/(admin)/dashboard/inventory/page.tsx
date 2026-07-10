@@ -36,6 +36,7 @@ type ProductFormState = {
   stock: string;
   price: string;
   imageUrl: string;
+  lowStockThreshold: string;
 };
 
 const PRODUCT_CATEGORIES = [
@@ -78,6 +79,7 @@ const EMPTY_FORM: ProductFormState = {
   stock: "",
   price: "",
   imageUrl: "",
+  lowStockThreshold: "10",
 };
 
 const toFormState = (
@@ -89,6 +91,7 @@ const toFormState = (
   stock: String(product.stock),
   price: String(product.price),
   imageUrl: product.imageUrl || "",
+  lowStockThreshold: String(product.lowStockThreshold ?? 10),
 });
 
 const inferStockTone = (status: string) => {
@@ -186,6 +189,7 @@ const InventoryPage = () => {
     const trimmedImageUrl = form.imageUrl.trim();
     const stock = Number(form.stock);
     const price = Number(form.price);
+    const lowStockThreshold = Number(form.lowStockThreshold);
 
     if (!trimmedName) {
       return { success: false, error: "Product name is required." };
@@ -209,6 +213,13 @@ const InventoryPage = () => {
       };
     }
 
+    if (!Number.isInteger(lowStockThreshold) || lowStockThreshold < 1) {
+      return {
+        success: false,
+        error: "Low stock alert threshold must be a whole number of at least 1.",
+      };
+    }
+
     return {
       success: true,
       payload: {
@@ -218,6 +229,7 @@ const InventoryPage = () => {
         stock,
         price,
         imageUrl: trimmedImageUrl,
+        lowStockThreshold,
       },
     };
   };
@@ -702,6 +714,27 @@ const InventoryPage = () => {
                         placeholder="0"
                       />
                     </div>
+                  </div>
+
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-foreground">
+                      Low Stock Alert At
+                    </label>
+                    <Input
+                      type="number"
+                      min="1"
+                      value={form.lowStockThreshold}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          lowStockThreshold: event.target.value,
+                        }))
+                      }
+                      placeholder="10"
+                    />
+                    <p className="mt-1 text-xs text-secondary-foreground">
+                      Alert shows on dashboard when stock falls at or below this number.
+                    </p>
                   </div>
 
                   <div>

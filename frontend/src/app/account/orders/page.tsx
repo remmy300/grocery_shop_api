@@ -160,9 +160,9 @@ export default function OrderHistoryPage() {
                         variant="ghost"
                         size="sm"
                         className="h-8 text-xs gap-1"
-                        onClick={() => router.push(`/products`)}
+                        onClick={() => router.push(`/account/orders/${order.id}`)}
                       >
-                        Reorder
+                        Track Order
                         <ChevronRight className="h-3.5 w-3.5" />
                       </Button>
                     </div>

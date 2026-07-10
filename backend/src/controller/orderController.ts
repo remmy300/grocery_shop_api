@@ -166,7 +166,10 @@ export const getMyOrders = async (req: Request, res: Response) => {
     const uid = Number((req as any).user.id);
     const orders = await prisma.order.findMany({
       where: { userId: uid } as any,
-      include: { items: true },
+      include: {
+        items: { include: { product: { select: { name: true, imageUrl: true } } } },
+        payment: { select: { mpesaReceiptNumber: true } },
+      },
       orderBy: { createdAt: "desc" },
     });
     res.status(200).json(orders);
