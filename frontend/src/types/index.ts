@@ -13,6 +13,7 @@ export type BackendProduct = {
   unit?: string | null;
   imageUrl?: string | null;
   deletedAt?: string | null;
+  lowStockThreshold: number;
 };
 
 export type BackendOrderItem = {
@@ -65,9 +66,25 @@ export type DashboardResponse = {
     initials: string;
   }>;
   revenueData: Array<{ month: string; revenue: number }>;
-  lowStockProducts: Array<{ id: number; name: string; stock: number; unit: string; category: string }>;
-  outOfStockProducts: Array<{ id: number; name: string; stock: number; category: string }>;
-  topSellingProducts: Array<{ name: string; category: string; unitsSold: number; revenue: number }>;
+  lowStockProducts: Array<{
+    id: number;
+    name: string;
+    stock: number;
+    unit: string;
+    category: string;
+  }>;
+  outOfStockProducts: Array<{
+    id: number;
+    name: string;
+    stock: number;
+    category: string;
+  }>;
+  topSellingProducts: Array<{
+    name: string;
+    category: string;
+    unitsSold: number;
+    revenue: number;
+  }>;
 };
 
 export type InventoryResponse = {
@@ -205,4 +222,14 @@ export type CheckoutState = {
     lat: number;
     lng: number;
   } | null;
+};
+
+export type ProductFormState = {
+  name: string;
+  category: string;
+  unit: string;
+  stock: string;
+  price: string;
+  imageUrl: string;
+  lowStockThreshold: string;
 };

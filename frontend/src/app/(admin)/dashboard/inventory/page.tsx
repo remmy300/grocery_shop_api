@@ -27,17 +27,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { apiRequest, formatCurrency } from "@/lib/api";
-import { InventoryResponse } from "@/types";
-
-type ProductFormState = {
-  name: string;
-  category: string;
-  unit: string;
-  stock: string;
-  price: string;
-  imageUrl: string;
-  lowStockThreshold: string;
-};
+import { InventoryResponse, ProductFormState } from "@/types";
 
 const PRODUCT_CATEGORIES = [
   "Fruits & Vegetables",
@@ -216,7 +206,8 @@ const InventoryPage = () => {
     if (!Number.isInteger(lowStockThreshold) || lowStockThreshold < 1) {
       return {
         success: false,
-        error: "Low stock alert threshold must be a whole number of at least 1.",
+        error:
+          "Low stock alert threshold must be a whole number of at least 1.",
       };
     }
 
@@ -733,7 +724,8 @@ const InventoryPage = () => {
                       placeholder="10"
                     />
                     <p className="mt-1 text-xs text-secondary-foreground">
-                      Alert shows on dashboard when stock falls at or below this number.
+                      Alert shows on dashboard when stock falls at or below this
+                      number.
                     </p>
                   </div>
 

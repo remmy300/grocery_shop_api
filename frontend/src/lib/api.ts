@@ -180,7 +180,7 @@ const getStoredSettings = (): SettingsResponse => {
   if (typeof window === "undefined") {
     return {
       workspaceName: "Corner Store",
-      defaultCurrency: "USD",
+      defaultCurrency: "KES",
       notificationsEnabled: true,
       updatedAt: new Date().toISOString(),
     };
@@ -188,7 +188,7 @@ const getStoredSettings = (): SettingsResponse => {
 
   const fallback: SettingsResponse = {
     workspaceName: "Corner Store",
-    defaultCurrency: "USD",
+    defaultCurrency: "KES",
     notificationsEnabled: true,
     updatedAt: new Date().toISOString(),
   };
@@ -247,8 +247,8 @@ const saveStoredProfile = (profile: Partial<ProfileResponse>) => {
 export const clearStoredSession = () => {
   if (typeof window === "undefined") return;
 
-  ["accessToken", "token", "refreshToken", PROFILE_STORAGE_KEY].forEach(
-    (key) => localStorage.removeItem(key),
+  ["accessToken", "token", "refreshToken", PROFILE_STORAGE_KEY].forEach((key) =>
+    localStorage.removeItem(key),
   );
 
   // Clear the HttpOnly cookie by calling the logout endpoint (fire-and-forget)
@@ -518,6 +518,61 @@ const buildDashboardResponse = async (): Promise<DashboardResponse> => {
       initials: initialsFrom(order.customer),
     }));
 
+  const lowStockProducts = products
+    .filter((product) => product.stock > 0 && product.stock <= 20)
+    .map((product) => ({
+      id: product.id,
+      name: product.name,
+      stock: product.stock,
+      unit: product.unit ?? "pcs",
+      category: product.category ?? "Uncategorized",
+    }));
+
+  const outOfStockProducts = products
+    .filter((product) => product.stock === 0)
+    .map((product) => ({
+      id: product.id,
+      name: product.name,
+      stock: product.stock,
+      category: product.category ?? "Uncategorized",
+    }));
+
+  const salesMap = new Map<
+    number,
+    {
+      name: string;
+      category: string;
+      unitsSold: number;
+      revenue: number;
+    }
+  >();
+
+  for (const order of orders) {
+    for (const item of order.items ?? []) {
+      const product = products.find((p) => p.id === item.productId);
+
+      if (!product) continue;
+
+      const existing = salesMap.get(product.id);
+
+      if (existing) {
+        existing.unitsSold += item.quantity;
+        existing.revenue += item.quantity * toNumber(item.price);
+      } else {
+        salesMap.set(product.id, {
+          name: product.name,
+          category: product.category ?? "Uncategorized",
+          unitsSold: item.quantity,
+          revenue: item.quantity * toNumber(item.price),
+        });
+      }
+    }
+  }
+
+  const topSellingProducts = [...salesMap.values()]
+    .sort((a, b) => b.unitsSold - a.unitsSold)
+    .slice(0, 5);
+
   return {
     metrics: {
       totalRevenue,
@@ -530,6 +585,9 @@ const buildDashboardResponse = async (): Promise<DashboardResponse> => {
     },
     recentActivity,
     revenueData,
+    lowStockProducts,
+    outOfStockProducts,
+    topSellingProducts,
   };
 };
 
@@ -556,9 +614,10 @@ const buildInventoryResponse = async (): Promise<InventoryResponse> => {
       sku: `#PRD-${String(product.id).padStart(4, "0")}`,
       name: product.name,
       category: product.category || productCategory(product.name),
-      unit: product.unit || "per piece",
+      unit: product.unit,
       stock: product.stock,
       stockStatus: stockStatus(product.stock),
+      lowStockThreshold: product.lowStockThreshold,
       price: toNumber(product.price),
       imageUrl: product.imageUrl ?? null,
     })),

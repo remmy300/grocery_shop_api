@@ -1,12 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useReducer } from "react";
-import {
-  ChevronLeft,
-  ChevronRight,
-  Pencil,
-  Trash2,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -45,6 +40,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { OrdersResponse } from "@/types";
 import { apiRequest, formatCurrency } from "@/lib/api";
 import { CsvExportButton } from "@/components/CsvExportButton";
 
@@ -60,17 +56,6 @@ type Order = {
   itemCount: number;
   initials: string;
   statusColor: string;
-};
-
-type OrdersResponse = {
-  stats: {
-    totalOrders: number;
-    pendingOrders: number;
-    shippedOrders: number;
-    deliveredOrders: number;
-    totalRevenue: number;
-  };
-  orders: Order[];
 };
 
 type BackendProduct = {
@@ -159,7 +144,12 @@ function dataReducer(state: DataState, action: DataAction): DataState {
         productsError: null,
       };
     case "fetchError":
-      return { ...state, loading: false, refreshing: false, error: action.error };
+      return {
+        ...state,
+        loading: false,
+        refreshing: false,
+        error: action.error,
+      };
     case "productsError":
       return { ...state, products: [], productsError: action.error };
     case "updateOrder":
@@ -241,7 +231,11 @@ const initialFormState: FormState = {
 function formReducer(state: FormState, action: FormAction): FormState {
   switch (action.type) {
     case "openCreate":
-      return { ...initialFormState, sheetMode: "create", selectedProductId: state.selectedProductId };
+      return {
+        ...initialFormState,
+        sheetMode: "create",
+        selectedProductId: state.selectedProductId,
+      };
     case "openEdit":
       return {
         ...initialFormState,
@@ -251,11 +245,17 @@ function formReducer(state: FormState, action: FormAction): FormState {
         selectedProductId: state.selectedProductId,
       };
     case "closeSheet":
-      return { ...initialFormState, selectedProductId: state.selectedProductId };
+      return {
+        ...initialFormState,
+        selectedProductId: state.selectedProductId,
+      };
     case "setEditStatus":
       return { ...state, editStatus: action.value };
     case "setManualField":
-      return { ...state, manualForm: { ...state.manualForm, [action.field]: action.value } };
+      return {
+        ...state,
+        manualForm: { ...state.manualForm, [action.field]: action.value },
+      };
     case "setProductId":
       return { ...state, selectedProductId: action.value };
     case "setQuantity":
@@ -268,15 +268,26 @@ function formReducer(state: FormState, action: FormAction): FormState {
         return {
           ...state,
           manualItems: state.manualItems.map((i, idx) =>
-            idx === existing ? { ...i, quantity: i.quantity + action.item.quantity } : i,
+            idx === existing
+              ? { ...i, quantity: i.quantity + action.item.quantity }
+              : i,
           ),
           formError: null,
         };
       }
-      return { ...state, manualItems: [...state.manualItems, action.item], formError: null };
+      return {
+        ...state,
+        manualItems: [...state.manualItems, action.item],
+        formError: null,
+      };
     }
     case "removeItem":
-      return { ...state, manualItems: state.manualItems.filter((i) => i.productId !== action.productId) };
+      return {
+        ...state,
+        manualItems: state.manualItems.filter(
+          (i) => i.productId !== action.productId,
+        ),
+      };
     case "setFormError":
       return { ...state, formError: action.error };
     case "setSubmitting":
@@ -370,7 +381,10 @@ const OrdersPage = () => {
   }, []);
 
   useEffect(() => {
-    if (ds.products.length && !productLookup.has(Number(fs.selectedProductId))) {
+    if (
+      ds.products.length &&
+      !productLookup.has(Number(fs.selectedProductId))
+    ) {
       dispatchForm({ type: "setProductId", value: String(ds.products[0].id) });
     }
   }, [ds.products, fs.selectedProductId, productLookup]);
@@ -417,10 +431,26 @@ const OrdersPage = () => {
   );
 
   const statusCounts = [
-    { label: "Total", value: ds.data?.stats.totalOrders ?? 0, tone: "text-primary" },
-    { label: "Pending", value: ds.data?.stats.pendingOrders ?? 0, tone: "text-amber-600" },
-    { label: "Out for Delivery", value: ds.data?.stats.shippedOrders ?? 0, tone: "text-blue-600" },
-    { label: "Delivered", value: ds.data?.stats.deliveredOrders ?? 0, tone: "text-green-600" },
+    {
+      label: "Total",
+      value: ds.data?.stats.totalOrders ?? 0,
+      tone: "text-primary",
+    },
+    {
+      label: "Pending",
+      value: ds.data?.stats.pendingOrders ?? 0,
+      tone: "text-amber-600",
+    },
+    {
+      label: "Out for Delivery",
+      value: ds.data?.stats.shippedOrders ?? 0,
+      tone: "text-blue-600",
+    },
+    {
+      label: "Delivered",
+      value: ds.data?.stats.deliveredOrders ?? 0,
+      tone: "text-green-600",
+    },
   ];
 
   // ── action handlers ───────────────────────────────────────────────
@@ -431,7 +461,10 @@ const OrdersPage = () => {
     const product = productLookup.get(productId);
 
     if (!product) {
-      dispatchForm({ type: "setFormError", error: "Please select a product first." });
+      dispatchForm({
+        type: "setFormError",
+        error: "Please select a product first.",
+      });
       return;
     }
     if (!Number.isInteger(quantity) || quantity <= 0) {
@@ -580,7 +613,8 @@ const OrdersPage = () => {
           </p>
           {ds.productsError ? (
             <p className="mt-2 text-sm text-amber-600">
-              Product lookup is unavailable, so manual order creation is limited.
+              Product lookup is unavailable, so manual order creation is
+              limited.
             </p>
           ) : null}
         </div>
@@ -613,12 +647,17 @@ const OrdersPage = () => {
 
       <section className="grid grid-cols-1 gap-6 md:grid-cols-4">
         {statusCounts.map((stat) => (
-          <Card key={stat.label} className="bg-surface-container-lowest shadow-sm">
+          <Card
+            key={stat.label}
+            className="bg-surface-container-lowest shadow-sm"
+          >
             <CardContent className="flex flex-col items-center p-5 text-center">
               <p className="text-xs uppercase tracking-widest text-secondary-foreground">
                 {stat.label}
               </p>
-              <p className={`mt-2 text-3xl font-heading font-black ${stat.tone}`}>
+              <p
+                className={`mt-2 text-3xl font-heading font-black ${stat.tone}`}
+              >
                 {stat.value}
               </p>
             </CardContent>
@@ -678,7 +717,10 @@ const OrdersPage = () => {
       <div className="space-y-3 md:hidden">
         {pagedOrders.length ? (
           pagedOrders.map((order) => (
-            <Card key={order.orderId} className="rounded-2xl bg-surface-container-lowest shadow-sm">
+            <Card
+              key={order.orderId}
+              className="rounded-2xl bg-surface-container-lowest shadow-sm"
+            >
               <CardContent className="p-4">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-3">
@@ -686,18 +728,28 @@ const OrdersPage = () => {
                       {order.initials}
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-foreground">{order.customer}</p>
-                      <p className="text-xs text-muted-foreground">{order.id}</p>
+                      <p className="text-sm font-bold text-foreground">
+                        {order.customer}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {order.id}
+                      </p>
                     </div>
                   </div>
-                  <Badge className={`${order.statusColor} shrink-0 rounded-full px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide`}>
+                  <Badge
+                    className={`${order.statusColor} shrink-0 rounded-full px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide`}
+                  >
                     {order.orderStatus}
                   </Badge>
                 </div>
                 <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
                   <div>
-                    <p className="text-xs text-muted-foreground">{order.date}</p>
-                    <p className="text-sm font-bold text-foreground">KES {formatCurrency(order.total)}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {order.date}
+                    </p>
+                    <p className="text-sm font-bold text-foreground">
+                      KES {formatCurrency(order.total)}
+                    </p>
                   </div>
                   <div className="flex gap-1">
                     <Button
@@ -712,7 +764,9 @@ const OrdersPage = () => {
                       variant="ghost"
                       size="sm"
                       className="h-8 w-8 p-0 text-outline hover:text-destructive"
-                      onClick={() => dispatchForm({ type: "openDelete", order })}
+                      onClick={() =>
+                        dispatchForm({ type: "openDelete", order })
+                      }
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -723,8 +777,12 @@ const OrdersPage = () => {
           ))
         ) : (
           <div className="rounded-2xl border border-dashed border-border p-10 text-center">
-            <p className="font-medium text-foreground">No orders match the current filters.</p>
-            <p className="mt-1 text-sm text-muted-foreground">Try another search or change the filter selections.</p>
+            <p className="font-medium text-foreground">
+              No orders match the current filters.
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Try another search or change the filter selections.
+            </p>
           </div>
         )}
       </div>
@@ -734,40 +792,81 @@ const OrdersPage = () => {
         <Table>
           <TableHeader>
             <TableRow className="border-none bg-surface-container-low">
-              <TableHead className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-secondary-foreground font-label">Order ID</TableHead>
-              <TableHead className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-secondary-foreground font-label">Customer Name</TableHead>
-              <TableHead className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-secondary-foreground font-label">Date</TableHead>
-              <TableHead className="px-6 py-4 text-right text-xs font-bold uppercase tracking-widest text-secondary-foreground font-label">Total Amount</TableHead>
-              <TableHead className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-secondary-foreground font-label">Status</TableHead>
-              <TableHead className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-secondary-foreground font-label">Actions</TableHead>
+              <TableHead className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-secondary-foreground font-label">
+                Order ID
+              </TableHead>
+              <TableHead className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-secondary-foreground font-label">
+                Customer Name
+              </TableHead>
+              <TableHead className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-secondary-foreground font-label">
+                Date
+              </TableHead>
+              <TableHead className="px-6 py-4 text-right text-xs font-bold uppercase tracking-widest text-secondary-foreground font-label">
+                Total Amount
+              </TableHead>
+              <TableHead className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-secondary-foreground font-label">
+                Status
+              </TableHead>
+              <TableHead className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-secondary-foreground font-label">
+                Actions
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {pagedOrders.length ? (
               pagedOrders.map((order) => (
-                <TableRow key={order.orderId} className="transition-colors hover:bg-surface-container-lowest">
-                  <TableCell className="px-6 py-5 font-heading text-sm font-bold">{order.id}</TableCell>
+                <TableRow
+                  key={order.orderId}
+                  className="transition-colors hover:bg-surface-container-lowest"
+                >
+                  <TableCell className="px-6 py-5 font-heading text-sm font-bold">
+                    {order.id}
+                  </TableCell>
                   <TableCell className="px-6 py-5">
                     <div className="flex items-center gap-3">
                       <div className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary-fixed text-xs font-bold text-on-secondary-fixed">
                         {order.initials}
                       </div>
-                      <span className="text-sm font-medium text-foreground">{order.customer}</span>
+                      <span className="text-sm font-medium text-foreground">
+                        {order.customer}
+                      </span>
                     </div>
                   </TableCell>
-                  <TableCell className="px-6 py-5 text-sm text-secondary-foreground">{order.date}</TableCell>
-                  <TableCell className="px-6 py-5 text-right text-sm font-bold text-foreground">KES {formatCurrency(order.total)}</TableCell>
+                  <TableCell className="px-6 py-5 text-sm text-secondary-foreground">
+                    {order.date}
+                  </TableCell>
+                  <TableCell className="px-6 py-5 text-right text-sm font-bold text-foreground">
+                    KES {formatCurrency(order.total)}
+                  </TableCell>
                   <TableCell className="px-6 py-5">
-                    <Badge className={`${order.statusColor} rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide`}>
+                    <Badge
+                      className={`${order.statusColor} rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide`}
+                    >
                       {order.orderStatus}
                     </Badge>
                   </TableCell>
                   <TableCell className="px-6 py-5">
                     <div className="flex items-center gap-1">
-                      <Button variant="ghost" size="sm" className="text-outline transition-colors hover:text-primary" onClick={() => dispatchForm({ type: "openEdit", order })} title="Edit status">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-outline transition-colors hover:text-primary"
+                        onClick={() =>
+                          dispatchForm({ type: "openEdit", order })
+                        }
+                        title="Edit status"
+                      >
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="sm" className="text-outline transition-colors hover:text-destructive" onClick={() => dispatchForm({ type: "openDelete", order })} title="Delete order">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-outline transition-colors hover:text-destructive"
+                        onClick={() =>
+                          dispatchForm({ type: "openDelete", order })
+                        }
+                        title="Delete order"
+                      >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
@@ -777,8 +876,12 @@ const OrdersPage = () => {
             ) : (
               <TableRow>
                 <TableCell colSpan={6} className="px-6 py-12 text-center">
-                  <p className="font-medium text-foreground">No orders match the current filters.</p>
-                  <p className="mt-2 text-sm text-secondary-foreground">Try another search or change the filter selections.</p>
+                  <p className="font-medium text-foreground">
+                    No orders match the current filters.
+                  </p>
+                  <p className="mt-2 text-sm text-secondary-foreground">
+                    Try another search or change the filter selections.
+                  </p>
                 </TableCell>
               </TableRow>
             )}
@@ -797,7 +900,12 @@ const OrdersPage = () => {
             variant="ghost"
             size="icon-sm"
             className="h-8 w-8"
-            onClick={() => setFilters((prev) => ({ ...prev, page: Math.max(1, prev.page - 1) }))}
+            onClick={() =>
+              setFilters((prev) => ({
+                ...prev,
+                page: Math.max(1, prev.page - 1),
+              }))
+            }
             disabled={safePage <= 1}
           >
             <ChevronLeft className="h-5 w-5" />
@@ -809,7 +917,12 @@ const OrdersPage = () => {
             variant="ghost"
             size="icon-sm"
             className="h-8 w-8"
-            onClick={() => setFilters((prev) => ({ ...prev, page: Math.min(totalPages, prev.page + 1) }))}
+            onClick={() =>
+              setFilters((prev) => ({
+                ...prev,
+                page: Math.min(totalPages, prev.page + 1),
+              }))
+            }
             disabled={safePage >= totalPages}
           >
             <ChevronRight className="h-5 w-5" />
@@ -957,7 +1070,10 @@ const OrdersPage = () => {
                       </SelectTrigger>
                       <SelectContent>
                         {ds.products.map((product) => (
-                          <SelectItem key={product.id} value={String(product.id)}>
+                          <SelectItem
+                            key={product.id}
+                            value={String(product.id)}
+                          >
                             {product.name}
                           </SelectItem>
                         ))}
@@ -968,16 +1084,24 @@ const OrdersPage = () => {
                       min="1"
                       value={fs.selectedQuantity}
                       onChange={(e) =>
-                        dispatchForm({ type: "setQuantity", value: e.target.value })
+                        dispatchForm({
+                          type: "setQuantity",
+                          value: e.target.value,
+                        })
                       }
                       placeholder="Qty"
                     />
-                    <Button onClick={addManualItem} disabled={!ds.products.length}>
+                    <Button
+                      onClick={addManualItem}
+                      disabled={!ds.products.length}
+                    >
                       Add item
                     </Button>
                   </div>
                   {ds.productsError ? (
-                    <p className="mt-3 text-sm text-amber-600">{ds.productsError}</p>
+                    <p className="mt-3 text-sm text-amber-600">
+                      {ds.productsError}
+                    </p>
                   ) : null}
                 </div>
                 <div className="space-y-3">
@@ -1001,7 +1125,8 @@ const OrdersPage = () => {
                               {item.name}
                             </p>
                             <p className="text-xs text-secondary-foreground">
-                              {item.quantity} x KES {formatCurrency(item.unitPrice)}
+                              {item.quantity} x KES{" "}
+                              {formatCurrency(item.unitPrice)}
                             </p>
                           </div>
                           <Button
@@ -1066,8 +1191,8 @@ const OrdersPage = () => {
             <AlertDialogDescription>
               This will permanently delete{" "}
               <span className="font-semibold">{fs.deleteTarget?.id}</span> for{" "}
-              <span className="font-semibold">{fs.deleteTarget?.customer}</span>.
-              Paid orders cannot be deleted.
+              <span className="font-semibold">{fs.deleteTarget?.customer}</span>
+              . Paid orders cannot be deleted.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
