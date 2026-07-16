@@ -569,7 +569,7 @@ const buildDashboardResponse = async (): Promise<DashboardResponse> => {
     }
   }
 
-  const topSellingProducts = [...salesMap.values()]
+  const topSellingProducts = Array.from(salesMap.values())
     .sort((a, b) => b.unitsSold - a.unitsSold)
     .slice(0, 5);
 
@@ -614,7 +614,7 @@ const buildInventoryResponse = async (): Promise<InventoryResponse> => {
       sku: `#PRD-${String(product.id).padStart(4, "0")}`,
       name: product.name,
       category: product.category || productCategory(product.name),
-      unit: product.unit,
+      unit: product.unit ?? "pcs",
       stock: product.stock,
       stockStatus: stockStatus(product.stock),
       lowStockThreshold: product.lowStockThreshold,
