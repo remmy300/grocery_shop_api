@@ -21,10 +21,11 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { apiRequest, formatCurrency } from "@/lib/api";
+import { apiRequest } from "@/lib/api";
+import { formatCurrency } from "@/utils/formatters";
 import { relativeTime } from "@/lib/relativeTime";
 import { CsvExportButton } from "@/components/CsvExportButton";
-import { DashboardResponse } from "@/types";
+import { DashboardMetrics, DashboardOverviewResponse } from "@/types";
 
 const RevenueChartCard = dynamic(
   () => import("@/components/admin/DashboardRevenueChart"),
@@ -33,6 +34,34 @@ const RevenueChartCard = dynamic(
     loading: () => <RevenueChartCardSkeleton />,
   },
 );
+
+type DashboardApiResponse = DashboardMetrics | DashboardOverviewResponse;
+
+const normalizeDashboardResponse = (
+  response: DashboardApiResponse,
+): DashboardMetrics => {
+  if ("metrics" in response) {
+    const {
+      metrics,
+      recentActivity,
+      revenueData,
+      lowStockProducts,
+      outOfStockProducts,
+      topSellingProducts,
+    } = response;
+
+    return {
+      ...metrics,
+      recentActivity,
+      revenueData,
+      lowStockProducts,
+      outOfStockProducts,
+      topSellingProducts,
+    };
+  }
+
+  return response;
+};
 
 function RevenueChartCardSkeleton() {
   return (
@@ -52,7 +81,7 @@ function RevenueChartCardSkeleton() {
 }
 
 const DashboardPage = () => {
-  const [data, setData] = useState<DashboardResponse | null>(null);
+  const [data, setData] = useState<DashboardMetrics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [insightsOpen, setInsightsOpen] = useState(false);
@@ -64,11 +93,11 @@ const DashboardPage = () => {
     const loadDashboard = async () => {
       try {
         setLoading(true);
-        const response = await apiRequest<DashboardResponse>(
+        const response = await apiRequest<DashboardApiResponse>(
           "/api/admin/dashboard",
         );
         if (!active) return;
-        setData(response);
+        setData(normalizeDashboardResponse(response));
         setError(null);
       } catch (requestError) {
         if (!active) return;
@@ -96,19 +125,24 @@ const DashboardPage = () => {
       return [];
     }
 
-    const { metrics, revenueData } = data;
+    const {
+      revenueData,
+      totalOrders,
+      totalRevenue,
+      totalProducts,
+      lowStockItems,
+      activeCustomers,
+    } = data;
     const bestRevenueMonth = revenueData.reduce(
       (best, current) => (current.revenue > best.revenue ? current : best),
       revenueData[0] ?? { month: "N/A", revenue: 0 },
     ) ?? { month: "N/A", revenue: 0 };
-    const averageOrderValue = metrics.totalOrders
-      ? metrics.totalRevenue / metrics.totalOrders
+    const averageOrderValue = totalOrders ? totalRevenue / totalOrders : 0;
+    const lowStockRatio = totalProducts
+      ? Math.round((lowStockItems / totalProducts) * 100)
       : 0;
-    const lowStockRatio = metrics.totalProducts
-      ? Math.round((metrics.lowStockItems / metrics.totalProducts) * 100)
-      : 0;
-    const customerLoad = metrics.totalOrders
-      ? Math.round((metrics.activeCustomers / metrics.totalOrders) * 100)
+    const customerLoad = totalOrders
+      ? Math.round((activeCustomers / totalOrders) * 100)
       : 0;
 
     return [
@@ -159,7 +193,13 @@ const DashboardPage = () => {
     );
   }
 
-  const { metrics, recentActivity, revenueData, lowStockProducts, outOfStockProducts, topSellingProducts } = data;
+  const {
+    recentActivity,
+    revenueData,
+    lowStockProducts,
+    outOfStockProducts,
+    topSellingProducts,
+  } = data;
 
   return (
     <div className="space-y-8">
@@ -208,7 +248,7 @@ const DashboardPage = () => {
               Total Revenue
             </h3>
             <p className="text-3xl font-heading font-black text-foreground">
-              KES {formatCurrency(metrics.totalRevenue)}
+              KES {formatCurrency(data.totalRevenue)}
             </p>
           </CardContent>
         </Card>
@@ -219,14 +259,14 @@ const DashboardPage = () => {
                 <ShoppingCart className="h-5 w-5" aria-hidden="true" />
               </div>
               <Badge className="bg-green-500/10 px-2 py-1 text-xs font-bold text-green-600">
-                {metrics.ordersToday} today
+                {data.ordersToday} today
               </Badge>
             </div>
             <h3 className="mb-1 text-xs uppercase tracking-widest text-secondary-foreground">
               Total Orders
             </h3>
             <p className="text-3xl font-heading font-black text-foreground">
-              {metrics.totalOrders}
+              {data.totalOrders}
             </p>
           </CardContent>
         </Card>
@@ -237,14 +277,14 @@ const DashboardPage = () => {
                 <Package className="h-5 w-5" aria-hidden="true" />
               </div>
               <Badge className="bg-blue-500/10 px-2 py-1 text-xs font-bold text-blue-600">
-                {metrics.lowStockItems} low stock
+                {data.lowStockItems} low stock
               </Badge>
             </div>
             <h3 className="mb-1 text-xs uppercase tracking-widest text-secondary-foreground">
               Total Products
             </h3>
             <p className="text-3xl font-heading font-black text-foreground">
-              {metrics.totalProducts}
+              {data.totalProducts}
             </p>
           </CardContent>
         </Card>
@@ -261,7 +301,8 @@ const DashboardPage = () => {
                 <div className="flex items-center gap-2 mb-3">
                   <AlertTriangle className="h-4 w-4 text-red-600" />
                   <h3 className="font-semibold text-red-800">
-                    {outOfStockProducts.length} product{outOfStockProducts.length !== 1 ? "s" : ""} out of stock
+                    {outOfStockProducts.length} product
+                    {outOfStockProducts.length !== 1 ? "s" : ""} out of stock
                   </h3>
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -284,7 +325,8 @@ const DashboardPage = () => {
                 <div className="flex items-center gap-2 mb-3">
                   <AlertTriangle className="h-4 w-4 text-amber-600" />
                   <h3 className="font-semibold text-amber-800">
-                    {lowStockProducts.length} product{lowStockProducts.length !== 1 ? "s" : ""} running low
+                    {lowStockProducts.length} product
+                    {lowStockProducts.length !== 1 ? "s" : ""} running low
                   </h3>
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -294,7 +336,9 @@ const DashboardPage = () => {
                       className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-800"
                     >
                       {p.name}
-                      <span className="font-bold">{p.stock} {p.unit} left</span>
+                      <span className="font-bold">
+                        {p.stock} {p.unit} left
+                      </span>
                     </span>
                   ))}
                 </div>
@@ -311,8 +355,12 @@ const DashboardPage = () => {
             <div className="flex items-center gap-2 mb-5">
               <TrendingUp className="h-5 w-5 text-green-600" />
               <div>
-                <h3 className="text-lg font-heading font-bold text-foreground">Best-Selling Products</h3>
-                <p className="text-secondary-foreground text-sm">Ranked by units sold across all orders</p>
+                <h3 className="text-lg font-heading font-bold text-foreground">
+                  Best-Selling Products
+                </h3>
+                <p className="text-secondary-foreground text-sm">
+                  Ranked by units sold across all orders
+                </p>
               </div>
             </div>
             <div className="space-y-4">
@@ -326,13 +374,17 @@ const DashboardPage = () => {
                         <span className="text-xs font-bold text-muted-foreground w-5 shrink-0">
                           #{idx + 1}
                         </span>
-                        <span className="font-medium truncate">{product.name}</span>
+                        <span className="font-medium truncate">
+                          {product.name}
+                        </span>
                         <span className="text-xs text-muted-foreground hidden sm:block shrink-0">
                           {product.category}
                         </span>
                       </div>
                       <div className="text-right shrink-0 ml-2">
-                        <span className="font-semibold">{product.unitsSold} sold</span>
+                        <span className="font-semibold">
+                          {product.unitsSold} sold
+                        </span>
                         <span className="text-xs text-muted-foreground ml-2">
                           KES {product.revenue.toLocaleString()}
                         </span>

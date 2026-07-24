@@ -1,20 +1,55 @@
 import { AxiosRequestConfig } from "axios";
 
+export interface Entity {
+  id: number | string;
+  name: string;
+}
+
+export interface BusinessMetrics {
+  totalRevenue: number;
+  totalOrders: number;
+  totalProducts: number;
+}
+
+export interface ProductStockSummary {
+  id: number;
+  name: string;
+  stock: number;
+  category: string;
+  unit?: string;
+}
+
+export interface BackendUser {
+  id: number;
+  email: string;
+  role: string;
+}
+
+export type BackendAdmin = BackendUser;
+
 export type ApiRequestOptions = Omit<AxiosRequestConfig, "url" | "data"> & {
   json?: unknown;
 };
 
-export type BackendProduct = {
+export interface Product {
   id: number;
   name: string;
-  category?: string | null;
-  price: number | string;
+  category: string;
+  price: number;
   stock: number;
-  unit?: string | null;
+  unit: string;
   imageUrl?: string | null;
-  deletedAt?: string | null;
   lowStockThreshold: number;
+}
+
+export type BackendProduct = Omit<Product, "price"> & {
+  price: number | string;
 };
+
+export interface InventoryProduct extends Product {
+  sku: string;
+  stockStatus: string;
+}
 
 export type BackendOrderItem = {
   id: number;
@@ -35,28 +70,14 @@ export type BackendOrder = {
   createdAt: string;
 };
 
-export type BackendUser = {
-  id: number | string;
-  email: string;
-  role: string;
-};
+export interface DashboardSummaryMetrics extends BusinessMetrics {
+  lowStockItems: number;
+  activeAdmins: number;
+  activeCustomers: number;
+  ordersToday: number;
+}
 
-export type BackendAdmin = {
-  id: number;
-  email: string;
-  role: string;
-};
-
-export type DashboardResponse = {
-  metrics: {
-    totalRevenue: number;
-    totalOrders: number;
-    totalProducts: number;
-    lowStockItems: number;
-    activeAdmins: number;
-    activeCustomers: number;
-    ordersToday: number;
-  };
+export interface DashboardMetrics extends DashboardSummaryMetrics {
   recentActivity: Array<{
     id: number;
     user: string;
@@ -66,25 +87,21 @@ export type DashboardResponse = {
     initials: string;
   }>;
   revenueData: Array<{ month: string; revenue: number }>;
-  lowStockProducts: Array<{
-    id: number;
-    name: string;
-    stock: number;
-    unit: string;
-    category: string;
-  }>;
-  outOfStockProducts: Array<{
-    id: number;
-    name: string;
-    stock: number;
-    category: string;
-  }>;
+  lowStockProducts: ProductStockSummary[];
+  outOfStockProducts: ProductStockSummary[];
   topSellingProducts: Array<{
     name: string;
     category: string;
     unitsSold: number;
     revenue: number;
   }>;
+}
+
+export type DashboardOverviewResponse = Omit<
+  DashboardMetrics,
+  keyof DashboardSummaryMetrics
+> & {
+  metrics: DashboardSummaryMetrics;
 };
 
 export type InventoryResponse = {
@@ -93,18 +110,7 @@ export type InventoryResponse = {
     lowStockItems: number;
     inventoryValue: number;
   };
-  products: Array<{
-    id: number;
-    sku: string;
-    name: string;
-    category: string;
-    unit: string;
-    stock: number;
-    lowStockThreshold: number;
-    stockStatus: string;
-    price: number;
-    imageUrl?: string | null;
-  }>;
+  products: InventoryProduct[];
 };
 
 export type OrdersResponse = {
@@ -145,13 +151,11 @@ export type UsersResponse = {
   }>;
 };
 
-export type AnalyticsResponse = {
-  summary: {
-    totalRevenue: number;
-    totalOrders: number;
-    totalProducts: number;
-    repeatCustomerRate: number;
-  };
+export interface AnalyticsSummaryMetrics extends BusinessMetrics {
+  repeatCustomerRate: number;
+}
+
+export interface AnalyticsResponse extends AnalyticsSummaryMetrics {
   retentionData: Array<{
     month: string;
     new: number;
@@ -167,6 +171,13 @@ export type AnalyticsResponse = {
     revenue: number;
     percentage: number;
   }>;
+}
+
+export type AnalyticsOverviewResponse = Omit<
+  AnalyticsResponse,
+  keyof AnalyticsSummaryMetrics
+> & {
+  summary: AnalyticsSummaryMetrics;
 };
 
 export type CloudinarySignatureResponse = {

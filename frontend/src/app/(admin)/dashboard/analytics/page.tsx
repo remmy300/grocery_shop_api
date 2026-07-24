@@ -12,9 +12,10 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { apiRequest, formatCurrency } from "@/lib/api";
+import { apiRequest } from "@/lib/api";
+import { formatCurrency } from "@/utils/formatters";
 import { CsvExportButton } from "@/components/CsvExportButton";
-import { AnalyticsResponse } from "@/types";
+import { AnalyticsOverviewResponse, AnalyticsResponse } from "@/types";
 
 const AnalyticsCharts = dynamic(
   () => import("@/components/admin/AnalyticsCharts"),
@@ -23,6 +24,25 @@ const AnalyticsCharts = dynamic(
     loading: () => <AnalyticsChartsSkeleton />,
   },
 );
+
+type AnalyticsApiResponse = AnalyticsResponse | AnalyticsOverviewResponse;
+
+const normalizeAnalyticsResponse = (
+  response: AnalyticsApiResponse,
+): AnalyticsResponse => {
+  if ("summary" in response) {
+    const { summary, retentionData, categoryData, topProducts } = response;
+
+    return {
+      ...summary,
+      retentionData,
+      categoryData,
+      topProducts,
+    };
+  }
+
+  return response;
+};
 
 function AnalyticsChartsSkeleton() {
   return (
@@ -65,11 +85,11 @@ const AnalyticsPage = () => {
     const loadAnalytics = async () => {
       try {
         setLoading(true);
-        const response = await apiRequest<AnalyticsResponse>(
+        const response = await apiRequest<AnalyticsApiResponse>(
           "/api/admin/analytics",
         );
         if (!active) return;
-        setData(response);
+        setData(normalizeAnalyticsResponse(response));
         setError(null);
       } catch (requestError) {
         if (!active) return;
@@ -101,7 +121,11 @@ const AnalyticsPage = () => {
   }, [data, range]);
 
   const rangeLabel =
-    range === 6 ? "Last 6 Months" : range === 3 ? "Last 3 Months" : "Last Month";
+    range === 6
+      ? "Last 6 Months"
+      : range === 3
+        ? "Last 3 Months"
+        : "Last Month";
 
   const cycleRange = () => {
     setRange((current) => (current === 6 ? 3 : current === 3 ? 1 : 6));
@@ -121,9 +145,9 @@ const AnalyticsPage = () => {
   const retryLoad = () => {
     setError(null);
     setLoading(true);
-    apiRequest<AnalyticsResponse>("/api/admin/analytics")
+    apiRequest<AnalyticsApiResponse>("/api/admin/analytics")
       .then((response) => {
-        setData(response);
+        setData(normalizeAnalyticsResponse(response));
         setError(null);
       })
       .catch((requestError) => {
@@ -196,7 +220,7 @@ const AnalyticsPage = () => {
               Total Revenue
             </h3>
             <p className="text-3xl font-heading font-black text-foreground">
-              KES {formatCurrency(data.summary.totalRevenue)}
+              KES {formatCurrency(data.totalRevenue)}
             </p>
           </CardContent>
         </Card>
@@ -211,7 +235,7 @@ const AnalyticsPage = () => {
               Total Orders
             </h3>
             <p className="text-3xl font-heading font-black text-foreground">
-              {data.summary.totalOrders}
+              {data.totalOrders}
             </p>
           </CardContent>
         </Card>
@@ -226,7 +250,7 @@ const AnalyticsPage = () => {
               Total Products
             </h3>
             <p className="text-3xl font-heading font-black text-foreground">
-              {data.summary.totalProducts}
+              {data.totalProducts}
             </p>
           </CardContent>
         </Card>
@@ -241,7 +265,7 @@ const AnalyticsPage = () => {
               Repeat Customer Rate
             </h3>
             <p className="text-3xl font-heading font-black text-foreground">
-              {data.summary.repeatCustomerRate}%
+              {data.repeatCustomerRate}%
             </p>
           </CardContent>
         </Card>

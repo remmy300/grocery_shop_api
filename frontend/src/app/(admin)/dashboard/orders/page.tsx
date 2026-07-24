@@ -41,7 +41,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { OrdersResponse } from "@/types";
-import { apiRequest, formatCurrency } from "@/lib/api";
+import { apiRequest } from "@/lib/api";
+import { formatCurrency } from "@/utils/formatters";
 import { CsvExportButton } from "@/components/CsvExportButton";
 
 // ─── Types ────────────────────────────────────────────────────────────────────

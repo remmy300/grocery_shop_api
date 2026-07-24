@@ -8,9 +8,13 @@ import {
   useReducer,
   type ReactNode,
 } from "react";
-import { apiRequest, clearStoredSession, hasStoredAccessToken, saveSessionTokens } from "@/lib/api";
+import { apiRequest } from "@/lib/api";
 import { ProfileResponse, SettingsResponse } from "@/types";
-
+import {
+  hasStoredAccessToken,
+  saveSessionTokens,
+} from "@/services/auth.services";
+import { clearStoredSession } from "@/services/storage.services";
 interface AppState {
   profile: ProfileResponse | null;
   settings: SettingsResponse | null;
@@ -66,45 +70,50 @@ const AppContext = createContext<AppContextValue | null>(null);
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(appReducer, initialState);
 
-  const hydrateSession = useCallback(async (): Promise<ProfileResponse | null> => {
-    if (!hasStoredAccessToken()) {
-      dispatch({ type: "RESET" });
-      return null;
-    }
-
-    dispatch({ type: "SET_LOADING", payload: true });
-
-    try {
-      const [profileResult, settingsResult] = await Promise.allSettled([
-        apiRequest<ProfileResponse>("/api/admin/profile"),
-        apiRequest<SettingsResponse>("/api/admin/settings"),
-      ]);
-
-      if (profileResult.status !== "fulfilled") {
-        clearStoredSession();
+  const hydrateSession =
+    useCallback(async (): Promise<ProfileResponse | null> => {
+      if (!hasStoredAccessToken()) {
         dispatch({ type: "RESET" });
         return null;
       }
 
-      dispatch({ type: "SET_PROFILE", payload: profileResult.value });
-      dispatch({ type: "SET_AUTHENTICATED", payload: true });
-      dispatch({
-        type: "SET_SETTINGS",
-        payload: settingsResult.status === "fulfilled" ? settingsResult.value : null,
-      });
+      dispatch({ type: "SET_LOADING", payload: true });
 
-      return profileResult.value;
-    } catch {
-      clearStoredSession();
-      dispatch({ type: "RESET" });
-      return null;
-    } finally {
-      dispatch({ type: "SET_LOADING", payload: false });
-    }
-  }, []);
+      try {
+        const [profileResult, settingsResult] = await Promise.allSettled([
+          apiRequest<ProfileResponse>("/api/admin/profile"),
+          apiRequest<SettingsResponse>("/api/admin/settings"),
+        ]);
+
+        if (profileResult.status !== "fulfilled") {
+          clearStoredSession();
+          dispatch({ type: "RESET" });
+          return null;
+        }
+
+        dispatch({ type: "SET_PROFILE", payload: profileResult.value });
+        dispatch({ type: "SET_AUTHENTICATED", payload: true });
+        dispatch({
+          type: "SET_SETTINGS",
+          payload:
+            settingsResult.status === "fulfilled" ? settingsResult.value : null,
+        });
+
+        return profileResult.value;
+      } catch {
+        clearStoredSession();
+        dispatch({ type: "RESET" });
+        return null;
+      } finally {
+        dispatch({ type: "SET_LOADING", payload: false });
+      }
+    }, []);
 
   const applySessionTokens = useCallback(
-    async (tokens: { accessToken: string; refreshToken?: string }): Promise<ProfileResponse | null> => {
+    async (tokens: {
+      accessToken: string;
+      refreshToken?: string;
+    }): Promise<ProfileResponse | null> => {
       saveSessionTokens(tokens);
       return await hydrateSession();
     },

@@ -26,7 +26,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { apiRequest, formatCurrency } from "@/lib/api";
+import { apiRequest } from "@/lib/api";
+import { formatCurrency } from "@/utils/formatters";
 import { InventoryResponse, ProductFormState } from "@/types";
 
 const PRODUCT_CATEGORIES = [

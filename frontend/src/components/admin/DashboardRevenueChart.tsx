@@ -12,10 +12,9 @@ import {
 import { Download } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { CsvExportButton } from "@/components/CsvExportButton";
-import type { DashboardResponse } from "@/types";
-
+import { DashboardMetrics } from "@/types";
 type DashboardRevenueChartProps = {
-  revenueData: DashboardResponse["revenueData"];
+  revenueData: DashboardMetrics["revenueData"];
 };
 
 const DashboardRevenueChart = ({ revenueData }: DashboardRevenueChartProps) => {

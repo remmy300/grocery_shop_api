@@ -16,7 +16,7 @@ import {
 } from "recharts";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { formatCurrency } from "@/lib/api";
+import { formatCurrency } from "@/utils/formatters";
 import type { AnalyticsResponse } from "@/types";
 
 type AnalyticsChartsProps = {
