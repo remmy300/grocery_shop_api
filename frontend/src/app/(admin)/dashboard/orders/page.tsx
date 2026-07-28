@@ -44,6 +44,7 @@ import { OrdersResponse } from "@/types";
 import { apiRequest } from "@/lib/api";
 import { formatCurrency } from "@/utils/formatters";
 import { CsvExportButton } from "@/components/CsvExportButton";
+import { ManualOrderItem } from "@/types";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -64,13 +65,6 @@ type BackendProduct = {
   name: string;
   price: number | string;
   stock: number;
-};
-
-type ManualOrderItem = {
-  productId: number;
-  name: string;
-  quantity: number;
-  unitPrice: number;
 };
 
 type StatusFilter = "all" | "pending" | "out_for_delivery" | "delivered";
@@ -603,7 +597,7 @@ const OrdersPage = () => {
   // ── page ──────────────────────────────────────────────────────────
 
   return (
-    <div className="space-y-8">
+    <div className="w-full space-y-8">
       <header className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
         <div>
           <h1 className="text-4xl font-heading font-extrabold tracking-tighter text-foreground">
@@ -646,18 +640,18 @@ const OrdersPage = () => {
         </div>
       </header>
 
-      <section className="grid grid-cols-1 gap-6 md:grid-cols-4">
+      <section className="grid w-full grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
         {statusCounts.map((stat) => (
           <Card
             key={stat.label}
-            className="bg-surface-container-lowest shadow-sm"
+            className="w-full bg-surface-container-lowest shadow-sm"
           >
-            <CardContent className="flex flex-col items-center p-5 text-center">
+            <CardContent className="flex flex-col items-center py-4 text-center">
               <p className="text-xs uppercase tracking-widest text-secondary-foreground">
                 {stat.label}
               </p>
               <p
-                className={`mt-2 text-3xl font-heading font-black ${stat.tone}`}
+                className={`mt-4 text-3xl font-heading font-black ${stat.tone}`}
               >
                 {stat.value}
               </p>

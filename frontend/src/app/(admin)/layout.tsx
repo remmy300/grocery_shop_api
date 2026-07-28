@@ -264,7 +264,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
           onLogout={handleLogout}
         />
 
-        <main className="flex-1 min-w-0 overflow-x-hidden">
+        <main className="flex-1 min-w-0 w-full overflow-x-hidden">
           {/* Top bar — hamburger only on mobile */}
           <div className="sticky top-0 z-10 flex items-center gap-3 border-b border-border bg-background/80 px-6 py-3 backdrop-blur-sm">
             <SidebarTrigger aria-label="Toggle sidebar" className="md:hidden" />
@@ -289,7 +289,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
             </Breadcrumb>
           </div>
 
-          <div className="p-6 md:p-8">{children}</div>
+          <div className="w-full p-6 md:p-8">{children}</div>
         </main>
       </div>
     </SidebarProvider>

@@ -12,7 +12,7 @@ const SettingsPage = () => {
   const { state, updateSettings } = useApp();
   const settings = state.settings;
   const [workspaceName, setWorkspaceName] = useState("");
-  const [defaultCurrency, setDefaultCurrency] = useState("");
+  const [defaultCurrency, setDefaultCurrency] = useState("KES");
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);

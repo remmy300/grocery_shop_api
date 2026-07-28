@@ -202,7 +202,7 @@ const DashboardPage = () => {
   } = data;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 w-full px-5 md:px-7">
       <header className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h1 className="text-4xl font-heading font-extrabold tracking-tighter text-foreground">
@@ -233,9 +233,9 @@ const DashboardPage = () => {
         </div>
       </header>
 
-      <section className="grid grid-cols-1 gap-6 md:grid-cols-3">
-        <Card className="bg-surface-container-lowest shadow-sm">
-          <CardContent className="p-5">
+      <section className="grid w-full grid-cols-1 gap-7 md:grid-cols-4">
+        <Card className="w-full bg-surface-container-lowest shadow-sm">
+          <CardContent className="p-7">
             <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center justify-center rounded-lg bg-primary/10 p-2 text-primary">
                 <DollarSign className="h-5 w-5" aria-hidden="true" />
@@ -252,7 +252,7 @@ const DashboardPage = () => {
             </p>
           </CardContent>
         </Card>
-        <Card className="bg-surface-container-lowest shadow-sm">
+        <Card className="w-full bg-surface-container-lowest shadow-sm">
           <CardContent className="p-5">
             <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center justify-center rounded-lg bg-green-500/10 p-2 text-green-600">
@@ -270,13 +270,13 @@ const DashboardPage = () => {
             </p>
           </CardContent>
         </Card>
-        <Card className="bg-surface-container-lowest shadow-sm">
+        <Card className="w-full bg-surface-container-lowest shadow-sm">
           <CardContent className="p-5">
             <div className="mb-4 flex items-center justify-between">
-              <div className="flex items-center justify-center rounded-lg bg-blue-500/10 p-2 text-blue-600">
+              <div className="flex items-center justify-center rounded-lg bg-green-500/10 p-2 text-green-600">
                 <Package className="h-5 w-5" aria-hidden="true" />
               </div>
-              <Badge className="bg-blue-500/10 px-2 py-1 text-xs font-bold text-blue-600">
+              <Badge className="bg-green-500/10 px-2 py-1 text-xs font-bold text-green-600">
                 {data.lowStockItems} low stock
               </Badge>
             </div>
@@ -285,6 +285,25 @@ const DashboardPage = () => {
             </h3>
             <p className="text-3xl font-heading font-black text-foreground">
               {data.totalProducts}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="w-full bg-surface-container-lowest shadow-sm">
+          <CardContent className="p-5">
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex items-center justify-center rounded-lg bg-green-500/10 p-2 textgreen-600">
+                <TrendingUp className="h-5 w-5" aria-hidden="true" />
+              </div>
+              <Badge className="bg-green-500/10 px-2 py-1 text-xs font-bold text-green-600">
+                {data.topSellingProducts?.length ?? 0} top items
+              </Badge>
+            </div>
+            <h3 className="mb-1 text-xs uppercase tracking-widest text-secondary-foreground">
+              Best Sellers
+            </h3>
+            <p className="text-3xl font-heading font-black text-foreground">
+              {data.topSellingProducts?.length ?? 0}
             </p>
           </CardContent>
         </Card>

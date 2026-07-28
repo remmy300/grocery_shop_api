@@ -134,6 +134,13 @@ export type OrdersResponse = {
   }>;
 };
 
+export type ManualOrderItem = {
+  productId: number;
+  name: string;
+  quantity: number;
+  unitPrice: number;
+};
+
 export type UsersResponse = {
   stats: {
     totalUsers: number;

@@ -38,10 +38,6 @@ const PRODUCT_CATEGORIES = [
   "Dairy & Eggs",
   "Meat & Poultry",
   "Bakery & Bread",
-  "Pantry & Dry Goods",
-  "Beverages",
-  "Snacks & Confectionery",
-  "Household & Cleaning",
 ];
 
 type UploadResult = {
