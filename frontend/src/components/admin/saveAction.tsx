@@ -4,9 +4,17 @@ interface SaveActionsProps {
   isDirty: boolean;
   isSubmitting: boolean;
   onReset: () => void;
+  saveLabel?: string;
+  savingLabel?: string;
 }
 
-const SaveActions = ({ isDirty, isSubmitting, onReset }: SaveActionsProps) => {
+const SaveActions = ({
+  isDirty,
+  isSubmitting,
+  onReset,
+  saveLabel = "Save Changes",
+  savingLabel = "Saving...",
+}: SaveActionsProps) => {
   return (
     <div className="flex justify-end gap-3 border-t pt-6">
       <Button
@@ -19,7 +27,7 @@ const SaveActions = ({ isDirty, isSubmitting, onReset }: SaveActionsProps) => {
       </Button>
 
       <Button type="submit" disabled={!isDirty || isSubmitting}>
-        {isSubmitting ? "Saving..." : "Save Changes"}
+        {isSubmitting ? savingLabel : saveLabel}
       </Button>
     </div>
   );
