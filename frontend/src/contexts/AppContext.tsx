@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { apiRequest } from "@/lib/api";
-import { ProfileResponse, SettingsResponse } from "@/types";
+import { ProfileResponse, Settings } from "@/types";
 import {
   hasStoredAccessToken,
   saveSessionTokens,
@@ -17,14 +17,14 @@ import {
 import { clearStoredSession } from "@/services/storage.services";
 interface AppState {
   profile: ProfileResponse | null;
-  settings: SettingsResponse | null;
+  settings: Settings | null;
   isAuthenticated: boolean;
   loading: boolean;
 }
 
 type AppAction =
   | { type: "SET_PROFILE"; payload: ProfileResponse | null }
-  | { type: "SET_SETTINGS"; payload: SettingsResponse | null }
+  | { type: "SET_SETTINGS"; payload: Settings | null }
   | { type: "SET_AUTHENTICATED"; payload: boolean }
   | { type: "SET_LOADING"; payload: boolean }
   | { type: "RESET" };
@@ -37,7 +37,7 @@ type AppContextValue = {
     refreshToken?: string;
   }) => Promise<ProfileResponse | null>;
   updateProfile: (profile: ProfileResponse) => void;
-  updateSettings: (settings: SettingsResponse) => void;
+  updateSettings: (settings: Settings) => void;
   logout: () => void;
 };
 
@@ -82,7 +82,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       try {
         const [profileResult, settingsResult] = await Promise.allSettled([
           apiRequest<ProfileResponse>("/api/admin/profile"),
-          apiRequest<SettingsResponse>("/api/admin/settings"),
+          apiRequest<Settings>("/api/admin/settings"),
         ]);
 
         if (profileResult.status !== "fulfilled") {
@@ -125,7 +125,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     dispatch({ type: "SET_AUTHENTICATED", payload: true });
   }, []);
 
-  const updateSettings = useCallback((settings: SettingsResponse) => {
+  const updateSettings = useCallback((settings: Settings) => {
     dispatch({ type: "SET_SETTINGS", payload: settings });
   }, []);
 

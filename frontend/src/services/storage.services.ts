@@ -1,44 +1,68 @@
-import { SettingsResponse, ProfileResponse } from "@/types";
+import { Settings, ProfileResponse } from "@/types";
 import { getApiBaseUrl } from "@/lib/api";
 
 const SETTINGS_STORAGE_KEY = "corner-store-admin-settings";
 const PROFILE_STORAGE_KEY = "corner-store-profile";
 
-export const getStoredSettings = (): SettingsResponse => {
-  if (typeof window === "undefined") {
-    return {
-      workspaceName: "Corner Store",
-      defaultCurrency: "KES",
-      notificationsEnabled: true,
-      updatedAt: new Date().toISOString(),
-    };
-  }
+const DEFAULT_SETTINGS: Settings = {
+  workspaceName: "Corner Store",
+  defaultCurrency: "KES",
+  language: "en",
+  timezone: "Africa/Nairobi",
+  notificationsEnabled: true,
+  lowStockThreshold: 10,
+  orderAutoCancelHours: 24,
+  deliveryFee: 0,
+  supportEmail: "",
+  supportPhone: "",
+  taxRate: 16,
+  updatedAt: new Date().toISOString(),
+};
 
-  const fallback: SettingsResponse = {
-    workspaceName: "Corner Store",
-    defaultCurrency: "KES",
-    notificationsEnabled: true,
-    updatedAt: new Date().toISOString(),
-  };
+export const getStoredSettings = (): Settings => {
+  if (typeof window === "undefined") {
+    return DEFAULT_SETTINGS;
+  }
 
   const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
   if (!raw) {
-    return fallback;
+    return DEFAULT_SETTINGS;
   }
 
   try {
-    const parsed = JSON.parse(raw) as Partial<SettingsResponse>;
+    const parsed = JSON.parse(raw) as Partial<Settings>;
     return {
-      workspaceName: parsed.workspaceName || fallback.workspaceName,
-      defaultCurrency: parsed.defaultCurrency || fallback.defaultCurrency,
+      workspaceName: parsed.workspaceName || DEFAULT_SETTINGS.workspaceName,
+      defaultCurrency:
+        parsed.defaultCurrency || DEFAULT_SETTINGS.defaultCurrency,
+      language: parsed.language || DEFAULT_SETTINGS.language,
+      timezone: parsed.timezone || DEFAULT_SETTINGS.timezone,
       notificationsEnabled:
         typeof parsed.notificationsEnabled === "boolean"
           ? parsed.notificationsEnabled
-          : fallback.notificationsEnabled,
-      updatedAt: parsed.updatedAt || fallback.updatedAt,
+          : DEFAULT_SETTINGS.notificationsEnabled,
+      lowStockThreshold:
+        typeof parsed.lowStockThreshold === "number"
+          ? parsed.lowStockThreshold
+          : DEFAULT_SETTINGS.lowStockThreshold,
+      orderAutoCancelHours:
+        typeof parsed.orderAutoCancelHours === "number"
+          ? parsed.orderAutoCancelHours
+          : DEFAULT_SETTINGS.orderAutoCancelHours,
+      deliveryFee:
+        typeof parsed.deliveryFee === "number"
+          ? parsed.deliveryFee
+          : DEFAULT_SETTINGS.deliveryFee,
+      supportEmail: parsed.supportEmail ?? DEFAULT_SETTINGS.supportEmail,
+      supportPhone: parsed.supportPhone ?? DEFAULT_SETTINGS.supportPhone,
+      taxRate:
+        typeof parsed.taxRate === "number"
+          ? parsed.taxRate
+          : DEFAULT_SETTINGS.taxRate,
+      updatedAt: parsed.updatedAt || DEFAULT_SETTINGS.updatedAt,
     };
   } catch {
-    return fallback;
+    return DEFAULT_SETTINGS;
   }
 };
 

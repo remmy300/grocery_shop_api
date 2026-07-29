@@ -1,4 +1,4 @@
-import { ProfileResponse, SettingsResponse } from "@/types";
+import { ProfileResponse, Settings } from "@/types";
 import { displayNameFromEmail, initialsFrom } from "@/utils/formatters";
 import { getStoredProfile, getStoredSettings } from "./storage.services";
 
@@ -37,12 +37,12 @@ export const mergeProfile = (
 
 export const getSyntheticProfile = () => mergeProfile(getStoredProfile());
 
-export const saveSettings = (settings: Partial<SettingsResponse>) => {
+export const saveSettings = (settings: Partial<Settings>) => {
   if (typeof window === "undefined") {
     return getStoredSettings();
   }
 
-  const nextSettings: SettingsResponse = {
+  const nextSettings: Settings = {
     ...getStoredSettings(),
     ...settings,
     updatedAt: new Date().toISOString(),

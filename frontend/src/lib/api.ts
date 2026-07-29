@@ -14,7 +14,7 @@ import { initialsFrom, displayNameFromEmail } from "@/utils/formatters";
 import { getAuthToken } from "@/services/auth.services";
 import {
   ApiRequestOptions,
-  SettingsResponse,
+  Settings,
   ProfileResponse,
   ApiError,
 } from "@/types";
@@ -183,7 +183,7 @@ const getSyntheticAdminResponse = async (
   if (path === "/api/admin/settings") {
     if ((options.method || "GET").toUpperCase() === "PUT") {
       const nextSettings = saveSettings(
-        (options.json as Partial<SettingsResponse>) || {},
+        (options.json as Partial<Settings>) || {},
       );
       return nextSettings;
     }

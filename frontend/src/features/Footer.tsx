@@ -11,11 +11,17 @@ const FOOTER_LINKS = [
     heading: "Shop",
     links: [
       { label: "All Products", href: "/products" },
-      { label: "Fruits & Vegetables", href: "/products?category=Fruits+%26+Vegetables" },
+      {
+        label: "Fruits & Vegetables",
+        href: "/products?category=Fruits+%26+Vegetables",
+      },
       { label: "Dairy & Eggs", href: "/products?category=Dairy+%26+Eggs" },
       { label: "Meat & Poultry", href: "/products?category=Meat+%26+Poultry" },
       { label: "Beverages", href: "/products?category=Beverages" },
-      { label: "Pantry & Dry Goods", href: "/products?category=Pantry+%26+Dry+Goods" },
+      {
+        label: "Pantry & Dry Goods",
+        href: "/products?category=Pantry+%26+Dry+Goods",
+      },
     ],
   },
   {
@@ -53,7 +59,15 @@ const SOCIAL = [
     label: "Instagram",
     href: "#",
     svg: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="h-4 w-4"
+      >
         <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
         <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
         <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
@@ -74,20 +88,21 @@ const SOCIAL = [
 export default function Footer() {
   return (
     <footer className="mt-12 bg-stone-900 text-stone-300">
-
       {/* Main grid */}
       <div className="mx-auto max-w-7xl px-6 py-16 md:px-8">
         <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-5">
-
           {/* Brand + contact — takes 2 columns */}
           <div className="space-y-6 lg:col-span-2">
-            <Link href="/" className="flex items-center gap-2 text-2xl font-extrabold text-white">
+            <Link
+              href="/"
+              className="flex items-center gap-2 text-2xl font-extrabold text-white"
+            >
               <Leaf className="h-6 w-6 text-primary" />
               Corner Shop
             </Link>
             <p className="max-w-xs text-sm leading-relaxed text-stone-400">
               Your neighbourhood grocery store online. Fresh produce, quality
-              products, and fast delivery — straight to your door.
+              products, and fast delivery straight to your door.
             </p>
 
             {/* Contact info */}
@@ -98,13 +113,19 @@ export default function Footer() {
               </li>
               <li className="flex items-center gap-2">
                 <Phone className="h-4 w-4 shrink-0 text-primary" />
-                <a href="tel:+254700000000" className="hover:text-white transition-colors">
+                <a
+                  href="tel:+254700000000"
+                  className="hover:text-white transition-colors"
+                >
                   +254 700 000 000
                 </a>
               </li>
               <li className="flex items-center gap-2">
                 <Mail className="h-4 w-4 shrink-0 text-primary" />
-                <a href="mailto:support@cornershop.co.ke" className="hover:text-white transition-colors">
+                <a
+                  href="mailto:support@cornershop.co.ke"
+                  className="hover:text-white transition-colors"
+                >
                   support@cornershop.co.ke
                 </a>
               </li>
@@ -155,7 +176,11 @@ export default function Footer() {
               Weekly offers, new arrivals and seasonal picks.
             </p>
           </div>
-          <NewsletterForm variant="dark" placeholder="Email address" buttonLabel="Subscribe" />
+          <NewsletterForm
+            variant="dark"
+            placeholder="Email address"
+            buttonLabel="Subscribe"
+          />
         </div>
       </div>
 
@@ -164,13 +189,27 @@ export default function Footer() {
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 text-xs text-stone-500 sm:flex-row">
           <span>© {currentYear} Corner Shop. All rights reserved.</span>
           <div className="flex gap-4">
-            <Link href="/privacy" className="hover:text-stone-300 transition-colors">Privacy Policy</Link>
-            <Link href="/terms" className="hover:text-stone-300 transition-colors">Terms of Service</Link>
-            <Link href="/cookies" className="hover:text-stone-300 transition-colors">Cookie Policy</Link>
+            <Link
+              href="/privacy"
+              className="hover:text-stone-300 transition-colors"
+            >
+              Privacy Policy
+            </Link>
+            <Link
+              href="/terms"
+              className="hover:text-stone-300 transition-colors"
+            >
+              Terms of Service
+            </Link>
+            <Link
+              href="/cookies"
+              className="hover:text-stone-300 transition-colors"
+            >
+              Cookie Policy
+            </Link>
           </div>
         </div>
       </div>
-
     </footer>
   );
 }

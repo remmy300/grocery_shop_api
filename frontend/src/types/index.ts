@@ -193,12 +193,20 @@ export type CloudinarySignatureResponse = {
   signature?: string;
 };
 
-export type SettingsResponse = {
+export interface Settings {
   workspaceName: string;
   defaultCurrency: string;
+  language: "en" | "sw";
+  timezone: string;
   notificationsEnabled: boolean;
+  lowStockThreshold: number;
+  orderAutoCancelHours: number;
+  deliveryFee: number;
+  supportEmail: string;
+  supportPhone: string;
+  taxRate: number;
   updatedAt: string;
-};
+}
 
 export type ProfileResponse = {
   id: number;
