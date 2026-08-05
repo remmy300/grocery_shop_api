@@ -1,5 +1,6 @@
 import prisma from "../lib/prisma.js";
 import { Request, Response } from "express";
+import { Prisma } from "@prisma/client";
 
 export const createOrder = async (req: Request, res: Response) => {
   try {
@@ -13,6 +14,7 @@ export const createOrder = async (req: Request, res: Response) => {
       items,
       latitude,
       longitude,
+      paymentMethod,
     } = req.body;
 
     const normalizedCustomer =
@@ -73,7 +75,10 @@ export const createOrder = async (req: Request, res: Response) => {
 
     // Stock validation — reject before payment if any item is unavailable
     const stockById = new Map<number, { stock: number; name: string }>(
-      existingProducts.map((p: any) => [p.id, { stock: p.stock as number, name: p.name as string }]),
+      existingProducts.map((p: any) => [
+        p.id,
+        { stock: p.stock as number, name: p.name as string },
+      ]),
     );
     const stockErrors: string[] = [];
     for (const item of parsedItems) {
@@ -113,6 +118,8 @@ export const createOrder = async (req: Request, res: Response) => {
     const parsedLatitude = Number(latitude);
     const parsedLongitude = Number(longitude);
 
+    const normalizedPaymentMethod = paymentMethod === "cod" ? "cod" : "mpesa";
+
     const orderData: any = {
       phone: normalizedPhone,
       customer: normalizedCustomer,
@@ -124,6 +131,8 @@ export const createOrder = async (req: Request, res: Response) => {
       items: {
         create: itemsToCreate,
       },
+      paymentMethod: normalizedPaymentMethod,
+      paymentStatus: "pending",
     };
 
     if (Number.isFinite(parsedLatitude)) orderData.latitude = parsedLatitude;
@@ -135,13 +144,34 @@ export const createOrder = async (req: Request, res: Response) => {
       if (Number.isInteger(uid)) orderData.userId = uid;
     }
 
-    const order = await prisma.order.create({
-      data: orderData,
+    const order = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      const createdOrder = await tx.order.create({ data: orderData });
+
+      for (const item of itemsToCreate) {
+        const updated = await tx.product.updateMany({
+          where: { id: item.productId, stock: { gte: item.quantity } },
+          data: { stock: { decrement: item.quantity } },
+        });
+
+        if (updated.count !== 1) {
+          throw new Error(
+            `Insufficient stock available for product ${item.productId}`,
+          );
+        }
+      }
+
+      return createdOrder;
     });
 
     res.status(201).json(order);
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
+    if (
+      typeof error.message === "string" &&
+      error.message.includes("Insufficient stock available")
+    ) {
+      return res.status(409).json({ message: error.message });
+    }
     res.status(500).json({ message: "Failed to create an order" });
   }
 };
@@ -167,7 +197,9 @@ export const getMyOrders = async (req: Request, res: Response) => {
     const orders = await prisma.order.findMany({
       where: { userId: uid } as any,
       include: {
-        items: { include: { product: { select: { name: true, imageUrl: true } } } },
+        items: {
+          include: { product: { select: { name: true, imageUrl: true } } },
+        },
         payment: { select: { mpesaReceiptNumber: true } },
       },
       orderBy: { createdAt: "desc" },
@@ -264,10 +296,20 @@ export const deleteOrder = async (req: Request, res: Response) => {
       });
     }
 
-    await prisma.$transaction([
-      prisma.orderItem.deleteMany({ where: { orderId: id } }),
-      prisma.order.delete({ where: { id } }),
-    ]);
+    const items = await prisma.orderItem.findMany({ where: { orderId: id } });
+
+    await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      for (const item of items) {
+        await tx.product.updateMany({
+          where: { id: item.productId },
+          data: { stock: { increment: item.quantity } },
+        });
+      }
+
+      await tx.orderItem.deleteMany({ where: { orderId: id } });
+      await tx.order.delete({ where: { id } });
+    });
+
     res.json({ message: "Order deleted" });
   } catch (error) {
     console.error(error);

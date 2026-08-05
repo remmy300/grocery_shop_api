@@ -1,7 +1,11 @@
 import bcrypt from "bcrypt";
 import { Request, Response } from "express";
 import prisma from "../lib/prisma.js";
-import { getAdminSettings, updateAdminSettings } from "../lib/adminSettings.js";
+import {
+  getAdminSettings,
+  updateAdminSettings,
+  type AdminSettings,
+} from "../lib/adminSettings.js";
 
 type ProductType = Awaited<ReturnType<typeof prisma.product.findMany>>[number];
 type UserType = Awaited<ReturnType<typeof prisma.user.findMany>>[number];
@@ -321,6 +325,13 @@ export const getOrdersOverview = async (req: Request, res: Response) => {
         id: `#ARC-${String(order.id).padStart(4, "0")}`,
         orderId: order.id,
         customer: order.customer,
+        phone: order.phone,
+        address: order.address,
+        street: order.street,
+        city: order.city,
+        postalCode: order.postalCode,
+        latitude: order.latitude ?? null,
+        longitude: order.longitude ?? null,
         date: formatOrderDate(new Date(order.createdAt)),
         total: toNumber(order.total),
         orderStatus,
@@ -670,31 +681,100 @@ export const updatePassword = async (req: Request, res: Response) => {
 };
 
 export const getSettings = async (_req: Request, res: Response) => {
-  res.json(getAdminSettings());
+  try {
+    const settings = await getAdminSettings();
+    res.json(settings);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to fetch settings" });
+  }
 };
 
 export const updateSettings = async (req: Request, res: Response) => {
-  const { workspaceName, defaultCurrency, notificationsEnabled } = req.body as {
-    workspaceName?: string;
-    defaultCurrency?: string;
-    notificationsEnabled?: boolean;
-  };
+  try {
+    const {
+      workspaceName,
+      defaultCurrency,
+      notificationsEnabled,
+      timezone,
+      language,
+      lowStockThreshold,
+      orderAutoCancelHours,
+      deliveryFee,
+      supportEmail,
+      supportPhone,
+      taxRate,
+    } = req.body as {
+      workspaceName?: string;
+      defaultCurrency?: string;
+      notificationsEnabled?: boolean;
+      timezone?: string;
+      language?: string;
+      lowStockThreshold?: number;
+      orderAutoCancelHours?: number;
+      deliveryFee?: number;
+      supportEmail?: string;
+      supportPhone?: string;
+      taxRate?: number;
+    };
 
-  const nextSettings: Partial<ReturnType<typeof getAdminSettings>> = {};
+    const nextSettings: Partial<AdminSettings> = {};
 
-  if (workspaceName?.trim()) {
-    nextSettings.workspaceName = workspaceName.trim();
+    if (workspaceName?.trim()) {
+      nextSettings.workspaceName = workspaceName.trim();
+    }
+
+    if (defaultCurrency?.trim()) {
+      nextSettings.defaultCurrency = defaultCurrency.trim().toUpperCase();
+    }
+
+    if (typeof notificationsEnabled === "boolean") {
+      nextSettings.notificationsEnabled = notificationsEnabled;
+    }
+
+    if (timezone?.trim()) {
+      nextSettings.timezone = timezone.trim();
+    }
+
+    if (language === "en" || language === "sw") {
+      nextSettings.language = language;
+    }
+
+    if (
+      typeof lowStockThreshold === "number" &&
+      Number.isFinite(lowStockThreshold)
+    ) {
+      nextSettings.lowStockThreshold = lowStockThreshold;
+    }
+
+    if (
+      typeof orderAutoCancelHours === "number" &&
+      Number.isFinite(orderAutoCancelHours)
+    ) {
+      nextSettings.orderAutoCancelHours = orderAutoCancelHours;
+    }
+
+    if (typeof deliveryFee === "number" && Number.isFinite(deliveryFee)) {
+      nextSettings.deliveryFee = deliveryFee;
+    }
+
+    if (typeof supportEmail === "string") {
+      nextSettings.supportEmail = supportEmail.trim();
+    }
+
+    if (typeof supportPhone === "string") {
+      nextSettings.supportPhone = supportPhone.trim();
+    }
+
+    if (typeof taxRate === "number" && Number.isFinite(taxRate)) {
+      nextSettings.taxRate = taxRate;
+    }
+
+    const settings = await updateAdminSettings(nextSettings);
+
+    res.json(settings);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to update settings" });
   }
-
-  if (defaultCurrency?.trim()) {
-    nextSettings.defaultCurrency = defaultCurrency.trim().toUpperCase();
-  }
-
-  if (typeof notificationsEnabled === "boolean") {
-    nextSettings.notificationsEnabled = notificationsEnabled;
-  }
-
-  const settings = updateAdminSettings(nextSettings);
-
-  res.json(settings);
 };

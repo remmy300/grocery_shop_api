@@ -19,6 +19,27 @@ async function main() {
 
   console.log(`Admin user ensured: ${admin.email} (role: ${admin.role})`);
 
+  await prisma.adminSetting.upsert({
+    where: {
+      id: 1,
+    },
+    update: {},
+    create: {
+      id: 1,
+      workspaceName: "Corner Store",
+      defaultCurrency: "KES",
+      notificationsEnabled: true,
+      timezone: "Africa/Nairobi",
+      language: "en",
+      lowStockThreshold: 10,
+      orderAutoCancelHours: 24,
+      deliveryFee: 0,
+      supportEmail: "",
+      supportPhone: "",
+      taxRate: 16,
+    },
+  });
+
   // Add sample products
   const products = [
     {

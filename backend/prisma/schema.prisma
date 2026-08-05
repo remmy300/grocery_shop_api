@@ -7,17 +7,16 @@ datasource db {
 }
 
 model Product {
-  id         Int         @id @default(autoincrement())
-  name       String
-  stock      Int
-  price      Decimal
-  unit              String      @default("per piece")
+  id                Int         @id @default(autoincrement())
+  name              String
+  stock             Int
+  price             Decimal
   imageUrl          String?
   deletedAt         DateTime?
   category          String      @default("General Grocery")
   lowStockThreshold Int         @default(10)
-  cartItems  CartItem[]
-  orderItems OrderItem[]
+  cartItems         CartItem[]
+  orderItems        OrderItem[]
 }
 
 model Order {
@@ -47,7 +46,7 @@ model OrderItem {
   productId Int
   quantity  Int
   price     Decimal
-  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  order     Order   @relation(fields: [orderId], references: [id])
   product   Product @relation(fields: [productId], references: [id])
 }
 
@@ -76,7 +75,21 @@ model Payment {
   @@index([status])
 }
 
-
+model AdminSetting {
+  id                   Int      @id @default(1)
+  workspaceName        String   @default("Corner Store")
+  defaultCurrency      String   @default("KES")
+  notificationsEnabled Boolean  @default(true)
+  timezone             String   @default("Africa/Nairobi")
+  language             String   @default("en")
+  lowStockThreshold    Int      @default(10)
+  orderAutoCancelHours Int      @default(24)
+  deliveryFee          Float    @default(0)
+  supportEmail         String   @default("")
+  supportPhone         String   @default("")
+  taxRate              Float    @default(16)
+  updatedAt            DateTime @default(now()) @updatedAt
+}
 
 model User {
   id        Int      @id @default(autoincrement())
@@ -85,17 +98,17 @@ model User {
   role      String   @default("user")
   picture   String?
   createdAt DateTime @default(now())
-  orders    Order[]
   cart      Cart?
+  orders    Order[]
 }
 
 model Cart {
   id        Int        @id @default(autoincrement())
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
-  items     CartItem[]
   userId    Int?       @unique
   user      User?      @relation(fields: [userId], references: [id])
+  items     CartItem[]
 }
 
 model CartItem {
@@ -109,5 +122,3 @@ model CartItem {
 
   @@unique([cartId, productId])
 }
-
-

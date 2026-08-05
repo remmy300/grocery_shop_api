@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useReducer } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
 import { ChevronLeft, ChevronRight, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -42,6 +42,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { OrdersResponse } from "@/types";
 import { apiRequest } from "@/lib/api";
+import { toast } from "sonner";
 import { formatCurrency } from "@/utils/formatters";
 import { CsvExportButton } from "@/components/CsvExportButton";
 import { ManualOrderItem } from "@/types";
@@ -52,12 +53,20 @@ type Order = {
   id: string;
   orderId: number;
   customer: string;
+  phone?: string;
+  address: string;
+  street?: string | null;
+  city?: string | null;
+  postalCode?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
   date: string;
   total: number;
   orderStatus: string;
   itemCount: number;
   initials: string;
   statusColor: string;
+  items?: Array<{ id: number; name: string; quantity: number; price: number }>;
 };
 
 type BackendProduct = {
@@ -327,9 +336,28 @@ const OrdersPage = () => {
     [ds.products],
   );
 
+  const orderIdsRef = useRef<Set<number>>(new Set());
+
+  const playNotificationTone = () => {
+    try {
+      const AudioContext =
+        (window as any).AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContext) return;
+      const context = new AudioContext();
+      const oscillator = context.createOscillator();
+      oscillator.frequency.value = 880;
+      oscillator.type = "sine";
+      oscillator.connect(context.destination);
+      oscillator.start();
+      oscillator.stop(context.currentTime + 0.12);
+    } catch {
+      // Ignore audio errors in browsers that block autoplay.
+    }
+  };
+
   // ── data loading ──────────────────────────────────────────────────
 
-  const loadOrders = async (silent = false) => {
+  const loadOrders = useCallback(async (silent = false) => {
     silent
       ? dispatchData({ type: "refreshStart" })
       : dispatchData({ type: "fetchStart" });
@@ -343,11 +371,27 @@ const OrdersPage = () => {
       ordersResult.status === "fulfilled" &&
       productsResult.status === "fulfilled"
     ) {
+      if (silent && orderIdsRef.current.size > 0) {
+        const previousIds = new Set(orderIdsRef.current);
+        const newOrders = ordersResult.value.orders.filter(
+          (order) => !previousIds.has(order.orderId),
+        );
+        if (newOrders.length > 0) {
+          toast.success(
+            `New order received from ${newOrders[0].customer}! Refreshing list...`,
+          );
+          playNotificationTone();
+        }
+      }
+
       dispatchData({
         type: "fetchDone",
         data: ordersResult.value,
         products: productsResult.value,
       });
+      orderIdsRef.current = new Set(
+        ordersResult.value.orders.map((order) => order.orderId),
+      );
     } else {
       if (ordersResult.status === "rejected") {
         dispatchData({
@@ -368,12 +412,16 @@ const OrdersPage = () => {
         });
       }
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadOrders();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [loadOrders]);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => loadOrders(true), 30000);
+    return () => window.clearInterval(interval);
+  }, [loadOrders]);
 
   useEffect(() => {
     if (
@@ -399,7 +447,9 @@ const OrdersPage = () => {
         const matchesSearch =
           !search ||
           order.id.toLowerCase().includes(search) ||
-          order.customer.toLowerCase().includes(search);
+          order.customer.toLowerCase().includes(search) ||
+          order.address.toLowerCase().includes(search) ||
+          order.phone?.toLowerCase().includes(search);
         const matchesStatus =
           filters.status === "all" ||
           normalizeStatus(order.orderStatus) === filters.status;
@@ -511,6 +561,7 @@ const OrdersPage = () => {
           items: fs.manualItems.map((item) => ({
             productId: item.productId,
             quantity: item.quantity,
+            paymentMethod: "cod",
           })),
         },
       });
@@ -566,6 +617,11 @@ const OrdersPage = () => {
         error: err instanceof Error ? err.message : "Failed to delete order",
       });
     }
+  };
+
+  const handlePrintOrder = () => {
+    if (!fs.editTarget) return;
+    window.print();
   };
 
   // ── render guards ─────────────────────────────────────────────────
@@ -729,6 +785,10 @@ const OrdersPage = () => {
                       <p className="text-xs text-muted-foreground">
                         {order.id}
                       </p>
+                      <p className="mt-1 text-xs text-secondary-foreground">
+                        {order.address}
+                        {order.phone ? ` · ${order.phone}` : ""}
+                      </p>
                     </div>
                   </div>
                   <Badge
@@ -822,9 +882,15 @@ const OrdersPage = () => {
                       <div className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary-fixed text-xs font-bold text-on-secondary-fixed">
                         {order.initials}
                       </div>
-                      <span className="text-sm font-medium text-foreground">
-                        {order.customer}
-                      </span>
+                      <div>
+                        <p className="text-sm font-medium text-foreground">
+                          {order.customer}
+                        </p>
+                        <p className="text-xs text-secondary-foreground">
+                          {order.address}
+                          {order.phone ? ` · ${order.phone}` : ""}
+                        </p>
+                      </div>
                     </div>
                   </TableCell>
                   <TableCell className="px-6 py-5 text-sm text-secondary-foreground">
@@ -932,16 +998,103 @@ const OrdersPage = () => {
           if (!open) dispatchForm({ type: "closeSheet" });
         }}
       >
-        <SheetContent side="right" className="w-full sm:max-w-2xl">
+        <SheetContent
+          side="right"
+          className="w-full sm:max-w-2xl print-friendly"
+        >
           {fs.sheetMode === "edit" ? (
             <>
               <SheetHeader>
-                <SheetTitle>Edit Order Status</SheetTitle>
-                <SheetDescription>
-                  Update the fulfilment status for {fs.editTarget?.id}.
-                </SheetDescription>
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <SheetTitle>Edit Order Status</SheetTitle>
+                    <SheetDescription>
+                      Update the fulfilment status for {fs.editTarget?.id}.
+                    </SheetDescription>
+                  </div>
+                  <Button
+                    variant="outline"
+                    onClick={handlePrintOrder}
+                    className="h-10 w-full sm:w-auto"
+                  >
+                    Print packing slip
+                  </Button>
+                </div>
               </SheetHeader>
               <div className="flex-1 space-y-5 overflow-y-auto px-4 pb-4 pt-6">
+                {fs.editTarget ? (
+                  <div className="rounded-2xl border border-border bg-surface-container-low p-4">
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div>
+                        <p className="text-xs uppercase tracking-widest text-secondary-foreground">
+                          Order
+                        </p>
+                        <p className="text-sm font-semibold text-foreground">
+                          {fs.editTarget.id}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs uppercase tracking-widest text-secondary-foreground">
+                          Total
+                        </p>
+                        <p className="text-sm font-semibold text-foreground">
+                          KES {formatCurrency(fs.editTarget.total)}
+                        </p>
+                      </div>
+                      <div className="sm:col-span-2">
+                        <p className="text-xs uppercase tracking-widest text-secondary-foreground">
+                          Delivery address
+                        </p>
+                        <p className="text-sm font-semibold text-foreground">
+                          {fs.editTarget.address}
+                          {fs.editTarget.city ? `, ${fs.editTarget.city}` : ""}
+                          {fs.editTarget.postalCode
+                            ? `, ${fs.editTarget.postalCode}`
+                            : ""}
+                        </p>
+                        {fs.editTarget.phone ? (
+                          <p className="mt-1 text-sm text-secondary-foreground">
+                            {fs.editTarget.phone}
+                          </p>
+                        ) : null}
+                        {fs.editTarget.latitude != null &&
+                        fs.editTarget.longitude != null ? (
+                          <p className="mt-1 text-sm text-secondary-foreground">
+                            Coordinates: {fs.editTarget.latitude.toFixed(4)},{" "}
+                            {fs.editTarget.longitude.toFixed(4)}
+                          </p>
+                        ) : null}
+                      </div>
+                      {fs.editTarget?.items?.length ? (
+                        <div className="rounded-2xl border border-border bg-background p-4">
+                          <h3 className="text-sm font-bold uppercase tracking-widest text-secondary-foreground">
+                            Packing slip
+                          </h3>
+                          <div className="mt-3 divide-y divide-border">
+                            {fs.editTarget.items.map((item) => (
+                              <div
+                                key={item.id}
+                                className="flex items-center justify-between gap-4 py-3 text-sm"
+                              >
+                                <div>
+                                  <p className="font-semibold text-foreground">
+                                    {item.name}
+                                  </p>
+                                  <p className="text-secondary-foreground">
+                                    KES {formatCurrency(item.price)} each
+                                  </p>
+                                </div>
+                                <p className="font-bold text-foreground">
+                                  Qty {item.quantity}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+                ) : null}
                 <div className="space-y-2">
                   <p className="text-sm font-medium text-foreground">
                     Order Status
@@ -972,7 +1125,7 @@ const OrdersPage = () => {
                   </div>
                 ) : null}
               </div>
-              <SheetFooter className="border-t border-border">
+              <SheetFooter className="border-t border-border print:hidden">
                 <div className="flex gap-3">
                   <SheetClose asChild>
                     <Button variant="outline" className="flex-1">
@@ -1152,7 +1305,7 @@ const OrdersPage = () => {
                   </div>
                 ) : null}
               </div>
-              <SheetFooter className="border-t border-border">
+              <SheetFooter className="border-t border-border print:hidden">
                 <div className="flex gap-3">
                   <SheetClose asChild>
                     <Button variant="outline" className="flex-1">

@@ -64,6 +64,11 @@ export type BackendOrder = {
   customer: string;
   phone: string;
   address: string;
+  street?: string | null;
+  city?: string | null;
+  postalCode?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
   total: number | string;
   orderStatus: string;
   items?: BackendOrderItem[];
@@ -125,12 +130,25 @@ export type OrdersResponse = {
     id: string;
     orderId: number;
     customer: string;
+    phone?: string;
+    address: string;
+    street?: string | null;
+    city?: string | null;
+    postalCode?: string | null;
+    latitude?: number | null;
+    longitude?: number | null;
     date: string;
     total: number;
     orderStatus: string;
     itemCount: number;
     initials: string;
     statusColor: string;
+    items?: Array<{
+      id: number;
+      name: string;
+      quantity: number;
+      price: number;
+    }>;
   }>;
 };
 

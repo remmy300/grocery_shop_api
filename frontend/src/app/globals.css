@@ -133,3 +133,22 @@
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+
+  .print-friendly,
+  .print-friendly * {
+    visibility: visible !important;
+  }
+
+  .print-friendly {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    padding: 1rem;
+    background: white;
+  }
+}
+

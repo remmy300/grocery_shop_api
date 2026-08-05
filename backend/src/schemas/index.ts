@@ -36,6 +36,12 @@ export const createOrderSchema = z.object({
   customer: z.string().min(2).max(100).trim(),
   phone: kenyaPhone,
   address: z.string().min(5).max(300).trim(),
+  street: z.string().max(300).trim().optional(),
+  city: z.string().max(100).trim().optional(),
+  postalCode: z.string().max(30).trim().optional(),
+  latitude: z.coerce.number().optional(),
+  longitude: z.coerce.number().optional(),
+  paymentMethod: z.enum(["mpesa", "cod"]).optional().default("mpesa"),
   items: z
     .array(
       z.object({

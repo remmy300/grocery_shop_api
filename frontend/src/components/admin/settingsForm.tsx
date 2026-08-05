@@ -49,7 +49,7 @@ const SettingsForm = () => {
     setValue,
     formState: { errors, isDirty, isSubmitting },
   } = useForm<SettingsFormValues>({
-    resolver: zodResolver(settingsSchema),
+    // resolver: zodResolver(settingsSchema),
     defaultValues: buildFormValues(settings),
   });
 
@@ -57,11 +57,18 @@ const SettingsForm = () => {
     reset(buildFormValues(settings));
   }, [settings, reset]);
 
+  useEffect(() => {
+    const result = settingsSchema.safeParse(buildFormValues(settings));
+
+    console.log(result);
+  }, [settings]);
+
   const onSubmit = handleSubmit(async (values) => {
     try {
+      const payload = settingsSchema.parse(values);
       const updated = await apiRequest<Settings>("/api/admin/settings", {
         method: "PUT",
-        json: values,
+        json: payload,
       });
 
       updateSettings(updated);

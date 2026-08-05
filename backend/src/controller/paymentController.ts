@@ -253,7 +253,7 @@ export const handleMpesaCallback = async (req: Request, res: Response) => {
       return res.status(200).json({ ResultCode: 0, ResultDesc: "Received" });
     }
 
-    if (payment.status === "completed") {
+    if (payment.status === "completed" || payment.status === "failed") {
       return res
         .status(200)
         .json({ ResultCode: 0, ResultDesc: "Already processed" });
@@ -261,9 +261,8 @@ export const handleMpesaCallback = async (req: Request, res: Response) => {
 
     const isSuccess = callbackData.resultCode === "0";
 
-    // Update payment status atomically with order + stock changes.
-    // Do everything in one transaction so a retry from Safaricom hitting
-    // an already-completed payment is blocked by the status guard above.
+    // Update payment status atomically with order changes. Stock is reserved
+    // at order creation time, so success only confirms the order.
     if (isSuccess) {
       await prisma.$transaction(async (tx: any) => {
         await tx.payment.update({
@@ -281,31 +280,33 @@ export const handleMpesaCallback = async (req: Request, res: Response) => {
           where: { id: payment.orderId },
           data: { paymentStatus: "completed", orderStatus: "confirmed" },
         });
+      });
+    } else {
+      await prisma.$transaction(async (tx: any) => {
+        await tx.payment.update({
+          where: { id: payment.id },
+          data: {
+            resultCode: callbackData.resultCode,
+            resultDescription: callbackData.resultDescription,
+            status: "failed",
+          },
+        });
+
+        await tx.order.update({
+          where: { id: payment.orderId },
+          data: { paymentStatus: "failed" },
+        });
 
         const items = await tx.orderItem.findMany({
           where: { orderId: payment.orderId },
         });
 
         for (const item of items) {
-          // Use Math.max(0) floor to prevent stock going negative
-          await tx.product.update({
+          await tx.product.updateMany({
             where: { id: item.productId },
-            data: { stock: { decrement: item.quantity } },
+            data: { stock: { increment: item.quantity } },
           });
         }
-      });
-    } else {
-      await prisma.payment.update({
-        where: { id: payment.id },
-        data: {
-          resultCode: callbackData.resultCode,
-          resultDescription: callbackData.resultDescription,
-          status: "failed",
-        },
-      });
-      await prisma.order.update({
-        where: { id: payment.orderId },
-        data: { paymentStatus: "failed" },
       });
     }
 
