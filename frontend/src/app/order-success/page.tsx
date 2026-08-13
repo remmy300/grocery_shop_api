@@ -4,10 +4,13 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense } from "react";
 import { CheckCircle2, ShoppingBag, Package, Receipt } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useSettings } from "@/contexts/SettingsContext";
 
 function OrderSuccessContent() {
   const params = useSearchParams();
   const router = useRouter();
+  const { settings } = useSettings();
+  const currency = settings.defaultCurrency || "KES";
 
   const orderId = params.get("orderId");
   const receipt = params.get("receipt");
@@ -73,7 +76,7 @@ function OrderSuccessContent() {
                 {isCod ? "Amount Due" : "Amount Paid"}
               </span>
               <span className="text-base font-bold text-green-700">
-                KES {parseFloat(amount).toFixed(2)}
+                {currency} {parseFloat(amount).toFixed(2)}
               </span>
             </div>
           )}

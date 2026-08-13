@@ -223,6 +223,17 @@ export interface Settings {
   supportEmail: string;
   supportPhone: string;
   taxRate: number;
+  minOrderAmount: number;
+  freeDeliveryThreshold: number;
+  deliveryTimeWindow: string;
+  deliveryRadiusKm: number;
+  mpesaEnabled: boolean;
+  codEnabled: boolean;
+  allowRegistration: boolean;
+  hideOutOfStock: boolean;
+  storeTagline: string;
+  announcementBanner: string;
+  storeOpen: boolean;
   updatedAt: string;
 }
 

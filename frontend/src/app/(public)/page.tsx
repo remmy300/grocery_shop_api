@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { ProductCard } from "@/components/products/productCard";
 import NewsletterForm from "@/components/NewsletterForm";
 import { fetchProducts } from "@/lib/products";
+import { fetchServerSettings } from "@/lib/settings";
 
 export const metadata: Metadata = {
   title: "Corner Store — Fresh Groceries Delivered",
@@ -50,8 +51,12 @@ const HOMEPAGE_PRODUCT_LIMIT = 8;
 
 async function getProducts() {
   try {
+    const settings = await fetchServerSettings().catch(() => null);
     const products = await fetchProducts();
-    return products.slice(0, HOMEPAGE_PRODUCT_LIMIT);
+    const visible = settings?.hideOutOfStock
+      ? products.filter((p) => p.stock > 0)
+      : products;
+    return visible.slice(0, HOMEPAGE_PRODUCT_LIMIT);
   } catch {
     return [];
   }

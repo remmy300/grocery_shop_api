@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { useMpesaPayment, MpesaPaymentError, friendlyMpesaError } from "@/hooks/useMpesaPayment";
+import { useSettings } from "@/contexts/SettingsContext";
 import { AlertCircle, CheckCircle2, Loader } from "lucide-react";
 
 interface MpesaPaymentProcessorProps {
@@ -24,6 +25,9 @@ export default function MpesaPaymentProcessor({
   onError,
 }: MpesaPaymentProcessorProps) {
   const [inputPhone, setInputPhone] = useState(phoneNumber);
+
+  const { settings } = useSettings();
+  const currency = settings.defaultCurrency || "KES";
 
   const {
     initiate,
@@ -174,7 +178,7 @@ export default function MpesaPaymentProcessor({
 
           <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
             <p className="text-xs text-blue-900">
-              <strong>Order Total:</strong> KES {amount.toFixed(2)}
+              <strong>Order Total:</strong> {currency} {amount.toFixed(2)}
             </p>
             <p className="text-xs text-blue-900 mt-1">
               You will receive an M-Pesa prompt on your phone. Enter your M-Pesa

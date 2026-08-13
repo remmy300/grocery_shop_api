@@ -88,6 +88,17 @@ model AdminSetting {
   supportEmail         String   @default("")
   supportPhone         String   @default("")
   taxRate              Float    @default(16)
+  minOrderAmount       Float    @default(0)
+  freeDeliveryThreshold Float   @default(0)
+  deliveryTimeWindow   String   @default("")
+  deliveryRadiusKm     Int      @default(20)
+  mpesaEnabled         Boolean  @default(true)
+  codEnabled           Boolean  @default(true)
+  allowRegistration    Boolean  @default(true)
+  hideOutOfStock       Boolean  @default(false)
+  storeTagline         String   @default("")
+  announcementBanner   String   @default("")
+  storeOpen            Boolean  @default(true)
   updatedAt            DateTime @default(now()) @updatedAt
 }
 

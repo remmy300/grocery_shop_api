@@ -1,6 +1,7 @@
 import { OAuth2Client } from "google-auth-library";
 import jwt from "jsonwebtoken";
 import prisma from "../lib/prisma.js";
+import { getAdminSettings } from "../lib/adminSettings.js";
 import { getUser } from "./userController.js";
 import { Request, Response } from "express";
 import { generateAccessToken, generateRefreshToken } from "../utils/token.js";
@@ -37,6 +38,15 @@ export const googleLogin = async (req: Request, res: Response) => {
     });
 
     if (!user) {
+      if (!isAdminEmail(payload.email)) {
+        const { allowRegistration } = await getAdminSettings();
+        if (!allowRegistration) {
+          return res.status(403).json({
+            message: "New registrations are currently disabled. Contact the store administrator.",
+          });
+        }
+      }
+
       user = await prisma.user.create({
         data: {
           email: payload.email,

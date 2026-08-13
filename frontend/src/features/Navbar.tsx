@@ -13,6 +13,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { useCart } from "@/hooks/useCart";
+import { useSettings } from "@/contexts/SettingsContext";
 
 const navLinks = [
   { label: "Home", href: "/" },
@@ -22,6 +23,8 @@ const navLinks = [
 export default function Navbar() {
   const pathname = usePathname();
   const { totalItems } = useCart();
+  const { settings } = useSettings();
+  const brandName = settings.workspaceName || "Corner Shop";
 
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -35,7 +38,7 @@ export default function Navbar() {
           className="flex items-center gap-2 text-2xl font-extrabold tracking-tight text-primary"
         >
           <Leaf className="h-6 w-6" />
-          Corner Shop
+          {brandName}
         </Link>
 
         {/* Desktop nav links */}
@@ -100,7 +103,7 @@ export default function Navbar() {
               <SheetHeader className="border-b border-border px-6 py-5">
                 <SheetTitle className="flex items-center gap-2 text-lg font-extrabold text-primary">
                   <Leaf className="h-5 w-5" />
-                  Corner Shop
+                  {brandName}
                 </SheetTitle>
               </SheetHeader>
 

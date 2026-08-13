@@ -1,14 +1,14 @@
 "use client";
 
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller, Control, FieldPath } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 
-import { useApp } from "@/contexts/AppContext";
+import { useSettings } from "@/contexts/SettingsContext";
 import { apiRequest } from "@/lib/api";
 
 import type { Settings } from "@/types";
@@ -31,25 +31,60 @@ const buildFormValues = (settings: Settings | null): SettingsFormValues => ({
   lowStockThreshold: settings?.lowStockThreshold ?? 10,
   orderAutoCancelHours: settings?.orderAutoCancelHours ?? 24,
   deliveryFee: settings?.deliveryFee ?? 0,
+  minOrderAmount: settings?.minOrderAmount ?? 0,
+  freeDeliveryThreshold: settings?.freeDeliveryThreshold ?? 0,
+  deliveryRadiusKm: settings?.deliveryRadiusKm ?? 20,
+  deliveryTimeWindow: settings?.deliveryTimeWindow ?? "",
+  taxRate: settings?.taxRate ?? 16,
+  mpesaEnabled: settings?.mpesaEnabled ?? true,
+  codEnabled: settings?.codEnabled ?? true,
+  allowRegistration: settings?.allowRegistration ?? true,
+  hideOutOfStock: settings?.hideOutOfStock ?? false,
+  storeOpen: settings?.storeOpen ?? true,
+  storeTagline: settings?.storeTagline ?? "",
+  announcementBanner: settings?.announcementBanner ?? "",
   supportEmail: settings?.supportEmail ?? "",
   supportPhone: settings?.supportPhone ?? "",
-  taxRate: settings?.taxRate ?? 16,
 });
 
-const SettingsForm = () => {
-  const { state, updateSettings } = useApp();
+interface SwitchFieldProps {
+  name: FieldPath<SettingsFormValues>;
+  label: string;
+  description?: string;
+  control: Control<SettingsFormValues>;
+}
 
-  const settings = state.settings;
+const SwitchField = ({ name, label, description, control }: SwitchFieldProps) => (
+  <Controller
+    control={control}
+    name={name}
+    render={({ field }) => (
+      <div className="flex items-center justify-between rounded-lg border p-4">
+        <div className="space-y-1 pr-4">
+          <h4 className="font-medium">{label}</h4>
+
+          {description && (
+            <p className="text-sm text-muted-foreground">{description}</p>
+          )}
+        </div>
+
+        <Switch checked={Boolean(field.value)} onCheckedChange={field.onChange} />
+      </div>
+    )}
+  />
+);
+
+const SettingsForm = () => {
+  const { settings, applySettings } = useSettings();
 
   const {
     register,
     handleSubmit,
     reset,
-    watch,
-    setValue,
+    control,
     formState: { errors, isDirty, isSubmitting },
   } = useForm<SettingsFormValues>({
-    // resolver: zodResolver(settingsSchema),
+    resolver: zodResolver(settingsSchema),
     defaultValues: buildFormValues(settings),
   });
 
@@ -57,35 +92,36 @@ const SettingsForm = () => {
     reset(buildFormValues(settings));
   }, [settings, reset]);
 
-  useEffect(() => {
-    const result = settingsSchema.safeParse(buildFormValues(settings));
+  const onSubmit = handleSubmit(
+    async (values) => {
+      try {
+        const updated = await apiRequest<Settings>("/api/admin/settings", {
+          method: "PUT",
+          json: values,
+        });
 
-    console.log(result);
-  }, [settings]);
+        applySettings(updated);
+        reset(buildFormValues(updated));
+        toast.success("Settings saved.");
+      } catch (error) {
+        toast.error(
+          error instanceof Error ? error.message : "Failed to save settings.",
+        );
+      }
+    },
+    () => {
+      toast.error("Please fix the highlighted fields before saving.");
+    },
+  );
 
-  const onSubmit = handleSubmit(async (values) => {
-    try {
-      const payload = settingsSchema.parse(values);
-      const updated = await apiRequest<Settings>("/api/admin/settings", {
-        method: "PUT",
-        json: payload,
-      });
-
-      updateSettings(updated);
-      reset(buildFormValues(updated));
-      toast.success("Settings saved.");
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to save settings.",
-      );
-    }
-  });
+  const selectClass =
+    "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm";
 
   return (
     <form onSubmit={onSubmit}>
       <SettingsSection
-        title="General"
-        description="Core workspace identity and currency."
+        title="Store"
+        description="Store identity, opening state, and announcement."
       >
         <div className="grid gap-6 md:grid-cols-2">
           <FormField
@@ -110,27 +146,60 @@ const SettingsForm = () => {
               {...register("defaultCurrency")}
             />
           </FormField>
+
+          <FormField
+            id="storeTagline"
+            label="Store Tagline"
+            error={errors.storeTagline?.message}
+            description="Short tagline shown next to the store name."
+            className="md:col-span-2"
+          >
+            <Input
+              id="storeTagline"
+              placeholder="Fresh groceries, delivered fast"
+              {...register("storeTagline")}
+            />
+          </FormField>
+
+          <FormField
+            id="announcementBanner"
+            label="Announcement Banner"
+            error={errors.announcementBanner?.message}
+            description="Shown at the top of the store. Leave empty to hide."
+            className="md:col-span-2"
+          >
+            <Input
+              id="announcementBanner"
+              placeholder="e.g. Free delivery on orders over KES 2,000"
+              {...register("announcementBanner")}
+            />
+          </FormField>
         </div>
+
+        <SwitchField
+          name="storeOpen"
+          label="Store Open"
+          description="When off, the storefront shows a closed notice and blocks checkout."
+          control={control}
+        />
       </SettingsSection>
 
       <SettingsSection
-        title="Delivery"
-        description="Configure delivery charges and order processing."
+        title="Orders"
+        description="Rules that apply to every customer order."
       >
         <div className="grid gap-6 md:grid-cols-2">
           <FormField
-            id="deliveryFee"
-            label="Delivery Fee (KES)"
-            error={errors.deliveryFee?.message}
-            description="Default delivery fee charged to customers."
+            id="minOrderAmount"
+            label="Minimum Order Amount"
+            error={errors.minOrderAmount?.message}
+            description="Reject checkout below this subtotal. 0 disables it."
           >
             <Input
-              id="deliveryFee"
+              id="minOrderAmount"
               type="number"
               step="0.01"
-              {...register("deliveryFee", {
-                valueAsNumber: true,
-              })}
+              {...register("minOrderAmount")}
             />
           </FormField>
 
@@ -143,24 +212,68 @@ const SettingsForm = () => {
             <Input
               id="orderAutoCancelHours"
               type="number"
-              {...register("orderAutoCancelHours", {
-                valueAsNumber: true,
-              })}
+              {...register("orderAutoCancelHours")}
+            />
+          </FormField>
+        </div>
+      </SettingsSection>
+
+      <SettingsSection
+        title="Delivery"
+        description="Delivery charges, radius, and time windows."
+      >
+        <div className="grid gap-6 md:grid-cols-2">
+          <FormField
+            id="deliveryFee"
+            label="Delivery Fee"
+            error={errors.deliveryFee?.message}
+            description="Default delivery fee charged to customers."
+          >
+            <Input
+              id="deliveryFee"
+              type="number"
+              step="0.01"
+              {...register("deliveryFee")}
             />
           </FormField>
 
           <FormField
-            id="lowStockThreshold"
-            label="Low Stock Threshold"
-            error={errors.lowStockThreshold?.message}
-            description="Flag inventory items at or below this quantity."
+            id="freeDeliveryThreshold"
+            label="Free Delivery Threshold"
+            error={errors.freeDeliveryThreshold?.message}
+            description="Orders at or above this subtotal get free delivery. 0 disables it."
           >
             <Input
-              id="lowStockThreshold"
+              id="freeDeliveryThreshold"
               type="number"
-              {...register("lowStockThreshold", {
-                valueAsNumber: true,
-              })}
+              step="0.01"
+              {...register("freeDeliveryThreshold")}
+            />
+          </FormField>
+
+          <FormField
+            id="deliveryRadiusKm"
+            label="Delivery Radius (km)"
+            error={errors.deliveryRadiusKm?.message}
+            description="Maximum delivery distance from the store."
+          >
+            <Input
+              id="deliveryRadiusKm"
+              type="number"
+              {...register("deliveryRadiusKm")}
+            />
+          </FormField>
+
+          <FormField
+            id="deliveryTimeWindow"
+            label="Delivery Time Window"
+            error={errors.deliveryTimeWindow?.message}
+            description="e.g. 08:00 - 20:00. Leave empty to show no window."
+          >
+            <Input
+              id="deliveryTimeWindow"
+              placeholder="08:00 - 20:00"
+              {...register("deliveryTimeWindow")}
             />
           </FormField>
 
@@ -174,13 +287,72 @@ const SettingsForm = () => {
               id="taxRate"
               type="number"
               step="0.01"
-              {...register("taxRate", {
-                valueAsNumber: true,
-              })}
+              {...register("taxRate")}
             />
           </FormField>
         </div>
       </SettingsSection>
+
+      <SettingsSection
+        title="Inventory"
+        description="Low stock alerts and product visibility."
+      >
+        <div className="grid gap-6 md:grid-cols-2">
+          <FormField
+            id="lowStockThreshold"
+            label="Low Stock Threshold"
+            error={errors.lowStockThreshold?.message}
+            description="Flag inventory items at or below this quantity."
+          >
+            <Input
+              id="lowStockThreshold"
+              type="number"
+              {...register("lowStockThreshold")}
+            />
+          </FormField>
+        </div>
+
+        <SwitchField
+          name="hideOutOfStock"
+          label="Hide Out-of-Stock Products"
+          description="Remove sold-out products from the storefront catalogue."
+          control={control}
+        />
+      </SettingsSection>
+
+      <SettingsSection
+        title="Payments"
+        description="Enable or disable payment methods at checkout."
+      >
+        <div className="grid gap-6 md:grid-cols-2">
+          <SwitchField
+            name="mpesaEnabled"
+            label="M-Pesa (STK Push)"
+            description="Allow customers to pay via M-Pesa."
+            control={control}
+          />
+
+          <SwitchField
+            name="codEnabled"
+            label="Cash on Delivery"
+            description="Allow customers to pay in cash when the order arrives."
+            control={control}
+          />
+        </div>
+      </SettingsSection>
+
+      <SettingsSection
+        title="Customers"
+        description="Customer-facing account options."
+      >
+        <SwitchField
+          name="allowRegistration"
+          label="Allow New Registrations"
+          description="When off, new customers cannot create accounts."
+          control={control}
+        />
+      </SettingsSection>
+
       <SettingsSection
         title="Support Information"
         description="Customer support contact details."
@@ -225,7 +397,7 @@ const SettingsForm = () => {
           >
             <select
               id="language"
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              className={selectClass}
               {...register("language")}
             >
               <option value="en">English</option>
@@ -240,7 +412,7 @@ const SettingsForm = () => {
           >
             <select
               id="timezone"
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              className={selectClass}
               {...register("timezone")}
             >
               <option value="Africa/Nairobi">Africa/Nairobi</option>
@@ -255,25 +427,12 @@ const SettingsForm = () => {
         title="Notifications"
         description="Choose which notifications administrators receive."
       >
-        <div className="flex items-center justify-between rounded-lg border p-4">
-          <div>
-            <h4 className="font-medium">Enable Notifications</h4>
-
-            <p className="text-sm text-muted-foreground">
-              Receive notifications for new orders, payments and inventory
-              alerts.
-            </p>
-          </div>
-
-          <Switch
-            checked={watch("notificationsEnabled")}
-            onCheckedChange={(checked) =>
-              setValue("notificationsEnabled", checked, {
-                shouldDirty: true,
-              })
-            }
-          />
-        </div>
+        <SwitchField
+          name="notificationsEnabled"
+          label="Enable Notifications"
+          description="Receive notifications for new orders, payments and inventory alerts."
+          control={control}
+        />
       </SettingsSection>
 
       <SaveActions

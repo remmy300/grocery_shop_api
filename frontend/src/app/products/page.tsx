@@ -4,6 +4,7 @@ import type { ProductView } from "@/types/products";
 import ProductsCatalogue from "@/components/products/ProductsCatalogue";
 import ProductsHero from "@/components/products/ProductsHero";
 import { fetchProducts } from "@/lib/products";
+import { fetchServerSettings } from "@/lib/settings";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +19,11 @@ export default async function ProductsPage() {
   let errorMessage = "";
 
   try {
+    const settings = await fetchServerSettings().catch(() => null);
     products = await fetchProducts();
+    if (settings?.hideOutOfStock) {
+      products = products.filter((p) => p.stock > 0);
+    }
   } catch (error) {
     console.error("Failed to fetch products on products page:", error);
     errorMessage =

@@ -3,6 +3,7 @@
 import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from "react";
 
 import { useCart } from "@/hooks/useCart";
+import { useSettings } from "@/contexts/SettingsContext";
 
 export type DeliveryMethod = "standard" | "express";
 export type PaymentMethod = "mpesa" | "cod";
@@ -41,24 +42,31 @@ type CheckoutContextType = {
   taxes: number;
   total: number;
 
+  availablePaymentMethods: PaymentMethod[];
+  belowMinOrder: boolean;
   canCheckout: boolean;
 };
 
 const CheckoutContext = createContext<CheckoutContextType | null>(null);
 
-/*  SHIPPING RULES  */
+/*  SHIPPING + TAX RULES  */
 
-function getShippingFee(method: DeliveryMethod | null, subtotal: number) {
+function getShippingFee(
+  method: DeliveryMethod | null,
+  deliveryFee: number,
+  subtotal: number,
+  freeDeliveryThreshold: number,
+) {
   // Self pickup is always free
   if (method === "express") return 0;
-  // Home delivery is free on orders over KES 1000
-  if (subtotal >= 1000) return 0;
-  return 100;
+  // Orders at/above the free-delivery threshold ship free
+  if (freeDeliveryThreshold > 0 && subtotal >= freeDeliveryThreshold) return 0;
+  // Home delivery uses the admin-configured flat fee
+  return deliveryFee;
 }
 
-function getTaxRate(city?: string) {
-  if (!city) return 0.16;
-  return city.toLowerCase() === "nairobi" ? 0.16 : 0.1;
+function getTaxRate(settingsTaxRate: number) {
+  return settingsTaxRate;
 }
 
 const SESSION_KEY = "checkout_state";
@@ -85,6 +93,7 @@ function loadPersistedState(): CheckoutState {
 
 export function CheckoutProvider({ children }: { children: ReactNode }) {
   const { items, subtotal } = useCart();
+  const { settings } = useSettings();
 
   // Always start with defaultState so server and client initial renders match.
   // Load from sessionStorage after mount to avoid hydration mismatch.
@@ -138,13 +147,18 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
   /* PRICING  */
 
   const shipping = useMemo(() => {
-    return getShippingFee(state.deliveryMethod, subtotal);
-  }, [state.deliveryMethod, subtotal]);
+    return getShippingFee(
+      state.deliveryMethod,
+      settings.deliveryFee,
+      subtotal,
+      settings.freeDeliveryThreshold,
+    );
+  }, [state.deliveryMethod, settings.deliveryFee, subtotal, settings.freeDeliveryThreshold]);
 
   const taxes = useMemo(() => {
-    const rate = getTaxRate(state.address?.city ?? undefined);
+    const rate = getTaxRate(settings.taxRate) / 100;
     return subtotal * rate;
-  }, [subtotal, state.address?.city]);
+  }, [subtotal, settings.taxRate]);
 
   const total = useMemo(() => {
     return subtotal + shipping + taxes;
@@ -152,15 +166,36 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
 
   /*  VALIDATION */
 
+  const availablePaymentMethods = useMemo<PaymentMethod[]>(() => {
+    const methods: PaymentMethod[] = [];
+    if (settings.mpesaEnabled) methods.push("mpesa");
+    if (settings.codEnabled) methods.push("cod");
+    return methods;
+  }, [settings.mpesaEnabled, settings.codEnabled]);
+
+  const belowMinOrder = useMemo(() => {
+    return (
+      settings.minOrderAmount > 0 && subtotal < settings.minOrderAmount
+    );
+  }, [settings.minOrderAmount, subtotal]);
+
   const canCheckout = useMemo(() => {
     return (
       items.length > 0 &&
+      !belowMinOrder &&
       !!state.address?.fullName &&
       !!state.address?.street &&
       !!state.address?.phone &&
-      !!state.paymentMethod
+      !!state.paymentMethod &&
+      availablePaymentMethods.includes(state.paymentMethod)
     );
-  }, [items.length, state.address]);
+  }, [
+    items.length,
+    belowMinOrder,
+    state.address,
+    state.paymentMethod,
+    availablePaymentMethods,
+  ]);
 
   /*  CONTEXT VALUE*/
 
@@ -179,6 +214,8 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
         taxes,
         total,
 
+        availablePaymentMethods,
+        belowMinOrder,
         canCheckout,
       }}
     >

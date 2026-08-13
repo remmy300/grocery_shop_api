@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { Prisma } from "@prisma/client";
 import prisma from "../lib/prisma.js";
 import MpesaService from "../utils/mpesaService.js";
+import { getAdminSettings } from "../lib/adminSettings.js";
 
 const REQUIRED_ENV = [
   "MPESA_CONSUMER_KEY",
@@ -58,6 +59,13 @@ export const initiatePayment = async (req: Request, res: Response) => {
 
     if (Number(amount) <= 0) {
       return res.status(400).json({ message: "Amount must be greater than 0" });
+    }
+
+    const adminSettings = await getAdminSettings();
+    if (!adminSettings.mpesaEnabled) {
+      return res.status(400).json({
+        message: "M-Pesa payments are currently disabled. Please select another payment method.",
+      });
     }
 
     //  ownership check: authenticated user must own the order

@@ -1,4 +1,5 @@
 import prisma from "../lib/prisma.js";
+import { getAdminSettings } from "../lib/adminSettings.js";
 import { Request, Response } from "express";
 import { Prisma } from "@prisma/client";
 
@@ -58,10 +59,19 @@ export const createOrder = async (req: Request, res: Response) => {
     }
 
     const productIds = parsedItems.map((item) => item.productId);
-    const existingProducts = await prisma.product.findMany({
-      where: { id: { in: productIds }, deletedAt: null },
-      select: { id: true, price: true, stock: true, name: true },
-    });
+    const [existingProducts, adminSettings] = await Promise.all([
+      prisma.product.findMany({
+        where: { id: { in: productIds }, deletedAt: null },
+        select: { id: true, price: true, stock: true, name: true },
+      }),
+      getAdminSettings(),
+    ]);
+
+    if (!adminSettings.storeOpen) {
+      return res.status(409).json({
+        message: "The store is currently closed. Please try again later.",
+      });
+    }
 
     const existingIdSet = new Set(existingProducts.map((p: any) => p.id));
     const missingIds = productIds.filter(
@@ -102,12 +112,37 @@ export const createOrder = async (req: Request, res: Response) => {
     const priceById = new Map(
       existingProducts.map((p: any) => [p.id, p.price]),
     );
-    let total = 0;
+    let subtotal = 0;
     parsedItems.forEach((item: { productId: number; quantity: number }) => {
       const rawPrice = priceById.get(item.productId);
       const productPrice = Number(rawPrice ?? 0);
-      total += item.quantity * productPrice;
+      subtotal += item.quantity * productPrice;
     });
+
+    const deliveryMethod =
+      req.body.deliveryMethod === "express" ? "express" : "standard";
+    const deliveryFee =
+      deliveryMethod === "express" ? 0 : adminSettings.deliveryFee;
+    const tax = subtotal * (adminSettings.taxRate / 100);
+    const total = subtotal + deliveryFee + tax;
+
+    if (adminSettings.minOrderAmount > 0 && subtotal < adminSettings.minOrderAmount) {
+      return res.status(400).json({
+        message: `Minimum order amount is ${adminSettings.defaultCurrency} ${adminSettings.minOrderAmount.toLocaleString()}. Please add more items to continue.`,
+      });
+    }
+
+    const requestedMethod = paymentMethod === "cod" ? "cod" : "mpesa";
+    let normalizedPaymentMethod = requestedMethod;
+
+    if (!adminSettings.mpesaEnabled && !adminSettings.codEnabled) {
+      return res.status(400).json({
+        message: "No payment methods are currently available. Please try again later.",
+      });
+    }
+
+    if (!adminSettings.mpesaEnabled) normalizedPaymentMethod = "cod";
+    if (!adminSettings.codEnabled) normalizedPaymentMethod = "mpesa";
 
     const itemsToCreate = parsedItems.map((item) => ({
       productId: item.productId,
@@ -117,8 +152,6 @@ export const createOrder = async (req: Request, res: Response) => {
 
     const parsedLatitude = Number(latitude);
     const parsedLongitude = Number(longitude);
-
-    const normalizedPaymentMethod = paymentMethod === "cod" ? "cod" : "mpesa";
 
     const orderData: any = {
       phone: normalizedPhone,

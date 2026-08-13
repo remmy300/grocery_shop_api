@@ -680,6 +680,16 @@ export const updatePassword = async (req: Request, res: Response) => {
   }
 };
 
+export const getPublicSettings = async (_req: Request, res: Response) => {
+  try {
+    const settings = await getAdminSettings();
+    res.json(settings);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to fetch settings" });
+  }
+};
+
 export const getSettings = async (_req: Request, res: Response) => {
   try {
     const settings = await getAdminSettings();
@@ -704,6 +714,17 @@ export const updateSettings = async (req: Request, res: Response) => {
       supportEmail,
       supportPhone,
       taxRate,
+      minOrderAmount,
+      freeDeliveryThreshold,
+      deliveryTimeWindow,
+      deliveryRadiusKm,
+      mpesaEnabled,
+      codEnabled,
+      allowRegistration,
+      hideOutOfStock,
+      storeTagline,
+      announcementBanner,
+      storeOpen,
     } = req.body as {
       workspaceName?: string;
       defaultCurrency?: string;
@@ -716,6 +737,17 @@ export const updateSettings = async (req: Request, res: Response) => {
       supportEmail?: string;
       supportPhone?: string;
       taxRate?: number;
+      minOrderAmount?: number;
+      freeDeliveryThreshold?: number;
+      deliveryTimeWindow?: string;
+      deliveryRadiusKm?: number;
+      mpesaEnabled?: boolean;
+      codEnabled?: boolean;
+      allowRegistration?: boolean;
+      hideOutOfStock?: boolean;
+      storeTagline?: string;
+      announcementBanner?: string;
+      storeOpen?: boolean;
     };
 
     const nextSettings: Partial<AdminSettings> = {};
@@ -768,6 +800,53 @@ export const updateSettings = async (req: Request, res: Response) => {
 
     if (typeof taxRate === "number" && Number.isFinite(taxRate)) {
       nextSettings.taxRate = taxRate;
+    }
+
+    if (typeof minOrderAmount === "number" && Number.isFinite(minOrderAmount)) {
+      nextSettings.minOrderAmount = minOrderAmount;
+    }
+
+    if (
+      typeof freeDeliveryThreshold === "number" &&
+      Number.isFinite(freeDeliveryThreshold)
+    ) {
+      nextSettings.freeDeliveryThreshold = freeDeliveryThreshold;
+    }
+
+    if (typeof deliveryTimeWindow === "string") {
+      nextSettings.deliveryTimeWindow = deliveryTimeWindow.trim();
+    }
+
+    if (typeof deliveryRadiusKm === "number" && Number.isFinite(deliveryRadiusKm)) {
+      nextSettings.deliveryRadiusKm = deliveryRadiusKm;
+    }
+
+    if (typeof mpesaEnabled === "boolean") {
+      nextSettings.mpesaEnabled = mpesaEnabled;
+    }
+
+    if (typeof codEnabled === "boolean") {
+      nextSettings.codEnabled = codEnabled;
+    }
+
+    if (typeof allowRegistration === "boolean") {
+      nextSettings.allowRegistration = allowRegistration;
+    }
+
+    if (typeof hideOutOfStock === "boolean") {
+      nextSettings.hideOutOfStock = hideOutOfStock;
+    }
+
+    if (typeof storeTagline === "string") {
+      nextSettings.storeTagline = storeTagline.trim();
+    }
+
+    if (typeof announcementBanner === "string") {
+      nextSettings.announcementBanner = announcementBanner.trim();
+    }
+
+    if (typeof storeOpen === "boolean") {
+      nextSettings.storeOpen = storeOpen;
     }
 
     const settings = await updateAdminSettings(nextSettings);

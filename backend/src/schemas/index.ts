@@ -42,6 +42,7 @@ export const createOrderSchema = z.object({
   latitude: z.coerce.number().optional(),
   longitude: z.coerce.number().optional(),
   paymentMethod: z.enum(["mpesa", "cod"]).optional().default("mpesa"),
+  deliveryMethod: z.enum(["standard", "express"]).optional().default("standard"),
   items: z
     .array(
       z.object({

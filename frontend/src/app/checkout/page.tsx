@@ -22,6 +22,7 @@ import { Input } from "@/components/ui/input";
 
 import { useCart } from "@/hooks/useCart";
 import { useCheckout } from "@/components/checkout/checkoutContext";
+import { useSettings } from "@/contexts/SettingsContext";
 import MpesaPaymentProcessor from "@/components/checkout/MpesaPaymentProcessor";
 
 const getAccessToken = () => {
@@ -48,8 +49,13 @@ export default function CheckoutPage() {
     shipping,
     taxes,
     total,
+    availablePaymentMethods,
+    belowMinOrder,
     canCheckout,
   } = useCheckout();
+
+  const { settings } = useSettings();
+  const currency = settings.defaultCurrency || "KES";
 
   const [geoStatus, setGeoStatus] = useState<string | null>(null);
   const [mapsLoaded, setMapsLoaded] = useState(false);
@@ -254,6 +260,8 @@ export default function CheckoutPage() {
           postalCode: state.address?.postalCode,
           latitude: state.location?.lat,
           longitude: state.location?.lng,
+          deliveryMethod: state.deliveryMethod ?? "standard",
+          paymentMethod: state.paymentMethod ?? "mpesa",
         }),
       });
 
@@ -401,13 +409,21 @@ export default function CheckoutPage() {
                   </p>
                   {shipping > 0 ? (
                     <p className="text-sm font-semibold text-primary mt-1">
-                      KES {shipping.toFixed(0)} delivery fee
+                      {currency} {shipping.toFixed(0)} delivery fee
                     </p>
                   ) : (
                     <p className="text-sm font-semibold text-green-600 mt-1">
                       Free delivery
                     </p>
                   )}
+                  {settings.freeDeliveryThreshold > 0 &&
+                    subtotal < settings.freeDeliveryThreshold &&
+                    state.deliveryMethod === "standard" && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Free delivery on orders over{" "}
+                        {currency} {settings.freeDeliveryThreshold.toFixed(0)}
+                      </p>
+                    )}
                 </Card>
               </label>
 
@@ -438,31 +454,42 @@ export default function CheckoutPage() {
               onValueChange={(v) => setPayment(v as any)}
               className="grid md:grid-cols-2 gap-4"
             >
-              <label className="cursor-pointer">
-                <RadioGroupItem value="mpesa" className="sr-only" />
-                <Card
-                  className={`p-4 border-2 transition-colors ${state.paymentMethod === "mpesa" ? "border-primary" : "border-border"}`}
-                >
-                  <Smartphone className="h-5 w-5 mb-2 text-green-600" />
-                  <p className="font-bold">M-Pesa</p>
-                  <p className="text-sm text-muted-foreground">
-                    Pay via M-Pesa STK push
-                  </p>
-                </Card>
-              </label>
+              {availablePaymentMethods.includes("mpesa") && (
+                <label className="cursor-pointer">
+                  <RadioGroupItem value="mpesa" className="sr-only" />
+                  <Card
+                    className={`p-4 border-2 transition-colors ${state.paymentMethod === "mpesa" ? "border-primary" : "border-border"}`}
+                  >
+                    <Smartphone className="h-5 w-5 mb-2 text-green-600" />
+                    <p className="font-bold">M-Pesa</p>
+                    <p className="text-sm text-muted-foreground">
+                      Pay via M-Pesa STK push
+                    </p>
+                  </Card>
+                </label>
+              )}
 
-              <label className="cursor-pointer">
-                <RadioGroupItem value="cod" className="sr-only" />
-                <Card
-                  className={`p-4 border-2 transition-colors ${state.paymentMethod === "cod" ? "border-primary" : "border-border"}`}
-                >
-                  <Banknote className="h-5 w-5 mb-2 text-amber-600" />
-                  <p className="font-bold">Cash on Delivery</p>
-                  <p className="text-sm text-muted-foreground">
-                    Pay when your order arrives
-                  </p>
-                </Card>
-              </label>
+              {availablePaymentMethods.includes("cod") && (
+                <label className="cursor-pointer">
+                  <RadioGroupItem value="cod" className="sr-only" />
+                  <Card
+                    className={`p-4 border-2 transition-colors ${state.paymentMethod === "cod" ? "border-primary" : "border-border"}`}
+                  >
+                    <Banknote className="h-5 w-5 mb-2 text-amber-600" />
+                    <p className="font-bold">Cash on Delivery</p>
+                    <p className="text-sm text-muted-foreground">
+                      Pay when your order arrives
+                    </p>
+                  </Card>
+                </label>
+              )}
+
+              {availablePaymentMethods.length === 0 && (
+                <p className="text-sm text-red-600 md:col-span-2">
+                  No payment methods are currently available. Please try again
+                  later.
+                </p>
+              )}
             </RadioGroup>
           </section>
 
@@ -503,15 +530,31 @@ export default function CheckoutPage() {
 
           {/* PAY BUTTON */}
           {!createdOrderId && (
-            <Button
-              disabled={!canCheckout || checkoutMutation.isPending}
-              onClick={() => checkoutMutation.mutate()}
-              className="w-full h-14 text-lg font-bold"
-            >
-              {checkoutMutation.isPending
-                ? "Processing..."
-                : `Create Order • KES ${total.toFixed(2)}`}
-            </Button>
+            <>
+              {belowMinOrder && (
+                <Card className="border-amber-200 bg-amber-50">
+                  <CardContent className="p-4">
+                    <p className="text-sm font-medium text-amber-900">
+                      Minimum order is {currency}{" "}
+                      {settings.minOrderAmount.toLocaleString()}
+                    </p>
+                    <p className="text-xs text-amber-700">
+                      Add more items to reach the minimum before checking out.
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+
+              <Button
+                disabled={!canCheckout || checkoutMutation.isPending}
+                onClick={() => checkoutMutation.mutate()}
+                className="w-full h-14 text-lg font-bold"
+              >
+                {checkoutMutation.isPending
+                  ? "Processing..."
+                  : `Create Order • ${currency} ${total.toFixed(2)}`}
+              </Button>
+            </>
           )}
 
           <p className="text-xs text-center text-muted-foreground flex items-center justify-center gap-2">
@@ -544,7 +587,7 @@ export default function CheckoutPage() {
                   </div>
 
                   <p className="text-sm font-bold">
-                    KES {(item.price * item.quantity).toFixed(2)}
+                    {currency} {(item.price * item.quantity).toFixed(2)}
                   </p>
                 </div>
               ))}
@@ -554,7 +597,7 @@ export default function CheckoutPage() {
               <div className="text-sm space-y-2">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
-                  <span>KES {subtotal.toFixed(2)}</span>
+                  <span>{currency} {subtotal.toFixed(2)}</span>
                 </div>
 
                 <div className="flex justify-between">
@@ -567,19 +610,19 @@ export default function CheckoutPage() {
                     {shipping === 0 ? (
                       <span className="text-green-600">Free</span>
                     ) : (
-                      `KES ${shipping.toFixed(2)}`
+                      `${currency} ${shipping.toFixed(2)}`
                     )}
                   </span>
                 </div>
 
                 <div className="flex justify-between">
                   <span>Taxes (VAT)</span>
-                  <span>KES {taxes.toFixed(2)}</span>
+                  <span>{currency} {taxes.toFixed(2)}</span>
                 </div>
 
                 <div className="flex justify-between font-bold text-lg">
                   <span>Total</span>
-                  <span>KES {total.toFixed(2)}</span>
+                  <span>{currency} {total.toFixed(2)}</span>
                 </div>
               </div>
             </CardContent>

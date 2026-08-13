@@ -12,8 +12,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
 import { useCart } from "@/hooks/useCart";
+import { useSettings } from "@/contexts/SettingsContext";
 
 export default function CartPage() {
+  const { settings } = useSettings();
+  const currency = settings.defaultCurrency || "KES";
+
   const {
     items,
     subtotal,
@@ -99,15 +103,35 @@ export default function CartPage() {
                 <div className="mt-6 space-y-4">
                   <SummaryRow
                     label="Subtotal"
-                    value={`KES${subtotal.toFixed(2)}`}
+                    value={`${currency}${subtotal.toFixed(2)}`}
                   />
                 </div>
+
+                {settings.minOrderAmount > 0 &&
+                  subtotal < settings.minOrderAmount && (
+                    <p className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+                      Minimum order is {currency}
+                      {settings.minOrderAmount.toLocaleString()}. You are{" "}
+                      {currency}
+                      {(settings.minOrderAmount - subtotal).toFixed(2)} away.
+                    </p>
+                  )}
+
+                {settings.freeDeliveryThreshold > 0 && (
+                  <p className="mt-4 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-900">
+                    {subtotal >= settings.freeDeliveryThreshold
+                      ? "You've unlocked free delivery!"
+                      : `Free delivery on orders over ${currency}${settings.freeDeliveryThreshold.toLocaleString()}. You are ${currency}${(
+                          settings.freeDeliveryThreshold - subtotal
+                        ).toFixed(2)} away.`}
+                  </p>
+                )}
 
                 <Separator className="my-6" />
 
                 <div className="flex items-center justify-between text-lg font-bold">
                   <span>Total</span>
-                  <span>KES{subtotal.toFixed(2)}</span>
+                  <span>{currency}{subtotal.toFixed(2)}</span>
                 </div>
 
                 <Button

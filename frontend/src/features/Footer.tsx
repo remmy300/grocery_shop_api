@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Leaf, Mail, MapPin, Phone } from "lucide-react";
 import NewsletterForm from "@/components/NewsletterForm";
+import { useSettings } from "@/contexts/SettingsContext";
 
 const currentYear = new Date().getFullYear();
 
@@ -86,6 +87,11 @@ const SOCIAL = [
 ];
 
 export default function Footer() {
+  const { settings } = useSettings();
+  const brandName = settings.workspaceName || "Corner Shop";
+  const supportPhone = settings.supportPhone || "+254 700 000 000";
+  const supportEmail = settings.supportEmail || "support@cornershop.co.ke";
+
   return (
     <footer className="mt-12 bg-stone-900 text-stone-300">
       {/* Main grid */}
@@ -98,7 +104,7 @@ export default function Footer() {
               className="flex items-center gap-2 text-2xl font-extrabold text-white"
             >
               <Leaf className="h-6 w-6 text-primary" />
-              Corner Shop
+              {brandName}
             </Link>
             <p className="max-w-xs text-sm leading-relaxed text-stone-400">
               Your neighbourhood grocery store online. Fresh produce, quality
@@ -114,19 +120,19 @@ export default function Footer() {
               <li className="flex items-center gap-2">
                 <Phone className="h-4 w-4 shrink-0 text-primary" />
                 <a
-                  href="tel:+254700000000"
+                  href={`tel:${supportPhone.replace(/\s/g, "")}`}
                   className="hover:text-white transition-colors"
                 >
-                  +254 700 000 000
+                  {supportPhone}
                 </a>
               </li>
               <li className="flex items-center gap-2">
                 <Mail className="h-4 w-4 shrink-0 text-primary" />
                 <a
-                  href="mailto:support@cornershop.co.ke"
+                  href={`mailto:${supportEmail}`}
                   className="hover:text-white transition-colors"
                 >
-                  support@cornershop.co.ke
+                  {supportEmail}
                 </a>
               </li>
             </ul>
@@ -187,7 +193,7 @@ export default function Footer() {
       {/* Bottom bar */}
       <div className="border-t border-stone-800 px-6 py-5 md:px-8">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 text-xs text-stone-500 sm:flex-row">
-          <span>© {currentYear} Corner Shop. All rights reserved.</span>
+          <span>© {currentYear} {brandName}. All rights reserved.</span>
           <div className="flex gap-4">
             <Link
               href="/privacy"

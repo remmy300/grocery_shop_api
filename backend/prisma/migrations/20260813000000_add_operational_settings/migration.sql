@@ -1,0 +1,13 @@
+-- AlterTable
+ALTER TABLE "AdminSetting"
+    ADD COLUMN "minOrderAmount" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    ADD COLUMN "freeDeliveryThreshold" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    ADD COLUMN "deliveryTimeWindow" TEXT NOT NULL DEFAULT '',
+    ADD COLUMN "deliveryRadiusKm" INTEGER NOT NULL DEFAULT 20,
+    ADD COLUMN "mpesaEnabled" BOOLEAN NOT NULL DEFAULT true,
+    ADD COLUMN "codEnabled" BOOLEAN NOT NULL DEFAULT true,
+    ADD COLUMN "allowRegistration" BOOLEAN NOT NULL DEFAULT true,
+    ADD COLUMN "hideOutOfStock" BOOLEAN NOT NULL DEFAULT false,
+    ADD COLUMN "storeTagline" TEXT NOT NULL DEFAULT '',
+    ADD COLUMN "announcementBanner" TEXT NOT NULL DEFAULT '',
+    ADD COLUMN "storeOpen" BOOLEAN NOT NULL DEFAULT true;

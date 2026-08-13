@@ -16,6 +16,17 @@ const DEFAULT_SETTINGS: Settings = {
   supportEmail: "",
   supportPhone: "",
   taxRate: 16,
+  minOrderAmount: 0,
+  freeDeliveryThreshold: 0,
+  deliveryTimeWindow: "",
+  deliveryRadiusKm: 20,
+  mpesaEnabled: true,
+  codEnabled: true,
+  allowRegistration: true,
+  hideOutOfStock: false,
+  storeTagline: "",
+  announcementBanner: "",
+  storeOpen: true,
   updatedAt: new Date().toISOString(),
 };
 
@@ -59,6 +70,43 @@ export const getStoredSettings = (): Settings => {
         typeof parsed.taxRate === "number"
           ? parsed.taxRate
           : DEFAULT_SETTINGS.taxRate,
+      minOrderAmount:
+        typeof parsed.minOrderAmount === "number"
+          ? parsed.minOrderAmount
+          : DEFAULT_SETTINGS.minOrderAmount,
+      freeDeliveryThreshold:
+        typeof parsed.freeDeliveryThreshold === "number"
+          ? parsed.freeDeliveryThreshold
+          : DEFAULT_SETTINGS.freeDeliveryThreshold,
+      deliveryTimeWindow:
+        parsed.deliveryTimeWindow ?? DEFAULT_SETTINGS.deliveryTimeWindow,
+      deliveryRadiusKm:
+        typeof parsed.deliveryRadiusKm === "number"
+          ? parsed.deliveryRadiusKm
+          : DEFAULT_SETTINGS.deliveryRadiusKm,
+      mpesaEnabled:
+        typeof parsed.mpesaEnabled === "boolean"
+          ? parsed.mpesaEnabled
+          : DEFAULT_SETTINGS.mpesaEnabled,
+      codEnabled:
+        typeof parsed.codEnabled === "boolean"
+          ? parsed.codEnabled
+          : DEFAULT_SETTINGS.codEnabled,
+      allowRegistration:
+        typeof parsed.allowRegistration === "boolean"
+          ? parsed.allowRegistration
+          : DEFAULT_SETTINGS.allowRegistration,
+      hideOutOfStock:
+        typeof parsed.hideOutOfStock === "boolean"
+          ? parsed.hideOutOfStock
+          : DEFAULT_SETTINGS.hideOutOfStock,
+      storeTagline: parsed.storeTagline ?? DEFAULT_SETTINGS.storeTagline,
+      announcementBanner:
+        parsed.announcementBanner ?? DEFAULT_SETTINGS.announcementBanner,
+      storeOpen:
+        typeof parsed.storeOpen === "boolean"
+          ? parsed.storeOpen
+          : DEFAULT_SETTINGS.storeOpen,
       updatedAt: parsed.updatedAt || DEFAULT_SETTINGS.updatedAt,
     };
   } catch {

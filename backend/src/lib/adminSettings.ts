@@ -12,6 +12,17 @@ export type AdminSettings = {
   supportEmail: string;
   supportPhone: string;
   taxRate: number;
+  minOrderAmount: number;
+  freeDeliveryThreshold: number;
+  deliveryTimeWindow: string;
+  deliveryRadiusKm: number;
+  mpesaEnabled: boolean;
+  codEnabled: boolean;
+  allowRegistration: boolean;
+  hideOutOfStock: boolean;
+  storeTagline: string;
+  announcementBanner: string;
+  storeOpen: boolean;
   updatedAt: string;
 };
 
@@ -27,6 +38,17 @@ const initialSettings: AdminSettings = {
   supportEmail: "",
   supportPhone: "",
   taxRate: 16,
+  minOrderAmount: 0,
+  freeDeliveryThreshold: 0,
+  deliveryTimeWindow: "",
+  deliveryRadiusKm: 20,
+  mpesaEnabled: true,
+  codEnabled: true,
+  allowRegistration: true,
+  hideOutOfStock: false,
+  storeTagline: "",
+  announcementBanner: "",
+  storeOpen: true,
   updatedAt: new Date().toISOString(),
 };
 
@@ -47,6 +69,17 @@ const toAdminSettings = (settings: {
   supportEmail: string;
   supportPhone: string;
   taxRate: number;
+  minOrderAmount: number;
+  freeDeliveryThreshold: number;
+  deliveryTimeWindow: string;
+  deliveryRadiusKm: number;
+  mpesaEnabled: boolean;
+  codEnabled: boolean;
+  allowRegistration: boolean;
+  hideOutOfStock: boolean;
+  storeTagline: string;
+  announcementBanner: string;
+  storeOpen: boolean;
   updatedAt: Date;
 }): AdminSettings => ({
   workspaceName: settings.workspaceName,
@@ -60,6 +93,17 @@ const toAdminSettings = (settings: {
   supportEmail: settings.supportEmail,
   supportPhone: settings.supportPhone,
   taxRate: settings.taxRate,
+  minOrderAmount: settings.minOrderAmount,
+  freeDeliveryThreshold: settings.freeDeliveryThreshold,
+  deliveryTimeWindow: settings.deliveryTimeWindow,
+  deliveryRadiusKm: settings.deliveryRadiusKm,
+  mpesaEnabled: settings.mpesaEnabled,
+  codEnabled: settings.codEnabled,
+  allowRegistration: settings.allowRegistration,
+  hideOutOfStock: settings.hideOutOfStock,
+  storeTagline: settings.storeTagline,
+  announcementBanner: settings.announcementBanner,
+  storeOpen: settings.storeOpen,
   updatedAt: settings.updatedAt.toISOString(),
 });
 
@@ -80,6 +124,17 @@ export const getAdminSettings = async () => {
       supportEmail: initialSettings.supportEmail,
       supportPhone: initialSettings.supportPhone,
       taxRate: initialSettings.taxRate,
+      minOrderAmount: initialSettings.minOrderAmount,
+      freeDeliveryThreshold: initialSettings.freeDeliveryThreshold,
+      deliveryTimeWindow: initialSettings.deliveryTimeWindow,
+      deliveryRadiusKm: initialSettings.deliveryRadiusKm,
+      mpesaEnabled: initialSettings.mpesaEnabled,
+      codEnabled: initialSettings.codEnabled,
+      allowRegistration: initialSettings.allowRegistration,
+      hideOutOfStock: initialSettings.hideOutOfStock,
+      storeTagline: initialSettings.storeTagline,
+      announcementBanner: initialSettings.announcementBanner,
+      storeOpen: initialSettings.storeOpen,
     },
   });
 
@@ -99,6 +154,17 @@ export const updateAdminSettings = async (next: Partial<AdminSettings>) => {
     supportEmail,
     supportPhone,
     taxRate,
+    minOrderAmount,
+    freeDeliveryThreshold,
+    deliveryTimeWindow,
+    deliveryRadiusKm,
+    mpesaEnabled,
+    codEnabled,
+    allowRegistration,
+    hideOutOfStock,
+    storeTagline,
+    announcementBanner,
+    storeOpen,
   } = next;
 
   const settings = await prisma.adminSetting.upsert({
@@ -115,6 +181,17 @@ export const updateAdminSettings = async (next: Partial<AdminSettings>) => {
       ...(supportEmail !== undefined && { supportEmail }),
       ...(supportPhone !== undefined && { supportPhone }),
       ...(taxRate !== undefined && { taxRate }),
+      ...(minOrderAmount !== undefined && { minOrderAmount }),
+      ...(freeDeliveryThreshold !== undefined && { freeDeliveryThreshold }),
+      ...(deliveryTimeWindow !== undefined && { deliveryTimeWindow }),
+      ...(deliveryRadiusKm !== undefined && { deliveryRadiusKm }),
+      ...(mpesaEnabled !== undefined && { mpesaEnabled }),
+      ...(codEnabled !== undefined && { codEnabled }),
+      ...(allowRegistration !== undefined && { allowRegistration }),
+      ...(hideOutOfStock !== undefined && { hideOutOfStock }),
+      ...(storeTagline !== undefined && { storeTagline }),
+      ...(announcementBanner !== undefined && { announcementBanner }),
+      ...(storeOpen !== undefined && { storeOpen }),
       updatedAt: new Date(),
     },
     create: {
@@ -133,6 +210,20 @@ export const updateAdminSettings = async (next: Partial<AdminSettings>) => {
       supportEmail: supportEmail ?? initialSettings.supportEmail,
       supportPhone: supportPhone ?? initialSettings.supportPhone,
       taxRate: taxRate ?? initialSettings.taxRate,
+      minOrderAmount: minOrderAmount ?? initialSettings.minOrderAmount,
+      freeDeliveryThreshold:
+        freeDeliveryThreshold ?? initialSettings.freeDeliveryThreshold,
+      deliveryTimeWindow:
+        deliveryTimeWindow ?? initialSettings.deliveryTimeWindow,
+      deliveryRadiusKm: deliveryRadiusKm ?? initialSettings.deliveryRadiusKm,
+      mpesaEnabled: mpesaEnabled ?? initialSettings.mpesaEnabled,
+      codEnabled: codEnabled ?? initialSettings.codEnabled,
+      allowRegistration: allowRegistration ?? initialSettings.allowRegistration,
+      hideOutOfStock: hideOutOfStock ?? initialSettings.hideOutOfStock,
+      storeTagline: storeTagline ?? initialSettings.storeTagline,
+      announcementBanner:
+        announcementBanner ?? initialSettings.announcementBanner,
+      storeOpen: storeOpen ?? initialSettings.storeOpen,
     },
   });
 
