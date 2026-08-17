@@ -54,7 +54,12 @@ interface SwitchFieldProps {
   control: Control<SettingsFormValues>;
 }
 
-const SwitchField = ({ name, label, description, control }: SwitchFieldProps) => (
+const SwitchField = ({
+  name,
+  label,
+  description,
+  control,
+}: SwitchFieldProps) => (
   <Controller
     control={control}
     name={name}
@@ -68,7 +73,10 @@ const SwitchField = ({ name, label, description, control }: SwitchFieldProps) =>
           )}
         </div>
 
-        <Switch checked={Boolean(field.value)} onCheckedChange={field.onChange} />
+        <Switch
+          checked={Boolean(field.value)}
+          onCheckedChange={field.onChange}
+        />
       </div>
     )}
   />
@@ -95,13 +103,16 @@ const SettingsForm = () => {
   const onSubmit = handleSubmit(
     async (values) => {
       try {
+        const payload = settingsSchema.parse(values);
+
         const updated = await apiRequest<Settings>("/api/admin/settings", {
           method: "PUT",
-          json: values,
+          json: payload,
         });
 
         applySettings(updated);
         reset(buildFormValues(updated));
+
         toast.success("Settings saved.");
       } catch (error) {
         toast.error(
