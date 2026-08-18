@@ -64,7 +64,8 @@ export const initiatePayment = async (req: Request, res: Response) => {
     const adminSettings = await getAdminSettings();
     if (!adminSettings.mpesaEnabled) {
       return res.status(400).json({
-        message: "M-Pesa payments are currently disabled. Please select another payment method.",
+        message:
+          "M-Pesa payments are currently disabled. Please select another payment method.",
       });
     }
 
@@ -196,11 +197,11 @@ export const initiatePayment = async (req: Request, res: Response) => {
 
     // Safaricom config/validation error (500.001.x, 500.002.x)
     if (upstreamStatus === 500 && safaricomCode) {
-      console.error(
-        "[payment] Safaricom rejected request:",
-        safaricomCode,
-        error.response?.data?.errorMessage,
-      );
+      console.error("[payment] Safaricom response:", {
+        status: error.response?.status,
+        data: error.response?.data,
+        headers: error.response?.headers,
+      });
       return res.status(502).json({
         message:
           process.env.NODE_ENV !== "production"
