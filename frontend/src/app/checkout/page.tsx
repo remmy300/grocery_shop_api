@@ -139,7 +139,6 @@ export default function CheckoutPage() {
 
     const s = document.createElement("script");
     s.id = "google-maps-script";
-    // v=weekly enables PlaceAutocompleteElement (GA in weekly channel)
     s.src = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=places`;
     s.async = true;
     s.defer = true;
@@ -149,11 +148,15 @@ export default function CheckoutPage() {
         setMapsLoaded(true);
         setGeoStatus(null);
       } else {
-        setGeoStatus("Google Maps failed to initialise. Check your API key referrer settings.");
+        setGeoStatus(
+          "Google Maps failed to initialise. Check your API key referrer settings.",
+        );
       }
     };
     s.onerror = () => {
-      setGeoStatus("Failed to load Google Maps. Check your internet connection.");
+      setGeoStatus(
+        "Failed to load Google Maps. Check your internet connection.",
+      );
     };
     document.head.appendChild(s);
   }, []);
@@ -205,7 +208,9 @@ export default function CheckoutPage() {
     });
 
     // Attach autocomplete to the street input
-    const input = document.getElementById("street-input") as HTMLInputElement | null;
+    const input = document.getElementById(
+      "street-input",
+    ) as HTMLInputElement | null;
     if (input) {
       const ac = new google.maps.places.Autocomplete(input, {
         fields: ["formatted_address", "geometry"],
@@ -222,8 +227,13 @@ export default function CheckoutPage() {
           setLocation({ lat, lng });
           map.setCenter({ lat, lng });
           map.setZoom(15);
-          if (markerRef.current) markerRef.current.setPosition(place.geometry.location);
-          else markerRef.current = new google.maps.Marker({ position: place.geometry.location, map });
+          if (markerRef.current)
+            markerRef.current.setPosition(place.geometry.location);
+          else
+            markerRef.current = new google.maps.Marker({
+              position: place.geometry.location,
+              map,
+            });
         }
       });
     }
@@ -420,8 +430,8 @@ export default function CheckoutPage() {
                     subtotal < settings.freeDeliveryThreshold &&
                     state.deliveryMethod === "standard" && (
                       <p className="text-xs text-muted-foreground mt-1">
-                        Free delivery on orders over{" "}
-                        {currency} {settings.freeDeliveryThreshold.toFixed(0)}
+                        Free delivery on orders over {currency}{" "}
+                        {settings.freeDeliveryThreshold.toFixed(0)}
                       </p>
                     )}
                 </Card>
@@ -597,7 +607,9 @@ export default function CheckoutPage() {
               <div className="text-sm space-y-2">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
-                  <span>{currency} {subtotal.toFixed(2)}</span>
+                  <span>
+                    {currency} {subtotal.toFixed(2)}
+                  </span>
                 </div>
 
                 <div className="flex justify-between">
@@ -617,12 +629,16 @@ export default function CheckoutPage() {
 
                 <div className="flex justify-between">
                   <span>Taxes (VAT)</span>
-                  <span>{currency} {taxes.toFixed(2)}</span>
+                  <span>
+                    {currency} {taxes.toFixed(2)}
+                  </span>
                 </div>
 
                 <div className="flex justify-between font-bold text-lg">
                   <span>Total</span>
-                  <span>{currency} {total.toFixed(2)}</span>
+                  <span>
+                    {currency} {total.toFixed(2)}
+                  </span>
                 </div>
               </div>
             </CardContent>

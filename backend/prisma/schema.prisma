@@ -10,7 +10,8 @@ model Product {
   id                Int         @id @default(autoincrement())
   name              String
   stock             Int
-  price             Decimal
+  price             Float
+  unit              String      @default("per piece")
   imageUrl          String?
   deletedAt         DateTime?
   category          String      @default("General Grocery")

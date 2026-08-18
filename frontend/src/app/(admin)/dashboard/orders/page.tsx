@@ -350,12 +350,10 @@ const OrdersPage = () => {
       oscillator.connect(context.destination);
       oscillator.start();
       oscillator.stop(context.currentTime + 0.12);
-    } catch {
-      // Ignore audio errors in browsers that block autoplay.
-    }
+    } catch {}
   };
 
-  // ── data loading ──────────────────────────────────────────────────
+  //  data loading
 
   const loadOrders = useCallback(async (silent = false) => {
     silent
@@ -434,7 +432,6 @@ const OrdersPage = () => {
 
   useEffect(() => {
     setFilters((prev) => ({ ...prev, page: 1 }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters.search, filters.status, filters.sort]);
 
   // ── derived data ──────────────────────────────────────────────────

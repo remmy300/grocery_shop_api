@@ -66,7 +66,9 @@ const AnalyticsCharts = ({
                     ))}
                   </Pie>
                   <Legend />
-                  <Tooltip formatter={(value) => [`${value}%`, "Revenue Share"]} />
+                  <Tooltip
+                    formatter={(value) => [`${value}%`, "Revenue Share"]}
+                  />
                 </PieChart>
               </ResponsiveContainer>
             </div>

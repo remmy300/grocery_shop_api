@@ -19,6 +19,7 @@ export const createProductSchema = z.object({
   stock: z.coerce.number().int().min(0, "Stock cannot be negative"),
   unit: z.string().max(50).trim().optional().default("per piece"),
   imageUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")),
+  lowStockThreshold: z.coerce.number().int().min(0).optional().default(10),
 });
 
 export const updateProductSchema = createProductSchema.partial();

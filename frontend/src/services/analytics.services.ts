@@ -84,7 +84,7 @@ export const buildAnalyticsResponse = async (): Promise<AnalyticsResponse> => {
   orders.forEach((order) => {
     order.items?.forEach((item) => {
       const product = products.find((entry) => entry.id === item.productId);
-      const category = product ? "General Grocery" : "";
+      const category = product?.category || "General Grocery";
       categoryBuckets.set(
         category,
         (categoryBuckets.get(category) ?? 0) +
