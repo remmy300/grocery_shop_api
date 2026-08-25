@@ -82,48 +82,73 @@ export const initiatePayment = async (req: Request, res: Response) => {
       return res.status(403).json({ message: "Forbidden" });
     }
 
-    // Check for an existing payment record BEFORE calling Safaricom.
-    const existing = await prisma.payment.findUnique({
-      where: { orderId: Number(orderId) },
-    });
+    // Check-then-upsert must be serialized per order, otherwise two
+    // near-simultaneous requests can both pass the checks below and both
+    // trigger an STK push. A Postgres advisory lock keyed on orderId makes
+    // concurrent requests for the same order queue instead of racing; the
+    // lock is held for the transaction and released automatically on commit.
+    const payment = await prisma.$transaction(async (tx: any) => {
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(${Number(orderId)})`;
 
-    if (existing?.status === "completed") {
-      return res
-        .status(200)
-        .json({ message: "Payment already completed for this order" });
-    }
+      const existing = await tx.payment.findUnique({
+        where: { orderId: Number(orderId) },
+      });
 
-    // If a pending payment was initiated less than 2 minutes ago, block a
-    // duplicate STK push (Daraja prompts expire in ~3 min).
-    if (existing?.status === "pending" && existing.updatedAt) {
-      const ageMs = Date.now() - new Date(existing.updatedAt).getTime();
-      if (ageMs < 2 * 60 * 1000) {
-        return res.status(409).json({
+      if (existing?.status === "completed") {
+        throw { status: 200, alreadyCompleted: true };
+      }
+
+      // If a pending payment was initiated less than 2 minutes ago, block a
+      // duplicate STK push (Daraja prompts expire in ~3 min).
+      if (existing?.status === "pending" && existing.updatedAt) {
+        const ageMs = Date.now() - new Date(existing.updatedAt).getTime();
+        if (ageMs < 2 * 60 * 1000) {
+          throw {
+            status: 409,
+            inProgress: true,
+            checkoutRequestId: existing.checkoutRequestId,
+            paymentId: existing.id,
+            paymentStatus: existing.status,
+          };
+        }
+      }
+
+      // create / reset the payment record BEFORE calling Safaricom
+      return tx.payment.upsert({
+        where: { orderId: Number(orderId) },
+        update: {
+          status: "pending",
+          amount: new Prisma.Decimal(amount),
+          merchantRequestId: null,
+          checkoutRequestId: null,
+        },
+        create: {
+          orderId: Number(orderId),
+          amount: new Prisma.Decimal(amount),
+          paymentMethod: "mpesa",
+          status: "pending",
+        },
+      });
+    }).catch((err: any) => {
+      if (err?.alreadyCompleted) {
+        res
+          .status(200)
+          .json({ message: "Payment already completed for this order" });
+        return null;
+      }
+      if (err?.inProgress) {
+        res.status(409).json({
           message:
             "A payment for this order is already in progress. Please check your phone.",
-          checkoutRequestId: existing.checkoutRequestId,
-          payment: { id: existing.id, status: existing.status },
+          checkoutRequestId: err.checkoutRequestId,
+          payment: { id: err.paymentId, status: err.paymentStatus },
         });
+        return null;
       }
-    }
-
-    // create / reset the payment record BEFORE calling Safaricom ---
-    // The unique constraint on orderId is the race-condition guard.
-    const payment = await prisma.payment.upsert({
-      where: { orderId: Number(orderId) },
-      update: {
-        status: "pending",
-        amount: new Prisma.Decimal(amount),
-        merchantRequestId: null,
-        checkoutRequestId: null,
-      },
-      create: {
-        orderId: Number(orderId),
-        amount: new Prisma.Decimal(amount),
-        paymentMethod: "mpesa",
-        status: "pending",
-      },
+      throw err;
     });
+
+    if (!payment) return;
 
     // call Safaricom
     let stkResponse;

@@ -75,7 +75,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
       try {
         const profileResult = await apiRequest<ProfileResponse>(
-          "/api/admin/profile",
+          "/api/auth/me",
         );
 
         dispatch({ type: "SET_PROFILE", payload: profileResult });

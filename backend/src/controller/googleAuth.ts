@@ -42,7 +42,8 @@ export const googleLogin = async (req: Request, res: Response) => {
         const { allowRegistration } = await getAdminSettings();
         if (!allowRegistration) {
           return res.status(403).json({
-            message: "New registrations are currently disabled. Contact the store administrator.",
+            message:
+              "New registrations are currently disabled. Contact the store administrator.",
           });
         }
       }
@@ -101,7 +102,16 @@ export const googleLogin = async (req: Request, res: Response) => {
     });
 
     // Still return tokens in body for clients that need them (mobile / Postman)
-    res.json({ accessToken, refreshToken, user: { id: user.id, email: user.email, role: user.role, picture: user.picture } });
+    res.json({
+      accessToken,
+      refreshToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        picture: user.picture,
+      },
+    });
   } catch (error) {
     return res.status(401).json({ message: "Invalid Google token" });
   }
@@ -141,28 +151,83 @@ export const logout = (_req: Request, res: Response) => {
   return res.json({ message: "Logged out successfully" });
 };
 
-export const getCurrentUser = (req: Request, res: Response) => {
-  const user = getUser(req);
-  return res.json(user);
+export const getCurrentUser = async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: Number(req.user.id) },
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const titleCase = (v: string) =>
+      v
+        .replace(/[_-]+/g, " ")
+        .trim()
+        .split(/\s+/)
+        .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
+        .join(" ");
+    const getInitials = (email: string) =>
+      email
+        .split("@")[0]
+        .split(/[._\-\s]+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((p) => p.charAt(0).toUpperCase())
+        .join("");
+    const getDisplayName = (email: string) =>
+      titleCase(email.split("@")[0].replace(/[._-]+/g, " "));
+    const fmt = new Intl.DateTimeFormat("en-GB", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+
+    return res.json({
+      id: user.id,
+      email: user.email,
+      role: titleCase(user.role || "user"),
+      displayName: getDisplayName(user.email),
+      initials: getInitials(user.email),
+      joinedOn: fmt.format(user.createdAt),
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Failed to fetch profile" });
+  }
 };
 
 export const getAdmins = async (req: Request, res: Response) => {
   try {
     const admins = await prisma.user.findMany({
-      select: { id: true, email: true, role: true },
+      where: {
+        role: "admin",
+      },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+      },
     });
 
-    res.json(
-      admins
-        .filter((admin: any) => normalizeRole(admin.role) === "admin")
-        .map((admin: any) => ({
+    return res.json(
+      admins.map(
+        (admin: { id: number; email: string; role: string | null }) => ({
           id: admin.id,
           email: admin.email,
           role: normalizeRole(admin.role),
-        })),
+        }),
+      ),
     );
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Failed to fetch admins" });
+    return res.status(500).json({
+      message: "Failed to fetch admins",
+    });
   }
 };
