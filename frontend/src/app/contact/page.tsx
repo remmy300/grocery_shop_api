@@ -5,6 +5,7 @@ import { Mail, MapPin, MessageSquare, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { apiRequest } from "@/lib/api";
 
 const CONTACT_INFO = [
   { icon: Phone, label: "Phone", value: "+254 700 000 000", href: "tel:+254700000000" },
@@ -24,10 +25,25 @@ export default function ContactPage() {
       return;
     }
     setSending(true);
-    await new Promise((r) => setTimeout(r, 800));
-    toast.success("Message sent! We'll get back to you within 24 hours.");
-    setForm({ name: "", email: "", subject: "", message: "" });
-    setSending(false);
+    try {
+      await apiRequest("/api/contact", {
+        method: "POST",
+        json: {
+          name: form.name.trim(),
+          email: form.email.trim(),
+          subject: form.subject.trim() || undefined,
+          message: form.message.trim(),
+        },
+      });
+      toast.success("Message sent! We'll get back to you within 24 hours.");
+      setForm({ name: "", email: "", subject: "", message: "" });
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to send message",
+      );
+    } finally {
+      setSending(false);
+    }
   };
 
   return (

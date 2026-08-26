@@ -1,20 +1,30 @@
 # Corner Shop
 
-A full-stack online grocery store with an admin dashboard, M-Pesa payments, and customer-facing storefront.
+A full-stack online grocery store a customer facing storefront with M-Pesa checkout, and an admin dashboard for running inventory, orders, users, and analytics.
+
+Built as a monorepo: a Next.js storefront/admin frontend, and an Express + Prisma API backend on Postgres.
+
+---
+
+## Screenshots
+
+| Analytics                                   | Dashboard                                   | Inventory                                   |
+| ------------------------------------------- | ------------------------------------------- | ------------------------------------------- |
+| ![Analytics](frontend/public/analytics.png) | ![Dashboard](frontend/public/dashboard.png) | ![Inventory](frontend/public/inventory.png) |
 
 ---
 
 ## Tech Stack
 
-| Layer      | Technologies                                                 |
-| ---------- | ------------------------------------------------------------ |
-| Frontend   | Next.js 14, React 18, TypeScript, Tailwind CSS v4, shadcn/ui |
-| Backend    | Express.js, Node.js, TypeScript, Prisma 7                    |
-| Database   | PostgreSQL (Neon)                                            |
-| Auth       | Google OAuth 2.0, JWT (httpOnly cookies)                     |
-| Payments   | M-Pesa Daraja API (STK Push)                                 |
-| Storage    | Cloudinary (product images)                                  |
-| Deployment | Render (backend), Vercel (frontend)                          |
+| Layer      | Technologies                                                           |
+| ---------- | ---------------------------------------------------------------------- |
+| Frontend   | Next.js 14, React 18, TypeScript, Tailwind CSS v4, shadcn/ui, Recharts |
+| Backend    | Express.js, Node.js, TypeScript, Prisma 7                              |
+| Database   | PostgreSQL (Neon)                                                      |
+| Auth       | Google OAuth 2.0, JWT (httpOnly cookies)                               |
+| Payments   | M-Pesa Daraja API (STK Push)                                           |
+| Storage    | Cloudinary (product images)                                            |
+| Deployment | Render (backend), Vercel (frontend)                                    |
 
 ---
 
@@ -25,15 +35,16 @@ A full-stack online grocery store with an admin dashboard, M-Pesa payments, and 
 - Product catalogue with category filtering and search
 - Shopping cart (guest + authenticated)
 - M-Pesa STK Push checkout
-- Order tracking
+- Live order tracking — real order/payment status pulled from the API, not a static confirmation screen
+- Newsletter signup and contact form, both backed by real endpoints
 - Responsive design — mobile first
 
 ### Admin Dashboard
 
 - Inventory management (create, update, delete products with unit pricing)
-- Order management with status updates and CSV export
-- User management and role assignment
-- Analytics — revenue charts, top products, category breakdown
+- Order management with status updates, deletion, and CSV export
+- User management with role assignment and account deletion
+- Analytics — revenue trend, top products, category breakdown
 - Recent activity feed
 - Cloudinary image uploads
 
@@ -82,6 +93,7 @@ grocery_shop/
 cd backend
 npm install
 cp .env.example .env
+npx prisma migrate deploy
 npm run dev
 ```
 
@@ -142,20 +154,25 @@ NEXT_PUBLIC_GOOGLE_CLIENT_ID=
 
 ## API Overview
 
-| Method | Path                          | Auth          | Description           |
-| ------ | ----------------------------- | ------------- | --------------------- |
-| POST   | `/api/auth/google`            | —             | Google OAuth login    |
-| GET    | `/api/auth/me`                | JWT           | Current user          |
-| GET    | `/api/products`               | —             | List products         |
-| POST   | `/api/products`               | Admin         | Create product        |
-| PUT    | `/api/products/:id`           | Admin         | Update product        |
-| POST   | `/api/orders`                 | JWT           | Create order          |
-| GET    | `/api/orders/my`              | JWT           | My orders             |
-| PATCH  | `/api/orders/:id/orderStatus` | Admin         | Update status         |
-| POST   | `/api/payments/initiate`      | JWT           | Start M-Pesa STK push |
-| POST   | `/api/payments/callback`      | Safaricom IPs | M-Pesa webhook        |
-| GET    | `/api/admin/dashboard`        | Admin         | Dashboard stats       |
-| GET    | `/api/admin/analytics`        | Admin         | Analytics data        |
+| Method | Path                          | Auth          | Description             |
+| ------ | ----------------------------- | ------------- | ----------------------- |
+| POST   | `/api/auth/google`            | —             | Google OAuth login      |
+| GET    | `/api/auth/me`                | JWT           | Current user            |
+| GET    | `/api/products`               | —             | List products           |
+| POST   | `/api/products`               | Admin         | Create product          |
+| PUT    | `/api/products/:id`           | Admin         | Update product          |
+| POST   | `/api/orders`                 | JWT           | Create order            |
+| GET    | `/api/orders/my`              | JWT           | My orders (live status) |
+| PATCH  | `/api/orders/:id/orderStatus` | Admin         | Update status           |
+| DELETE | `/api/orders/:id`             | Admin         | Delete order (unpaid)   |
+| POST   | `/api/payments/initiate`      | JWT           | Start M-Pesa STK push   |
+| POST   | `/api/payments/callback`      | Safaricom IPs | M-Pesa webhook          |
+| GET    | `/api/admin/dashboard`        | Admin         | Dashboard stats         |
+| GET    | `/api/admin/analytics`        | Admin         | Analytics data          |
+| GET    | `/api/admin/users`            | Admin         | List users              |
+| DELETE | `/api/admin/users/:id`        | Admin         | Delete user             |
+| POST   | `/api/newsletter/subscribe`   | —             | Newsletter signup       |
+| POST   | `/api/contact`                | —             | Contact form submission |
 
 ---
 
@@ -165,7 +182,7 @@ NEXT_PUBLIC_GOOGLE_CLIENT_ID=
 - All admin routes protected with `auth + authorizeRoles("admin")`
 - **Zod validation** on every mutation endpoint
 - **Safaricom IP whitelist** on M-Pesa callback route
-- Rate limiting on auth (10/15 min), payments (10/min), and cart (60/min)
+- Rate limiting on auth (10/15 min), payments (10/min), cart (60/min), and newsletter/contact forms (5/min)
 - `helmet` security headers enabled in production
 - CORS restricted to configured frontend origin(s)
 

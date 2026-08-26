@@ -50,3 +50,12 @@ export const cartLimiter = rateLimit({
   legacyHeaders: false,
   message: json429("Too many cart operations. Please slow down."),
 });
+
+/** Newsletter/contact forms — 5 req / min (prevents spam submissions) */
+export const siteFormLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: json429("Too many submissions. Please wait a moment."),
+});

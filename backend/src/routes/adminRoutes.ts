@@ -1,6 +1,7 @@
 import express from "express";
 import { auth, authorizeRoles } from "../middleware/auth.js";
 import {
+  deleteUser,
   getAnalyticsOverview,
   getDashboardOverview,
   getInventoryOverview,
@@ -25,6 +26,7 @@ router.get("/dashboard", getDashboardOverview);
 router.get("/inventory", getInventoryOverview);
 router.get("/orders", getOrdersOverview);
 router.get("/users", getUsersOverview);
+router.delete("/users/:id", deleteUser);
 router.get("/analytics", getAnalyticsOverview);
 router.get("/profile", getProfile);
 router.patch("/profile", updateProfile);

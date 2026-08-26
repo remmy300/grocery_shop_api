@@ -410,6 +410,41 @@ export const getUsersOverview = async (_req: Request, res: Response) => {
   }
 };
 
+export const deleteUser = async (req: Request, res: Response) => {
+  try {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(400).json({ message: "Invalid user ID" });
+    }
+
+    if (req.user && Number(req.user.id) === id) {
+      return res.status(400).json({ message: "You cannot delete your own account" });
+    }
+
+    const user = await prisma.user.findUnique({ where: { id } });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    await prisma.user.delete({ where: { id } });
+
+    res.json({ message: "User deleted" });
+  } catch (error) {
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      (error as { code?: string }).code === "P2003"
+    ) {
+      return res.status(409).json({
+        message: "Cannot delete a user who has existing orders",
+      });
+    }
+    console.error(error);
+    res.status(500).json({ message: "Failed to delete user" });
+  }
+};
+
 export const getAnalyticsOverview = async (_req: Request, res: Response) => {
   try {
     const [products, orders] = await Promise.all([

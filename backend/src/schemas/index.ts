@@ -74,3 +74,16 @@ export const initiatePaymentSchema = z.object({
   phoneNumber: kenyaPhone,
   amount: z.coerce.number().positive("Amount must be greater than 0"),
 });
+
+// Site forms
+
+export const subscribeNewsletterSchema = z.object({
+  email: z.string().trim().toLowerCase().email("Enter a valid email address"),
+});
+
+export const createContactMessageSchema = z.object({
+  name: z.string().min(2).max(100).trim(),
+  email: z.string().trim().toLowerCase().email("Enter a valid email address"),
+  subject: z.string().max(200).trim().optional(),
+  message: z.string().min(5).max(2000).trim(),
+});

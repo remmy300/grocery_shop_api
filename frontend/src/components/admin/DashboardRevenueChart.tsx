@@ -1,9 +1,9 @@
 "use client";
 
 import {
+  Area,
+  AreaChart,
   CartesianGrid,
-  Line,
-  LineChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -47,8 +47,23 @@ const DashboardRevenueChart = ({ revenueData }: DashboardRevenueChartProps) => {
         </div>
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={revenueData}>
+            <AreaChart data={revenueData}>
+              <defs>
+                <linearGradient id="revenueFill" x1="0" y1="0" x2="0" y2="1">
+                  <stop
+                    offset="5%"
+                    stopColor="hsl(var(--primary))"
+                    stopOpacity={0.35}
+                  />
+                  <stop
+                    offset="95%"
+                    stopColor="hsl(var(--primary))"
+                    stopOpacity={0}
+                  />
+                </linearGradient>
+              </defs>
               <CartesianGrid
+                vertical={false}
                 strokeDasharray="3 3"
                 stroke="hsl(var(--outline-variant))"
               />
@@ -77,19 +92,20 @@ const DashboardRevenueChart = ({ revenueData }: DashboardRevenueChartProps) => {
                   "Revenue",
                 ]}
               />
-              <Line
+              <Area
                 type="monotone"
                 dataKey="revenue"
                 stroke="hsl(var(--primary))"
-                strokeWidth={3}
-                dot={{ fill: "hsl(var(--primary))", strokeWidth: 2, r: 4 }}
+                strokeWidth={2}
+                fill="url(#revenueFill)"
+                dot={false}
                 activeDot={{
-                  r: 6,
+                  r: 5,
                   stroke: "hsl(var(--primary))",
                   strokeWidth: 2,
                 }}
               />
-            </LineChart>
+            </AreaChart>
           </ResponsiveContainer>
         </div>
       </CardContent>

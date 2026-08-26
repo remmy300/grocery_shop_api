@@ -10,6 +10,7 @@ import {
   Trash,
   ChevronLeft,
   ChevronRight,
+  SearchIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,7 +25,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { apiRequest } from "@/lib/api";
+import { toast } from "sonner";
 
 type UsersResponse = {
   stats: {
@@ -47,6 +59,42 @@ const UsersPage = () => {
   const [data, setData] = useState<UsersResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{
+    userId: number;
+    name: string;
+  } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteUser = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    try {
+      await apiRequest(`/api/admin/users/${deleteTarget.userId}`, {
+        method: "DELETE",
+      });
+      setData((prev) =>
+        prev
+          ? {
+              ...prev,
+              stats: { ...prev.stats, totalUsers: prev.stats.totalUsers - 1 },
+              users: prev.users.filter(
+                (user) => user.userId !== deleteTarget.userId,
+              ),
+            }
+          : prev,
+      );
+      toast.success("User deleted");
+      setDeleteTarget(null);
+    } catch (requestError) {
+      toast.error(
+        requestError instanceof Error
+          ? requestError.message
+          : "Failed to delete user",
+      );
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   useEffect(() => {
     let active = true;
@@ -193,7 +241,7 @@ const UsersPage = () => {
       <div className="bg-surface-container-low p-4 rounded-xl flex items-center justify-between">
         <div className="relative w-full md:w-96  p-3">
           <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-secondary-foreground">
-            search
+            {<SearchIcon />}
           </span>
           <Input
             className="w-full pl-12 pr-4 py-3 bg-surface-container-lowest border-none rounded-xl focus:ring-2 focus:ring-primary/20 text-sm font-body"
@@ -277,6 +325,12 @@ const UsersPage = () => {
                       variant="ghost"
                       size="sm"
                       className="p-2 text-error hover:bg-error/10 rounded-lg transition-colors"
+                      onClick={() =>
+                        setDeleteTarget({
+                          userId: user.userId,
+                          name: user.name,
+                        })
+                      }
                     >
                       <span className="material-symbols-outlined text-lg">
                         <Trash />
@@ -322,6 +376,27 @@ const UsersPage = () => {
           </div>
         </div>
       </div>
+
+      <AlertDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete user?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently remove {deleteTarget?.name} from the
+              community registry. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteUser} disabled={isDeleting}>
+              {isDeleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

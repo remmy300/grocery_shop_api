@@ -840,7 +840,8 @@ const OrdersPage = () => {
       </div>
 
       {/* ── Desktop table ────────────────────────────────────────────── */}
-      <div className="hidden overflow-hidden rounded-xl bg-surface-container-lowest shadow-sm md:block">
+      <div className="hidden rounded-xl bg-surface-container-lowest shadow-sm md:block">
+      <div className="overflow-x-auto rounded-xl">
         <Table>
           <TableHeader>
             <TableRow className="border-none bg-surface-container-low">
@@ -945,6 +946,7 @@ const OrdersPage = () => {
             )}
           </TableBody>
         </Table>
+      </div>
       </div>
 
       {/* ── Pagination (shared) ──────────────────────────────────────── */}

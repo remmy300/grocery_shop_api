@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { apiRequest } from "@/lib/api";
 
 type Props = {
   /** "light" — for dark backgrounds (home page banner).
@@ -20,16 +21,30 @@ export default function NewsletterForm({
   buttonLabel = "Subscribe",
 }: Props) {
   const [email, setEmail] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const trimmed = email.trim();
     if (!trimmed || !trimmed.includes("@")) {
       toast.error("Enter a valid email address");
       return;
     }
-    toast.success("Subscribed! ");
-    setEmail("");
+    setIsSubmitting(true);
+    try {
+      await apiRequest("/api/newsletter/subscribe", {
+        method: "POST",
+        json: { email: trimmed },
+      });
+      toast.success("Subscribed!");
+      setEmail("");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to subscribe",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const isLight = variant === "light";
@@ -50,13 +65,14 @@ export default function NewsletterForm({
       />
       <Button
         type="submit"
+        disabled={isSubmitting}
         className={cn(
           isLight
             ? "bg-white text-primary hover:bg-white/90"
             : "bg-primary text-primary-foreground hover:bg-primary/90",
         )}
       >
-        {buttonLabel}
+        {isSubmitting ? "Subscribing..." : buttonLabel}
       </Button>
     </form>
   );

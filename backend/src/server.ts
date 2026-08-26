@@ -10,6 +10,7 @@ import adminRoutes from "./routes/adminRoutes.js";
 import cartRoutes from "./routes/cartRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import settingsRoutes from "./routes/settingsRoutes.js";
+import siteRoutes from "./routes/siteRoutes.js";
 import { generalLimiter } from "./middleware/rateLimiter.js";
 
 const app = express();
@@ -75,6 +76,7 @@ app.use("/api/cart", cartRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/settings", settingsRoutes);
+app.use("/api", siteRoutes);
 
 app.use((req, res) => {
   res.status(404).json({
