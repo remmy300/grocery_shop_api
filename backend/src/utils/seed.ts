@@ -1,17 +1,17 @@
 import "../config/env.js";
 import prisma from "../lib/prisma.js";
 
-const ADMIN_EMAIL = "jenta@admin.com";
+const ADMIN_EMAILS = "jenta@admin.com";
 
 async function main() {
   const admin = await prisma.user.upsert({
-    where: { email: ADMIN_EMAIL },
+    where: { email: ADMIN_EMAILS },
     update: {
       role: "admin",
       password: "",
     },
     create: {
-      email: ADMIN_EMAIL,
+      email: ADMIN_EMAILS,
       password: "",
       role: "admin",
     },
