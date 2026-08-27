@@ -107,8 +107,21 @@ app.use(
 );
 
 const PORT = Number(process.env.PORT) || 4000;
-app.listen(PORT, () => {
-  console.log(` Server running on port ${PORT}`);
-  console.log(` FRONTEND_URL: ${process.env.FRONTEND_URL}`);
-  console.log(` NODE_ENV: ${process.env.NODE_ENV || "development"}`);
+
+const server = app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Server running on port ${PORT}`);
+  console.log(`FRONTEND_URL: ${process.env.FRONTEND_URL}`);
+  console.log(`NODE_ENV: ${process.env.NODE_ENV || "development"}`);
+});
+
+server.on("close", () => {
+  console.log("🚨 SERVER CLOSED");
+});
+
+server.on("error", (error) => {
+  console.error("🚨 SERVER ERROR:", error);
+});
+
+process.on("exit", (code) => {
+  console.log("🚨 PROCESS EXIT:", code);
 });
