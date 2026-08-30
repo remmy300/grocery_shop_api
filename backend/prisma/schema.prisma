@@ -109,6 +109,7 @@ model User {
   password  String
   role      String   @default("user")
   picture   String?
+  clerkId   String?  @unique
   createdAt DateTime @default(now())
   cart      Cart?
   orders    Order[]

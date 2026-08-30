@@ -1,67 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { GoogleLogin, type CredentialResponse } from "@react-oauth/google";
-import { useApp } from "@/contexts/AppContext";
-import { apiRequest } from "@/lib/api";
-import { useCartSyncOnLogin } from "@/hooks/useCart";
+import { SignIn } from "@clerk/nextjs";
 
 const GoogleLoginButton = () => {
-  const router = useRouter();
-  const { applySessionTokens } = useApp();
-  const { run: syncCart } = useCartSyncOnLogin();
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  const handleSuccess = async (credentialResponse: CredentialResponse) => {
-    try {
-      const { credential } = credentialResponse;
-
-      if (!credential) {
-        setError("Google did not return a credential.");
-        return;
-      }
-
-      setLoading(true);
-      setError(null);
-
-      const response = await apiRequest<{
-        accessToken: string;
-        refreshToken?: string;
-      }>("/api/auth/google", {
-        method: "POST",
-        json: { token: credential },
-      });
-
-      const profile = await applySessionTokens({
-        accessToken: response.accessToken,
-        refreshToken: response.refreshToken,
-      });
-
-      await syncCart();
-
-      // Navigate immediately — don't wait for useEffect in the login page
-      if (profile?.role?.toLowerCase() === "admin") {
-        router.replace("/dashboard");
-      } else {
-        router.replace("/");
-      }
-    } catch (requestError) {
-      setError(
-        requestError instanceof Error
-          ? requestError.message
-          : "Login failed. Please try again.",
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleError = () => {
-    setError("Google sign-in failed. Please try again.");
-  };
-
   return (
     <div className="flex min-h-screen items-center justify-center bg-surface-container-low px-6">
       <div className="w-full max-w-md rounded-3xl bg-surface-container-lowest p-8 shadow-lg">
@@ -78,23 +19,12 @@ const GoogleLoginButton = () => {
         </div>
 
         <div className="flex flex-col items-center gap-4">
-          <GoogleLogin
-            onSuccess={handleSuccess}
-            onError={handleError}
-            theme="outline"
-            size="large"
-            text="signin_with"
-            shape="pill"
-            width="300"
+          {/* Stay on /login after sign-in — the login page's own effect
+              redirects to /dashboard or / once the profile role is known. */}
+          <SignIn
+            fallbackRedirectUrl="/login"
+            signUpFallbackRedirectUrl="/login"
           />
-
-          {loading ? (
-            <p className="text-sm text-secondary-foreground">
-              Signing you in...
-            </p>
-          ) : null}
-
-          {error ? <p className="text-sm text-red-500">{error}</p> : null}
         </div>
       </div>
     </div>

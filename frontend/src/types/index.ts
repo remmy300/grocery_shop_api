@@ -29,6 +29,7 @@ export type BackendAdmin = BackendUser;
 
 export type ApiRequestOptions = Omit<AxiosRequestConfig, "url" | "data"> & {
   json?: unknown;
+  authToken?: string;
 };
 
 export interface Product {

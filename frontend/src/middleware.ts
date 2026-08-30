@@ -1,35 +1,19 @@
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
 
-const PUBLIC_ROUTES = ["/login", "/"];
+const isProtectedRoute = createRouteMatcher([
+  "/dashboard(.*)",
+  "/(admin)(.*)",
+]);
 
-export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-
-  // Check if route is public
-  if (
-    PUBLIC_ROUTES.some(
-      (route) => pathname === route || pathname.startsWith(route),
-    )
-  ) {
-    return NextResponse.next();
+export default clerkMiddleware(async (auth, req) => {
+  if (isProtectedRoute(req)) {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.redirect(new URL("/login", req.url));
+    }
   }
-
-  // Check for auth token
-  const token =
-    request.cookies.get("accessToken")?.value ||
-    request.headers.get("authorization")?.replace("Bearer ", "");
-
-  // If no token and trying to access protected route
-  if (
-    (!token && pathname.startsWith("/dashboard")) ||
-    pathname.startsWith("/(admin)")
-  ) {
-    return NextResponse.redirect(new URL("/login", request.url));
-  }
-
-  return NextResponse.next();
-}
+});
 
 export const config = {
   matcher: [

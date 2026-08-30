@@ -1,15 +1,5 @@
 import { z } from "zod";
 
-//  Auth
-
-export const googleLoginSchema = z.object({
-  token: z.string().min(1, "Google token is required"),
-});
-
-export const refreshTokenSchema = z.object({
-  token: z.string().min(1, "Refresh token is required"),
-});
-
 //  Products
 
 export const createProductSchema = z.object({

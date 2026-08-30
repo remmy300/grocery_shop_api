@@ -1,11 +1,8 @@
 import express from "express";
 import { auth, authorizeRoles } from "../middleware/auth.js";
 import { authLimiter } from "../middleware/rateLimiter.js";
-import { validate } from "../middleware/validate.js";
-import { googleLoginSchema, refreshTokenSchema } from "../schemas/index.js";
 import {
-  googleLogin,
-  refreshToken,
+  syncUser,
   getCurrentUser,
   getAdmins,
   logout,
@@ -13,8 +10,7 @@ import {
 
 const router = express.Router();
 
-router.post("/google", authLimiter, validate(googleLoginSchema), googleLogin);
-router.post("/refresh", authLimiter, validate(refreshTokenSchema), refreshToken);
+router.post("/sync", authLimiter, auth, syncUser);
 router.post("/logout", auth, logout);
 router.get("/me", auth, getCurrentUser);
 // Requires admin — prevents exposing admin email list to the public

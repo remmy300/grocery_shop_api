@@ -4,6 +4,7 @@ import { buildInventoryResponse } from "@/services/inventory.services";
 import { buildOrdersResponse } from "@/services/orders.services";
 import { buildAnalyticsResponse } from "@/services/analytics.services";
 import { buildUsersResponse } from "@/services/users.services";
+import { getAuthToken } from "@/services/auth.services";
 import {
   getStoredSettings,
   saveStoredProfile,
@@ -11,13 +12,7 @@ import {
 import { getSyntheticProfile, saveSettings } from "@/services/profile.services";
 import { mergeProfile } from "@/services/profile.services";
 import { initialsFrom, displayNameFromEmail } from "@/utils/formatters";
-import { getAuthToken } from "@/services/auth.services";
-import {
-  ApiRequestOptions,
-  Settings,
-  ProfileResponse,
-  ApiError,
-} from "@/types";
+import { ApiRequestOptions, Settings, ApiError } from "@/types";
 
 export const getApiBaseUrl = (): string => {
   const configured = process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
@@ -38,7 +33,8 @@ export const getApiBaseUrl = (): string => {
 export const API_BASE_URL = getApiBaseUrl();
 
 const createAxiosConfig = (options: ApiRequestOptions = {}) => {
-  const { headers, json, ...requestOptions } = options;
+  const { headers, json, authToken, ...requestOptions } = options;
+
   const config: AxiosRequestConfig = {
     ...requestOptions,
     headers: {
@@ -47,18 +43,15 @@ const createAxiosConfig = (options: ApiRequestOptions = {}) => {
     },
   };
 
-  const token = getAuthToken();
+  const token = authToken || getAuthToken();
+
   if (token && !config.headers?.Authorization) {
     config.headers!.Authorization = `Bearer ${token}`;
-  } else if (!token) {
-    console.warn(
-      " No auth token found in localStorage. Available keys:",
-      Object.keys(localStorage),
-    );
   }
 
   if (json !== undefined) {
     config.data = json;
+
     if (!config.headers?.["Content-Type"]) {
       config.headers!["Content-Type"] = "application/json";
     }
@@ -113,13 +106,10 @@ axiosInstance.interceptors.response.use(
       // Handle 401 - Token might be expired, refresh or redirect to login
       if (error.response?.status === 401) {
         console.warn(
-          "Unauthorized (401) - Token may have expired or be invalid",
+          "Unauthorized (401) - Clerk token may be missing, expired, or invalid",
         );
+
         console.warn("Response data:", error.response.data);
-        //  Clear session and redirect to login
-        if (typeof window !== "undefined") {
-          localStorage.removeItem("accessToken");
-        }
       }
 
       // Handle 500 - Server error
@@ -136,7 +126,7 @@ export const fetchJson = async <T>(
   path: string,
   options: ApiRequestOptions = {},
 ) => {
-  const config = createAxiosConfig(options);
+  const config = await createAxiosConfig(options);
   try {
     const response = await axiosInstance(path, config);
     return response.data as T;

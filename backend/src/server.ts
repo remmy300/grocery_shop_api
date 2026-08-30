@@ -115,13 +115,13 @@ const server = app.listen(PORT, "0.0.0.0", () => {
 });
 
 server.on("close", () => {
-  console.log("🚨 SERVER CLOSED");
+  console.log(" SERVER CLOSED");
 });
 
 server.on("error", (error) => {
-  console.error("🚨 SERVER ERROR:", error);
+  console.error(" SERVER ERROR:", error);
 });
 
 process.on("exit", (code) => {
-  console.log("🚨 PROCESS EXIT:", code);
+  console.log(" PROCESS EXIT:", code);
 });

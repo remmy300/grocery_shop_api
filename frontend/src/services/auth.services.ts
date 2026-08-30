@@ -8,8 +8,6 @@ export const getAuthToken = () => {
   );
 };
 
-export const hasStoredAccessToken = () => Boolean(getAuthToken());
-
 export const saveSessionTokens = (tokens: {
   accessToken: string;
   refreshToken?: string;

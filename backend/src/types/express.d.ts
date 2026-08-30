@@ -2,7 +2,7 @@ import { Request } from "express";
 import { JwtPayload } from "./express.js";
 
 export interface JwtPayload {
-  id: string;
+  id: number;
   email: string;
   role: "admin" | "user";
   picture?: string;

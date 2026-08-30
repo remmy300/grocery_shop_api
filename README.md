@@ -1,215 +1,44 @@
-# Corner Shop
+# Grocery Shop
 
-A full-stack online grocery store a customer facing storefront with M-Pesa checkout, and an admin dashboard for running inventory, orders, users, and analytics.
+A grocery ordering app with M-Pesa payments and an admin dashboard.
 
-Built as a monorepo: a Next.js storefront/admin frontend, and an Express + Prisma API backend on Postgres.
+- `backend/` — Express + Prisma (PostgreSQL) API
+- `frontend/` — Next.js app
 
----
+## Setup
 
-## Screenshots
+### 1. Clerk (authentication)
 
-| Analytics                                   | Dashboard                                   | Inventory                                   |
-| ------------------------------------------- | ------------------------------------------- | ------------------------------------------- |
-| ![Analytics](frontend/public/analytics.png) | ![Dashboard](frontend/public/dashboard.png) | ![Inventory](frontend/public/inventory.png) |
+Sign-in is handled by [Clerk](https://clerk.com), with Google configured as a
+social connection.
 
----
+1. Create a Clerk application at https://dashboard.clerk.com.
+2. Under **User & Authentication → Social Connections**, enable **Google**.
+3. Copy your keys from **API Keys**:
+   - `backend/.env`: set `CLERK_SECRET_KEY`
+   - `frontend/.env.local`: set `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY`
+4. In `backend/.env`, set `ADMIN_EMAILS` to a comma-separated list of emails
+   that should be granted the `admin` role automatically on first sign-in.
 
-## Tech Stack
-
-| Layer      | Technologies                                                           |
-| ---------- | ---------------------------------------------------------------------- |
-| Frontend   | Next.js 14, React 18, TypeScript, Tailwind CSS v4, shadcn/ui, Recharts |
-| Backend    | Express.js, Node.js, TypeScript, Prisma 7                              |
-| Database   | PostgreSQL (Neon)                                                      |
-| Auth       | Google OAuth 2.0, JWT (httpOnly cookies)                               |
-| Payments   | M-Pesa Daraja API (STK Push)                                           |
-| Storage    | Cloudinary (product images)                                            |
-| Deployment | Render (backend), Vercel (frontend)                                    |
-
----
-
-## Features
-
-### Storefront
-
-- Product catalogue with category filtering and search
-- Shopping cart (guest + authenticated)
-- M-Pesa STK Push checkout
-- Live order tracking — real order/payment status pulled from the API, not a static confirmation screen
-- Newsletter signup and contact form, both backed by real endpoints
-- Responsive design — mobile first
-
-### Admin Dashboard
-
-- Inventory management (create, update, delete products with unit pricing)
-- Order management with status updates, deletion, and CSV export
-- User management with role assignment and account deletion
-- Analytics — revenue trend, top products, category breakdown
-- Recent activity feed
-- Cloudinary image uploads
-
----
-
-## Project Structure
-
-```
-grocery_shop/
-├── backend/
-│   ├── src/
-│   │   ├── controller/     # Business logic
-│   │   ├── routes/         # API endpoints
-│   │   ├── middleware/     # Auth, validation, rate limiting, IP whitelist
-│   │   ├── schemas/        # Zod validation schemas
-│   │   ├── lib/            # Prisma client, utilities
-│   │   └── utils/          # M-Pesa service, token helpers
-│   └── prisma/
-│       ├── schema.prisma
-│       └── migrations/
-│
-└── frontend/
-    └── src/
-        ├── app/            # Next.js App Router pages
-        ├── components/     # Shared UI components
-        ├── features/       # Navbar, Footer
-        ├── hooks/          # Custom React hooks
-        ├── contexts/       # AppContext (auth state)
-        └── lib/            # API client, product helpers
-```
-
----
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js 20+
-- A [Neon](https://neon.tech) PostgreSQL database
-- Google OAuth credentials
-- Safaricom Daraja API credentials
-
-### Backend
+### 2. Backend
 
 ```bash
 cd backend
 npm install
-cp .env.example .env
 npx prisma migrate deploy
 npm run dev
 ```
 
-### Frontend
+Requires `DATABASE_URL` (PostgreSQL), `CLERK_SECRET_KEY`, `ADMIN_EMAILS`,
+Cloudinary and M-Pesa (Daraja) credentials — see `backend/.env.example`.
+
+### 3. Frontend
 
 ```bash
 cd frontend
 npm install
-cp .env.example .env
 npm run dev
 ```
 
-### Docker (both services at once)
-
-```bash
-docker compose up --build
-```
-
----
-
-## Environment Variables
-
-### Backend `backend/.env`
-
-```env
-DATABASE_URL=postgresql://user:password@host/dbname
-JWT_SECRET_KEY=
-JWT_ACCESS_SECRET=
-JWT_REFRESH_TOKEN=
-GOOGLE_CLIENT_ID=
-ADMIN_EMAILS=admin@example.com
-FRONTEND_URL=http://localhost:3000
-PORT=4000
-
-# M-Pesa
-MPESA_CONSUMER_KEY=
-MPESA_CONSUMER_SECRET=
-MPESA_SHORT_CODE=
-MPESA_PASSKEY=
-MPESA_CALLBACK_URL=https://your-backend.com/api/payments/callback
-MPESA_ENVIRONMENT=sandbox
-MPESA_CALLBACK_SECRET=
-
-# Cloudinary
-CLOUDINARY_CLOUD_NAME=
-CLOUDINARY_API_KEY=
-CLOUDINARY_API_SECRET=
-```
-
-### Frontend `frontend/.env`
-
-```env
-NEXT_PUBLIC_API_BASE_URL=http://localhost:4000
-NEXT_PUBLIC_GOOGLE_CLIENT_ID=
-```
-
----
-
-## API Overview
-
-| Method | Path                          | Auth          | Description             |
-| ------ | ----------------------------- | ------------- | ----------------------- |
-| POST   | `/api/auth/google`            | —             | Google OAuth login      |
-| GET    | `/api/auth/me`                | JWT           | Current user            |
-| GET    | `/api/products`               | —             | List products           |
-| POST   | `/api/products`               | Admin         | Create product          |
-| PUT    | `/api/products/:id`           | Admin         | Update product          |
-| POST   | `/api/orders`                 | JWT           | Create order            |
-| GET    | `/api/orders/my`              | JWT           | My orders (live status) |
-| PATCH  | `/api/orders/:id/orderStatus` | Admin         | Update status           |
-| DELETE | `/api/orders/:id`             | Admin         | Delete order (unpaid)   |
-| POST   | `/api/payments/initiate`      | JWT           | Start M-Pesa STK push   |
-| POST   | `/api/payments/callback`      | Safaricom IPs | M-Pesa webhook          |
-| GET    | `/api/admin/dashboard`        | Admin         | Dashboard stats         |
-| GET    | `/api/admin/analytics`        | Admin         | Analytics data          |
-| GET    | `/api/admin/users`            | Admin         | List users              |
-| DELETE | `/api/admin/users/:id`        | Admin         | Delete user             |
-| POST   | `/api/newsletter/subscribe`   | —             | Newsletter signup       |
-| POST   | `/api/contact`                | —             | Contact form submission |
-
----
-
-## Security
-
-- JWT stored in **httpOnly cookies**
-- All admin routes protected with `auth + authorizeRoles("admin")`
-- **Zod validation** on every mutation endpoint
-- **Safaricom IP whitelist** on M-Pesa callback route
-- Rate limiting on auth (10/15 min), payments (10/min), cart (60/min), and newsletter/contact forms (5/min)
-- `helmet` security headers enabled in production
-- CORS restricted to configured frontend origin(s)
-
----
-
-## Deployment
-
-### Render (backend)
-
-Build command:
-
-```bash
-npm install && npx prisma migrate deploy && npm run build
-```
-
-Start command:
-
-```bash
-npm start
-```
-
-### Vercel (frontend)
-
-Set `NEXT_PUBLIC_API_BASE_URL` to your Render backend URL in the Vercel project settings.
-
----
-
-## License
-
-MIT
+Requires `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, and
+`NEXT_PUBLIC_API_BASE_URL` pointing at the backend — see `frontend/.env.local`.
